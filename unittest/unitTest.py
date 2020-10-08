@@ -9,7 +9,7 @@ import platform
 disasmBuff = create_string_buffer(2048)
 instBuff =   create_string_buffer(2048)
 
-library = "./armv7"
+library = "../libarch_armv7"
 if platform.system() == "Linux":
     library += ".so"
 elif platform.system() == "Windows":
@@ -21,10 +21,10 @@ binja = CDLL(library)
 md = Cs(CS_ARCH_ARM, CS_MODE_ARM)
 def disassemble_binja(instruction, baseAddress):
 #    instruction = instruction[::-1]
-    for a in xrange(len(disasmBuff)):
-        disasmBuff[a] = '\0'
-    for a in xrange(len(instBuff)):
-        instBuff[a] = '\0'
+    for a in range(len(disasmBuff)):
+        disasmBuff[a] = b'\0'
+    for a in range(len(instBuff)):
+        instBuff[a] = b'\0'
     
     if len(instruction) < 4:
         return "invalid arm instruction"
@@ -119,8 +119,8 @@ def areEqual(binja, capstone):
         clastelm = -2
     if len(celms) >= 3 and len(belms) >= 2 and celms[clastelm-1] == "pc":
         try:
-            #print hex(int(celms[-1]) + baseAddress + 8)
-            #print hex(int(belms[-1]))
+            #print(hex(int(celms[-1]) + baseAddress + 8))
+            #print(hex(int(belms[-1])))
             if int(belms[blastelm]) == (int(celms[clastelm]) + baseAddress + 8):
                 return True
         except:
@@ -128,15 +128,15 @@ def areEqual(binja, capstone):
 
     for a,b in zip(belms, celms):
         if b != a:
-            #print "celms: ", celms
-            #print "belms: ", belms
+            #print("celms: ", celms)
+            #print("belms: ", belms)
             return False
     return True
                 
 usage = "%s [-v] [-f <armv7File>] [-b] [-u <unitTestFile>] [<32-bitValue>]" % sys.argv[0]
 def main():
     if len(sys.argv) < 2:
-        print usage
+        print(usage)
         return
    
     instructions = []
@@ -155,13 +155,13 @@ def main():
     brute = False
     if sys.argv[1] == "-f":
         if len(sys.argv) < 3:
-            print usage
+            print(usage)
             return
         tmp = open(sys.argv[2]).read()    
         if len(tmp) % 4 != 0:
-            print "File must be multiple of 4"
+            print("File must be multiple of 4")
             return
-        for a in xrange(0, len(tmp), 4):
+        for a in range(0, len(tmp), 4):
             instructions.append(tmp[a:a+4])
     elif sys.argv[1] == "-t":
         for a in test.tests:
@@ -179,22 +179,22 @@ def main():
         disasmOnly = True
         tmp = open(sys.argv[2]).read()    
         if len(tmp) % 4 != 0:
-            print "File must be multiple of 4"
+            print("File must be multiple of 4")
             return
-        for a in xrange(0, len(tmp), 4):
+        for a in range(0, len(tmp), 4):
             instructions.append(tmp[a:a+4])
     else:
         try:
             instructions.append(struct.pack("<L",int(sys.argv[1], 16)))
         except:
-            print "Failed to parse 32-bit hex value %s" % sys.argv[1]
+            print("Failed to parse 32-bit hex value %s" % sys.argv[1])
             return
 
     if disasmOnly:
         offset = 0
         for instruction in instructions:
             binja = disassemble_binja(instruction, offset)
-            print " %x:\t%s\t%s" % (offset, instruction[::-1].encode('hex'), binja)
+            print(" %x:\t%s\t%s" % (offset, instruction[::-1].encode('hex'), binja))
             offset += 4
         sys.exit()
 
@@ -205,7 +205,7 @@ def main():
     success = 0
     if brute:
         total = 1000000
-        for a in xrange(total):
+        for a in range(total):
             instruction = struct.pack("<L", random.randint(0, 0xffffffff))
             binja = disassemble_binja(instruction, 0x08040000)
             capstone = disassemble_capstone(instruction, 0x08040000)
@@ -213,20 +213,20 @@ def main():
                 if "UNDEFINED" in binja or "failed" in binja:
                     if capstone is not None:
                         opcode = capstone.split('\t')[0]
-                        print "ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja)
+                        print("ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja))
                         f.write(instruction)
                         errors += 1
                 else:
                     try:
-                        print "ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja)
+                        print("ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja))
                     except:
-                        print repr(capstone)
-                        print repr(binja)
+                        print(repr(capstone))
+                        print(repr(binja))
                     f.write(instruction)
                     errors += 1
             else:
                 success += 1
-        print "errors: %d/%d success percentage %%%.2f" % (errors, total, (float(success)/float(total)) * 100.0)
+        print("errors: %d/%d success percentage %%%.2f" % (errors, total, (float(success)/float(total)) * 100.0))
         sys.exit()
 
     undefined = {}
@@ -234,8 +234,8 @@ def main():
         binja = disassemble_binja(instruction, 0x08040000)
         capstone = disassemble_capstone(instruction, 0x08040000)
         if verbose > 1:
-            print "binja:", binja
-            print "capst:", capstone
+            print("binja:", binja)
+            print("capst:", capstone)
         if binja == "unimplemented":
             if capstone is not None:
                 opcode = capstone.split('\t')[0]
@@ -254,22 +254,22 @@ def main():
                     else:
                         undefined[opcode] += 1
                     errors += 1
-                    print "ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja)
+                    print("ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja))
                     f.write(instruction)
             else:
-                print "ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja)
+                print("ERROR: Oracle: %s '%s'\n       You:    %s '%s'" % (instruction.encode('hex'), capstone, instruction.encode('hex'), binja))
                 errors += 1
                 f.write(instruction)
         else:
             success += 1
-    print "%d errors, %d successes, %d test cases success percentage %%%.2f" % (errors, success, len(instructions), (float(success)/float(len(instructions))) * 100.0)
+    print("%d errors, %d successes, %d test cases success percentage %%%.2f" % (errors, success, len(instructions), (float(success)/float(len(instructions))) * 100.0))
 
-    print "%d undefined instructions" % len(undefined)
+    print("%d undefined instructions" % len(undefined))
     if verbose:
         import operator
         sorted_undefined = sorted(undefined.items(), key=operator.itemgetter(1))
         for a,b in sorted_undefined:
-            print "%s\t%d" % (a, b)
+            print("%s\t%d" % (a, b))
 
 if __name__ == "__main__":
     main()
