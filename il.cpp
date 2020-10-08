@@ -10,12 +10,6 @@ using namespace armv7;
 //Get N set bits at offset O
 #define BITMASK(N,O) (((1LL << N) - 1) << O)
 
-static inline ExprId Extract(LowLevelILFunction& il, InstructionOperand& reg, size_t nbits, size_t rightMostBit)
-{
-	return il.And(get_register_size(reg.reg), ILREG(reg), il.Const(get_register_size(reg.reg), BITMASK(nbits, rightMostBit)));
-}
-
-
 static inline ExprId DirectJump(Architecture* arch, LowLevelILFunction& il, uint64_t target, size_t addrSize)
 {
 	BNLowLevelILLabel* label = il.GetLabelForAddress(arch, target);
