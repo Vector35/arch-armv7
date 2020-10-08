@@ -1,3 +1,7 @@
+/* compile using the Makefile
+	run with `time ./speedtest`
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
