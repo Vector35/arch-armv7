@@ -118,6 +118,17 @@ static ExprId ReadShiftedOperand(LowLevelILFunction& il, decomp_result* instr, s
 	}
 }
 
+static ExprId ReadRotatedOperand(LowLevelILFunction& il, decomp_result *instr, size_t operand, size_t size = 4)
+{
+	uint32_t rot_n = instr->fields[FIELD_rotation];
+	ExprId value = ReadILOperand(il, instr, operand, size);
+
+	if (IS_FIELD_PRESENT(instr, FIELD_rotation) && 0 != rot_n) {
+		return il.RotateRight(size, value, il.Const(4, rot_n));
+	}
+
+	return value;
+}
 
 static ExprId ReadArithOperand(LowLevelILFunction& il, decomp_result* instr, size_t operand, size_t size = 4)
 {
@@ -908,6 +919,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteArithOperand(il, instr, il.Sub(4, ReadArithOperand(il, instr, 0),
 			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case armv7::ARMV7_SXTB:
+		il.AddInstruction(WriteArithOperand(il, instr, il.SignExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 1)))));
+		break;
+	case armv7::ARMV7_SXTH:
+		il.AddInstruction(WriteArithOperand(il, instr, il.SignExtend(4, il.LowPart(2, ReadRotatedOperand(il, instr, 1)))));
+		break;
 	case armv7::ARMV7_TBB:
 		il.AddInstruction(il.Jump(il.Add(4, il.ConstPointer(4, instr->pc), il.Mult(4, il.Const(4, 2),
 			il.ZeroExtend(4, il.Load(1, GetMemoryAddress(il, instr, 0, 4, false)))))));
@@ -924,6 +941,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_UDF:
 		il.AddInstruction(il.Trap(ReadILOperand(il, instr, 0)));
+		break;
+	case armv7::ARMV7_UXTB:
+		il.AddInstruction(WriteArithOperand(il, instr, il.ZeroExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 1)))));
+		break;
+	case armv7::ARMV7_UXTH:
+		il.AddInstruction(WriteArithOperand(il, instr, il.ZeroExtend(4, il.LowPart(2, ReadRotatedOperand(il, instr, 1)))));
 		break;
 	default:
 		GetLowLevelILForNEONInstruction(arch, il, instr, ifThenBlock);
