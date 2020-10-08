@@ -14,10 +14,11 @@ endif()
 
 file(GLOB SOURCES
 	*.cpp
-	*.c
 	*.h
-	thumb2/*.cpp
-	thumb2/*.h)
+	armv7_disasm/*.c
+	armv7_disasm/*.h
+	thumb2_disasm/*.cpp
+	thumb2_disasm/*.h)
 
 if(DEMO)
 	add_library(arch_armv7 STATIC ${SOURCES})
@@ -27,7 +28,8 @@ endif()
 
 target_include_directories(arch_armv7
 	PRIVATE ${PROJECT_SOURCE_DIR}
-	PRIVATE ${PROJECT_SOURCE_DIR}/thumb2)
+	PRIVATE ${PROJECT_SOURCE_DIR}/armv7_disasm
+	PRIVATE ${PROJECT_SOURCE_DIR}/thumb2_disasm)
 
 target_link_libraries(arch_armv7 binaryninjaapi)
 
