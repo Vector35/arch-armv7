@@ -2,6 +2,24 @@
 
 # (bytes, expected_disassembly, options)
 test_cases = (
+	# load register exclusive should SUCCEED when b11...b8 == 1111
+	(b'\x9f\x1f\x97\xe1', 'ldrex r1, [r7]', {}),
+	(b'\x9f\x1f\x97\xe1', 'ldrex r1, [r7]', {}),
+	(b'\x9f\x2f\xf5\xe1', 'ldrexh r2, [r5]', {}),
+	(b'\x9f\x2f\xf5\xe1', 'ldrexh r2, [r5]', {}),
+	(b'\x9f\x3f\xd4\xe1', 'ldrexb r3, [r4]', {}),
+	(b'\x9f\x3f\xd4\xe1', 'ldrexb r3, [r4]', {}),
+	(b'\x9f\x5f\x96\xe1', 'ldrex r5, [r6]', {}),
+	(b'\x9f\x5f\xd6\xe1', 'ldrexb r5, [r6]', {}),
+	(b'\x9f\x6f\xb8\xe1', 'ldrexd r6, r7, [r8]', {}),
+	(b'\x9f\x6f\xb8\xe1', 'ldrexd r6, r7, [r8]', {}),
+	(b'\x9f\xcf\xf9\xe1', 'ldrexh r12, [r9]', {}),
+	# load register exclusive should FAIL when b11...b8 != 1111
+	(b'\x9f\x1d\x97\xe1', 'decomposer failed', {}),
+	(b'\x9f\x2c\xf5\xe1', 'decomposer failed', {}),
+	(b'\x9f\x3b\xd4\xe1', 'decomposer failed', {}),
+	(b'\x9f\x6a\xb8\xe1', 'decomposer failed', {}),
+	# adr
 	(b'\x7b\x00\x8f\xe2', 'adr r0, 0x83', {}),
 	# ENCODING A1: cond.4|00|1|0100|0|1111|Rd.4|imm12.12
 	# when ADR aliases "add pc, something"
@@ -624,10 +642,6 @@ test_cases = (
 	(b'\x7a\x20\x32\xe9', 'ldmdb r2!, {r1, r3, r4, r5, r6, sp}', {}),
 	(b'\x05\x40\xd0\xe8', 'ldm r0, {r0, r2, lr} ^', {}),
 	(b'\x0f\x80\xfd\xe8', 'ldm sp!, {r0, r1, r2, r3, pc} ^', {}),
-	(b'\x9f\x3f\xd4\xe1', 'ldrexb r3, [r4]', {}),
-	(b'\x9f\x2f\xf5\xe1', 'ldrexh r2, [r5]', {}),
-	(b'\x9f\x1f\x97\xe1', 'ldrex r1, [r7]', {}),
-	(b'\x9f\x6f\xb8\xe1', 'ldrexd r6, r7, [r8]', {}),
 	(b'\xb0\x80\x7b\x80', 'ldrhthi r8, [r11], #-0', {}),
 	(b'\xb0\x80\xfb\x80', 'ldrhthi r8, [r11], #0', {}),
 	(b'\x84\x2f\xa0\xe1', 'lsl r2, r4, #0x1f', {}),
@@ -1355,17 +1369,10 @@ test_cases = (
 	(b'\x10\xda\xf5\xee', 'vmrs sp, mvfr2', {}),
 	(b'\x12\xf3\x11\xe7', 'sdiv r1, r2, r3', {}),
 	(b'\x14\xf5\x33\xe7', 'udiv r3, r4, r5', {}),
-	(b'\x9f\x3e\xd4\xe1', 'ldrexb r3, [r4]', {}),
-	(b'\x9f\x2e\xf5\xe1', 'ldrexh r2, [r5]', {}),
-	(b'\x9f\x1e\x97\xe1', 'ldrex r1, [r7]', {}),
-	(b'\x9f\x6e\xb8\xe1', 'ldrexd r6, r7, [r8]', {}),
 	(b'\x93\x1e\xc4\xe1', 'strexb r1, r3, [r4]', {}),
 	(b'\x92\x4e\xe5\xe1', 'strexh r4, r2, [r5]', {}),
 	(b'\x91\x2e\x87\xe1', 'strex r2, r1, [r7]', {}),
 	(b'\x92\x6e\xa8\xe1', 'strexd r6, r2, r3, [r8]', {}),
-	(b'\x9f\x5c\x96\xe1', 'ldrex r5, [r6]', {}),
-	(b'\x9f\x5c\xd6\xe1', 'ldrexb r5, [r6]', {}),
-	(b'\x9f\xcc\xf9\xe1', 'ldrexh r12, [r9]', {}),
 	(b'\x93\xfc\x80\xe1', 'strex pc, r3, [r0]', {}),
 	(b'\x92\xfc\xc1\xe1', 'strexb pc, r2, [r1]', {}),
 	(b'\x92\xfc\xe3\xe1', 'strexh pc, r2, [r3]', {}),

@@ -2104,6 +2104,26 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 			instruction->operands[2].reg = (Register)decode.swp.rn;
 			break;
 	}
+
+	switch(instruction->operation) {
+		case ARMV7_LDREX:
+		case ARMV7_LDREXB:
+		case ARMV7_LDREXH:
+		case ARMV7_LDREXD:
+			if(decode.ldrex.group3 == 0xF) {
+				// can remain ldrexX
+				while(0);
+			}
+			else if(decode.ldrex.group3 == 0xE) { // A32
+				// TODO: ldaex
+				instruction->operation = ARMV7_UNDEFINED;
+			}
+			else {
+				instruction->operation = ARMV7_UNDEFINED;
+			}
+		default: break;
+	}
+
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
