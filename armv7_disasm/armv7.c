@@ -1479,22 +1479,20 @@ uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restr
 	instruction->cond = (enum Condition)decode.cond;
 	instruction->setsFlags = decode.s;
 	if ((instruction->operation == ARMV7_SUB ||
-		instruction->operation == ARMV7_ADD )&&
+		instruction->operation == ARMV7_ADD) &&
 		decode.rn == REG_PC)
 	{
-		instruction->operation = ARMV7_ADR;
 		instruction->operands[0].cls = REG;
 		instruction->operands[0].reg = (Register)decode.rd;
 		instruction->operands[1].cls = LABEL;
 		instruction->operands[1].imm = address + 8;
-		if (instruction->operation == ARMV7_ADD)
-		{
+		if (instruction->operation == ARMV7_ADD) {
 			instruction->operands[1].imm += ExpandImm(decode.imm);
 		}
-		else
-		{
-			instruction->operands[1].imm -= ExpandImm(decode.imm);			
+		else {
+			instruction->operands[1].imm -= ExpandImm(decode.imm);
 		}
+		instruction->operation = ARMV7_ADR;
 		return 0;
 	}
 	uint32_t i = 0;
@@ -8300,8 +8298,10 @@ uint32_t armv7_disassemble(
 				start += sprintf(start, "%s", get_dsb_option(op->dsbOpt));
 				break;
 			case IMM:
-			case LABEL:
 				start += sprintf(start, "#%#x", op->imm);
+				break;
+			case LABEL:
+				start += sprintf(start, "%#x", op->imm);
 				break;
 			case IMM64:
 				start += sprintf(start, "#%#" PRIx64, op->imm64);
