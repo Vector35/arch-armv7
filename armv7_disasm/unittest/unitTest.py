@@ -141,7 +141,7 @@ def main():
 		return
 
 	instructions = []
-	verbose = 0;
+	verbose = 0
 	if sys.argv[1] == "-v":
 		verbose = 1
 		sys.argv = sys.argv[1:]
