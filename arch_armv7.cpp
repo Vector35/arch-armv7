@@ -631,12 +631,12 @@ protected:
 		switch (instr.operation)
 		{
 		case ARMV7_BL:
-			if (instr.operands[0].cls == LABEL)
+			if (UNCONDITIONAL(instr.cond) && (instr.operands[0].cls == LABEL))
 				result.AddBranch(CallDestination, instr.operands[0].imm, this);
 			break;
 		case ARMV7_BLX:
 			result.archTransitionByTargetAddr = true;
-			if (instr.operands[0].cls == LABEL)
+			if (UNCONDITIONAL(instr.cond) && (instr.operands[0].cls == LABEL))
 				result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
 			break;
 		case ARMV7_BX:
