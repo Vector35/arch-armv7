@@ -1486,7 +1486,15 @@ uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restr
 		instruction->operands[0].cls = REG;
 		instruction->operands[0].reg = (Register)decode.rd;
 		instruction->operands[1].cls = LABEL;
-		instruction->operands[1].imm = address + 8 + ExpandImm(decode.imm);
+		instruction->operands[1].imm = address + 8;
+		if (instruction->operation == ARMV7_ADD)
+		{
+			instruction->operands[1].imm += ExpandImm(decode.imm);
+		}
+		else
+		{
+			instruction->operands[1].imm -= ExpandImm(decode.imm);			
+		}
 		return 0;
 	}
 	uint32_t i = 0;
