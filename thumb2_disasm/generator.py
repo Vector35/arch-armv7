@@ -344,8 +344,8 @@ def bitMaskGenCheckMatch(maskEx, varName):
 
 	comparator = '=='
 
-	mask = 0;
-	reqVal = 0;
+	mask = 0
+	reqVal = 0
 
 	for c in maskEx:
 		if c == '0':
@@ -526,7 +526,7 @@ class BitPattern:
 
 					# In a few cases, the encoding diagram contains more than one bit or field with same name. In these cases, the values of all of those bits or fields must be identical. The encoding-specific pseudocode contains a special case using the Consistent() function to specify what happens if they are not identical. Consistent() returns TRUE if all instruction bits or fields with the same name as its argument have the same value, and FALSE otherwise.
 					if varName in seen:
-						varName = varName + "_check";
+						varName = varName + "_check"
 					seen[varName] = 1
 
 				else:
@@ -697,7 +697,7 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 	# save formats in the result
 	mgr.add("static const instruction_format instr_formats[] = ")
 	mgr.add('{')
-	mgr.tab();
+	mgr.tab()
 	for fmt in fmts:
 		if ' ' not in fmt:
 			operation = fmt.lower()
@@ -785,7 +785,7 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 					operands.append(m.group(0))
 					operandsStr = operandsStr[len(m.group(0)):]
 					did_split = True
-					break;
+					break
 
 			if not did_split:
 				raise Exception('don\'t know how to split next operand on: %s' % operandsStr)
@@ -1001,13 +1001,13 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 			raise Exception("dunno how to handle -%s- in operands" % operand)
 
 		mgr.add('{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},')
-		mgr.untab();
+		mgr.untab()
 		mgr.add('},')
 		mgr.add('%d /* .operandCount */' % len(operands))
 		mgr.untab()
 		mgr.add('},')
 
-	mgr.untab();
+	mgr.untab()
 	mgr.add("}; /* ENDS instruction_format array */")
 	mgr.add('')
 	mgr.add("res->formats = instr_formats;")
@@ -1274,7 +1274,7 @@ def gen_node(mgr, nodeName, lines):
 
 				mgr.add('/* if fall-thru here, no encoding block matched */')
 				mgr.add('return undefined(req, res);')
-				mgr.untab();
+				mgr.untab()
 				mgr.add('}')
 
 				[itEncName, itArches, itFormats, itPattern, itPcode] = [None]*5

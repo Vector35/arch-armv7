@@ -44,7 +44,7 @@ class BetterNode(object):
     def __init__(self, name, children=[], semicolon=False):
         self.name = name
         self.children = children
-        self.semicolon = semicolon;
+        self.semicolon = semicolon
 
     def gen(self, extra=''):
         # leaf nodes (no possible descent)
@@ -64,7 +64,7 @@ class BetterNode(object):
             code = '\nreturn %s(req, res);' % self.children[0]
             self.semicolon = 0
         else:
-            subCode = map(lambda x: x.gen(), self.children);
+            subCode = map(lambda x: x.gen(), self.children)
             subCode = tuple(subCode)
 
             # binary operations translate directly to C
@@ -140,7 +140,7 @@ class BetterNode(object):
                 # see A6.3.2 ThumbExpandImm_C() for explanation
                 #codeB = ' if(((%s & 0xC00)==0) && ((%s & 0x300)==1||(%s & 0x300)==2) && (%s & 0xFF)==0) { res->flags |= FLAG_UNPREDICTABLE; }' % tuple([subCode]*4)
                 codeB = '/* TODO: handle ThumbExpandImm_C\'s possible setting of UNPREDICTABLE */ while(0)'
-                code = codeA + ';\n' + codeB;
+                code = codeA + ';\n' + codeB
             elif self.name == 'ThumbExpandImm_C':
                 codeA = 'ThumbExpandImm_C_imm32(%s, %s)' % subCode
                 codeB = 'ThumbExpandImm_C_cout(%s, %s)' % subCode
