@@ -2,6 +2,10 @@
 
 # (bytes, expected_disassembly, options)
 test_cases = (
+	(b'\x93\xfc\x80\xe1', 'stl r3, [r0]', {}), # NOT 'strex pc, r3, [r0]'
+	(b'\x94\xfc\x81\xe1', 'stl r4, [r1]', {}),
+	(b'\x95\xfc\x82\xe1', 'stl r5, [r2]', {}),
+	(b'\x96\xfc\x83\xe1', 'stl r6, [r3]', {}),
 	# store register exclusive should be A32 stlex, stlexb, stlexh, stlexd when b11...b8 == 1110
 	(b'\x9f\x1e\x87\xe1', 'stlex r1, pc, [r7]', {}),
 	(b'\x9f\x2e\xe5\xe1', 'stlexh r2, pc, [r5]', {}),

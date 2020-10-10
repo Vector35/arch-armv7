@@ -255,6 +255,7 @@ static const char* operationString[] = {
 	"stc2",
 	"stc2l",
 	"stcl",
+	"stl", // A32
 	"stlex", // A32
 	"stlexb", // A32
 	"stlexh", // A32
@@ -2113,6 +2114,7 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 			break;
 	}
 
+	// A32 extends the ARMv7 encodings by specializing on the b11..b8 == (1)(1)(1)(1) field
 	uint32_t b11_b8 = (instructionValue & 0xF00) >> 8;
 	if(b11_b8 == 0xE) {
 		switch(instruction->operation) {
@@ -2124,6 +2126,18 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 			case ARMV7_STREXB: instruction->operation = ARMV7_STLEXB; break; // A32
 			case ARMV7_STREXH: instruction->operation = ARMV7_STLEXH; break; // A32
 			case ARMV7_STREXD: instruction->operation = ARMV7_STLEXD; break; // A32
+			default: break;
+		}
+	}
+	else
+	if(b11_b8 == 0xC) {
+		switch(instruction->operation) {
+			case ARMV7_STREX:
+				instruction->operation = ARMV7_STL; // A32
+				instruction->operands[0] = instruction->operands[1];
+				instruction->operands[1] = instruction->operands[2];
+				instruction->operands[2].cls = NONE;
+				break;
 			default: break;
 		}
 	}
