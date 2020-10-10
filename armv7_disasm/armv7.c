@@ -98,6 +98,10 @@ static const char* operationString[] = {
 	"hvc",
 	"isb",
 	"it",
+	"ldaex", // A32
+	"ldaexb", // A32
+	"ldaexh", // A32
+	"ldaexd", // A32
 	"ldc",
 	"ldc2",
 	"ldc2l",
@@ -2105,23 +2109,15 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 			break;
 	}
 
-	switch(instruction->operation) {
-		case ARMV7_LDREX:
-		case ARMV7_LDREXB:
-		case ARMV7_LDREXH:
-		case ARMV7_LDREXD:
-			if(decode.ldrex.group3 == 0xF) {
-				// can remain ldrexX
-				while(0);
-			}
-			else if(decode.ldrex.group3 == 0xE) { // A32
-				// TODO: ldaex
-				instruction->operation = ARMV7_UNDEFINED;
-			}
-			else {
-				instruction->operation = ARMV7_UNDEFINED;
-			}
-		default: break;
+	uint32_t b11_b8 = (instructionValue & 0xF00) >> 8;
+	if(b11_b8 == 0xE) {
+		switch(instruction->operation) {
+			case ARMV7_LDREX: instruction->operation = ARMV7_LDAEX; break; // A32
+			case ARMV7_LDREXB: instruction->operation = ARMV7_LDAEXB; break; // A32
+			case ARMV7_LDREXH: instruction->operation = ARMV7_LDAEXH; break; // A32
+			case ARMV7_LDREXD: instruction->operation = ARMV7_LDAEXD; break; // A32
+			default: break;
+		}
 	}
 
 	return instruction->operation == ARMV7_UNDEFINED;
