@@ -255,6 +255,10 @@ static const char* operationString[] = {
 	"stc2",
 	"stc2l",
 	"stcl",
+	"stlex", // A32
+	"stlexb", // A32
+	"stlexh", // A32
+	"stlexd", // A32
 	"stm",
 	"stmbd",
 	"stmda",
@@ -2116,6 +2120,10 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 			case ARMV7_LDREXB: instruction->operation = ARMV7_LDAEXB; break; // A32
 			case ARMV7_LDREXH: instruction->operation = ARMV7_LDAEXH; break; // A32
 			case ARMV7_LDREXD: instruction->operation = ARMV7_LDAEXD; break; // A32
+			case ARMV7_STREX: instruction->operation = ARMV7_STLEX; break; // A32
+			case ARMV7_STREXB: instruction->operation = ARMV7_STLEXB; break; // A32
+			case ARMV7_STREXH: instruction->operation = ARMV7_STLEXH; break; // A32
+			case ARMV7_STREXD: instruction->operation = ARMV7_STLEXD; break; // A32
 			default: break;
 		}
 	}

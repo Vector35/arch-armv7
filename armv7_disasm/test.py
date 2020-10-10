@@ -2,6 +2,14 @@
 
 # (bytes, expected_disassembly, options)
 test_cases = (
+	# store register exclusive should be A32 stlex, stlexb, stlexh, stlexd when b11...b8 == 1110
+	(b'\x9f\x1e\x87\xe1', 'stlex r1, pc, [r7]', {}),
+	(b'\x9f\x2e\xe5\xe1', 'stlexh r2, pc, [r5]', {}),
+	(b'\x9f\x3e\xc4\xe1', 'stlexb r3, pc, [r4]', {}),
+	(b'\x9f\x5e\x86\xe1', 'stlex r5, pc, [r6]', {}),
+	(b'\x9f\x5e\xc6\xe1', 'stlexb r5, pc, [r6]', {}),
+	(b'\x94\x2e\xa6\xe1', 'stlexd r2, r4, r5, [r6]', {}),
+	(b'\x9f\xce\xe9\xe1', 'stlexh r12, pc, [r9]', {}),
 	# load register exclusive should be A32 ldaex, ldaexb, ldaexh, ldaexd when b11...b8 == 1110
 	(b'\x9f\x1e\x97\xe1', 'ldaex r1, [r7]', {}),
 	(b'\x9f\x2e\xf5\xe1', 'ldaexh r2, [r5]', {}),
