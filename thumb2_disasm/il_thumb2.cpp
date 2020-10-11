@@ -187,6 +187,16 @@ static ExprId WriteArithOperand(LowLevelILFunction& il, decomp_result* instr, Ex
 }
 
 
+static ExprId WriteSplitOperands(LowLevelILFunction& il, decomp_result *instr, size_t operandHi, size_t operandLo, ExprId value,
+	size_t size = 4, uint32_t flags = 0)
+{
+	uint32_t regHi = instr->fields[instr->format->operands[operandHi].field0];
+	uint32_t regLo = instr->fields[instr->format->operands[operandLo].field0];
+
+	return il.SetRegisterSplit(size, GetRegisterByIndex(regHi), GetRegisterByIndex(regLo), value, flags);
+}
+
+
 static bool HasWriteback(decomp_result* instr, size_t operand)
 {
 	switch (instr->format->operands[operand].writeback)
@@ -941,6 +951,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_UDF:
 		il.AddInstruction(il.Trap(ReadILOperand(il, instr, 0)));
+		break;
+	case armv7::ARMV7_UMULL:
+		il.AddInstruction(WriteSplitOperands(il, instr, 1, 0, il.MultDoublePrecUnsigned(8, ReadILOperand(il, instr, 2), ReadILOperand(il, instr, 3))));
+		break;
+	case armv7::ARMV7_SMULL:
+		il.AddInstruction(WriteSplitOperands(il, instr, 1, 0, il.MultDoublePrecSigned(8, ReadILOperand(il, instr, 2), ReadILOperand(il, instr, 3))));
 		break;
 	case armv7::ARMV7_UXTB:
 		il.AddInstruction(WriteArithOperand(il, instr, il.ZeroExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 1)))));
