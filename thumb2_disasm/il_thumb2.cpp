@@ -585,6 +585,33 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		CompareWithZeroAndConditionalJump(arch, il, instr->fields[instr->format->operands[0].field0], LLIL_CMP_E,
 			(instr->pc - 4) + instr->fields[instr->format->operands[1].field0], (instr->pc - 4) + (instr->instrSize / 8));
 		break;
+	case armv7::ARMV7_CLZ:
+	{
+		LowLevelILLabel loopStart,
+				loopBody,
+				loopExit;
+		//Count leading zeros
+		//Based on the non-thumb CLZ lifter
+		//
+		// TEMP0 = 0
+		// TEMP1 = op2.reg
+		// while (TEMP1 != 0)
+		// 		TEMP1 = TEMP1 >> 1
+		// 		TEMP0 = TEMP0 + 1
+		// op1.reg = 32 - TEMP0
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Const(4, 0)));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), ReadILOperand(il, instr, 1)));
+		il.AddInstruction(il.Goto(loopStart));
+		il.MarkLabel(loopStart);
+		il.AddInstruction(il.If(il.CompareNotEqual(4, il.Register(4, LLIL_TEMP(1)), il.Const(4, 0)), loopBody, loopExit));
+		il.MarkLabel(loopBody);
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), il.LogicalShiftRight(4, il.Register(4, LLIL_TEMP(1)), il.Const(4, 1))));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, 1))));
+		il.AddInstruction(il.Goto(loopStart));
+		il.MarkLabel(loopExit);
+		il.AddInstruction(WriteILOperand(il, instr, 0, il.Sub(4, il.Const(4, 32), il.Register(4, LLIL_TEMP(0)))));
+		break;
+	}
 	case armv7::ARMV7_CMP:
 		il.AddInstruction(il.Sub(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_ALL));
 		break;
