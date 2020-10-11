@@ -939,6 +939,11 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_TST:
 		il.AddInstruction(il.And(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_ALL));
 		break;
+	case armv7::ARMV7_UBFX:
+		il.AddInstruction(WriteILOperand(il, instr, 0, il.And(4, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1),
+												 ReadILOperand(il, instr, 2)),
+									 il.Const(4, (1 << instr->fields[instr->format->operands[3].field0]) - 1))));
+		break;
 	case armv7::ARMV7_UDF:
 		il.AddInstruction(il.Trap(ReadILOperand(il, instr, 0)));
 		break;
