@@ -613,7 +613,7 @@ class PcodeSemantics(object):
             raise Exception("sliceable confused by: %s" % str(ast))
 
     def builtin_value(self, ast):
-        lookup = {'TRUE':'1', 'FALSE':'2', 'SRType_LSL':'0', 'SRType_LSR':'1',
+        lookup = {'FALSE':'0', 'TRUE':'1', 'SRType_LSL':'0', 'SRType_LSR':'1',
             'SRType_ASR':'2', 'SRType_ROR':'3', 'SRType_RRX':'4',
             'ARM_GRP_INVALID':0, 'ARM_GRP_JUMP':1, 'ARM_GRP_CRYPT':128,
             'ARM_GRP_DATABARRIER':129, 'ARM_GRP_DIVIDE':130, 'ARM_GRP_FPARMV8':131,
