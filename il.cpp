@@ -4768,6 +4768,23 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 					il.DivUnsigned(get_register_size(op2.reg), ReadRegisterOrPointer(il, op2, addr), ReadRegisterOrPointer(il, op3, addr))));
 			break;
+		case ARMV7_VLDR:
+			Load(il, instr.cond, false, get_register_size(op1.reg), op1, op2, addr);
+			break;
+		case ARMV7_VMOV:
+			/* VMOV(register) */
+			if (op1.cls == REG && op2.cls == REG && op3.cls == NONE)
+			{
+				ConditionExecute(il, instr.cond,
+					SetRegisterOrBranch(il, op1.reg,
+						ReadILOperand(il, op2, addr), flagOperation[instr.setsFlags]));
+			} else
+			{
+				ConditionExecute(il, instr.cond, il.Unimplemented());
+			}
+			break;
+		case ARMV7_VSTR:
+			Store(il, instr.cond, get_register_size(op2.reg), op1, op2, addr);
 			break;
 
 		default:
