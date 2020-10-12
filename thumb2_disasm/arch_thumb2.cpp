@@ -1162,10 +1162,6 @@ public:
 							if(mask & 2) x = "x";
 							if(mask & 4) s = "s";
 							if(mask & 8) f = "f";
-							sprintf(buf, "cpsr_%s%s%s%s", f, s, x, c);
-						}
-						else {
-							strcpy(buf, "cpsr");
 						}
 
 						/* is it SPSR write? */
@@ -1187,33 +1183,98 @@ public:
 					/* application level form */
 					else {
 						uint32_t tmp = (decomp.fields[FIELD_write_nzcvq] << 1) | decomp.fields[FIELD_write_g];
-						switch(tmp) {
-							case 0: // unpredictable
+						uint8_t sysm = decomp.fields[FIELD_SYSm];
+						switch (sysm >> 3) {
+							case 0: /* xPSR access */
+								switch(tmp) {
+									case 0: // unpredictable
+										break;
+									case 1: // '01' == write_g
+										/* aka CPSR_f */
+										result.emplace_back(RegisterToken, "apsr_g");
+										break;
+									case 2:	// '10' == write_nzcvq
+										/* aka CPSR_s */
+										result.emplace_back(RegisterToken, "apsr_nzcvq");
+										break;
+									case 3: // '11' == write_nzcvq | write_g
+										/* aka CPSR_fs */
+										result.emplace_back(RegisterToken, "apsr_nzcvqg");
+										break;
+								}
 								break;
-							case 1: // '01' == write_g
-								/* aka CPSR_f */
-								result.emplace_back(RegisterToken, "apsr_g");
+							case 1: /* SP access */
+								switch (sysm & 7) {
+									case 0:
+										result.emplace_back(RegisterToken, "msp");
+										break;
+									case 1:
+										result.emplace_back(RegisterToken, "psp");
+										break;
+									/* default? */
+								}
 								break;
-							case 2:	// '10' == write_nzcvq
-								/* aka CPSR_s */
-								result.emplace_back(RegisterToken, "apsr_nzcvq");
+							case 2: /* Priority mask or CONTROL access */
+								switch (sysm & 7) {
+									case 0:
+										result.emplace_back(RegisterToken, "primask");
+										break;
+									case 1:
+									case 2:
+										result.emplace_back(RegisterToken, "basepri");
+										break;
+									case 3:
+										result.emplace_back(RegisterToken, "faultmask");
+										break;
+									case 4:
+										result.emplace_back(RegisterToken, "control");
+										break;
+								}
 								break;
-							case 3: // '11' == write_nzcvq | write_g
-								/* aka CPSR_fs */
-								result.emplace_back(RegisterToken, "apsr_nzcvqg");
-								break;
+							/* default? */
 						}
 					}
 				}
 				else
 				if (decomp.mnem == ARMV7_MRS) {
-					switch(decomp.fields[FIELD_read_spsr]) {
-						case 0:
-							result.emplace_back(RegisterToken, "apsr");
-							break;
-						case 1:
-							result.emplace_back(RegisterToken, "spsr");
-							break;
+					if (decomp.fields[FIELD_read_spsr]) {
+						result.emplace_back(RegisterToken, "spsr");
+					} else {
+						uint8_t sysm = decomp.fields[FIELD_SYSm];
+						switch (sysm >> 3) {
+							case 0: /* xPSR access */
+								result.emplace_back(RegisterToken, "apsr");
+								break;
+							case 1: /* SP access */
+								switch (sysm & 7) {
+									case 0:
+										result.emplace_back(RegisterToken, "msp");
+										break;
+									case 1:
+										result.emplace_back(RegisterToken, "psp");
+										break;
+									/* default? */
+								}
+								break;
+							case 2: /* Priority mask or CONTROL access */
+								switch (sysm & 7) {
+									case 0:
+										result.emplace_back(RegisterToken, "primask");
+										break;
+									case 1:
+									case 2:
+										result.emplace_back(RegisterToken, "basepri");
+										break;
+									case 3:
+										result.emplace_back(RegisterToken, "faultmask");
+										break;
+									case 4:
+										result.emplace_back(RegisterToken, "control");
+										break;
+								}
+								break;
+							/* default? */
+						}
 					}
 				}
 

@@ -2012,7 +2012,7 @@ pcode d = UInt(Rd); n = UInt(Rn); lsbit = UInt(imm3:imm2); width = UInt(widthm1)
 msr_reg_app:
 Encoding T1 ARMv6T2, ARMv7
 fmt MSR<c> <spec_reg>,<Rn>
-extract32 11110,0,1110,0,0,Rn.4,10,(0),0,mask.2,00,(0)(0)(0)(0)(0)(0)(0)(0)
+extract32 11110,0,1110,0,0,Rn.4,10,(0),0,mask.2,00,SYSm.8
 pcode_start
 n = UInt(Rn);
 write_nzcvq = (mask<1> == '1');
@@ -2024,7 +2024,7 @@ pcode_end
 msr_reg_sys:
 Encoding T1 ARMv6T2, ARMv7
 fmt MSR<c> <spec_reg>,<Rn>
-extract32 11110,0,1110,0,R.1,Rn.4,10,(0),0,mask.4,(0)(0)(0)(0)(0)(0)(0)(0)
+extract32 11110,0,1110,0,R.1,Rn.4,10,(0),0,mask.4,SYSm.8
 pcode_start
 n = UInt(Rn);
 write_spsr = (R == '1');
@@ -2087,7 +2087,7 @@ pcode n = 14; imm32 = ZeroExtend(imm8, 32); register_form = FALSE; opcode = '001
 mrs:
 Encoding T1 ARMv6T2, ARMv7
 fmt MRS<c> <Rd>,<spec_reg>
-extract32 11110,0,1111,1,R.1,(1)(1)(1)(1),10,(0),0,Rd.4,(0)(0)(0)(0)(0)(0)(0)(0)
+extract32 11110,0,1111,1,R.1,(1)(1)(1)(1),10,(0),0,Rd.4,SYSm.8
 pcode_start
 d = UInt(Rd);
 read_spsr = (R == '1');

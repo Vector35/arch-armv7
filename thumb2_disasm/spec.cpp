@@ -12892,19 +12892,19 @@ int mrrc_mrrc2(struct decomp_request *req, struct decomp_result *res)
 	return undefined(req, res);
 }
 
-// gen_crc: AC3E2164
+// gen_crc: A720271F
 int mrs(struct decomp_request *req, struct decomp_result *res)
 {
 	int rc = -1;
 
 	res->group = INSN_GROUP_UNKNOWN;
 	/* Encoding T1 */
-	/* pattern="11110,0,1111,1,R.1,(1)(1)(1)(1),10,(0),0,Rd.4,(0)(0)(0)(0)(0)(0)(0)(0)" width=32 stringency=28 */
+	/* pattern="11110,0,1111,1,R.1,(1)(1)(1)(1),10,(0),0,Rd.4,SYSm.8" width=32 stringency=20 */
 	{
 		uint32_t instr = req->instr_word32;
 		if(((instr & 0xFFE0D000)==0xF3E08000)) {
 			res->instrSize = 32;
-			if(!((instr & 0xF20FF)==0xF0000)) {
+			if(!((instr & 0xF2000)==0xF0000)) {
 				res->flags |= FLAG_UNPREDICTABLE;
 			}
 			if(!(req->arch & ARCH_ARMv6T2) && !(req->arch & ARCH_ARMv7)) {
@@ -12918,6 +12918,9 @@ int mrs(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_Rd] = (instr & 0xF00)>>8;
 			res->fields_mask[FIELD_Rd >> 6] |= 1LL << (FIELD_Rd & 63);
 			char Rd_width = 4;
+			res->fields[FIELD_SYSm] = instr & 0xFF;
+			res->fields_mask[FIELD_SYSm >> 6] |= 1LL << (FIELD_SYSm & 63);
+			char SYSm_width = 8;
 
 			static const instruction_format instr_formats[] =
 			{
@@ -12956,19 +12959,19 @@ int mrs(struct decomp_request *req, struct decomp_result *res)
 	return undefined(req, res);
 }
 
-// gen_crc: 38891CAD
+// gen_crc: 7885C1A4
 int msr_reg_app(struct decomp_request *req, struct decomp_result *res)
 {
 	int rc = -1;
 
 	res->group = INSN_GROUP_UNKNOWN;
 	/* Encoding T1 */
-	/* pattern="11110,0,1110,0,0,Rn.4,10,(0),0,mask.2,00,(0)(0)(0)(0)(0)(0)(0)(0)" width=32 stringency=26 */
+	/* pattern="11110,0,1110,0,0,Rn.4,10,(0),0,mask.2,00,SYSm.8" width=32 stringency=18 */
 	{
 		uint32_t instr = req->instr_word32;
 		if(((instr & 0xFFF0D300)==0xF3808000)) {
 			res->instrSize = 32;
-			if(!((instr & 0x20FF)==0x0)) {
+			if(!((instr & 0x2000)==0x0)) {
 				res->flags |= FLAG_UNPREDICTABLE;
 			}
 			if(!(req->arch & ARCH_ARMv6T2) && !(req->arch & ARCH_ARMv7)) {
@@ -12982,6 +12985,9 @@ int msr_reg_app(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_mask] = (instr & 0xC00)>>10;
 			res->fields_mask[FIELD_mask >> 6] |= 1LL << (FIELD_mask & 63);
 			char mask_width = 2;
+			res->fields[FIELD_SYSm] = instr & 0xFF;
+			res->fields_mask[FIELD_SYSm >> 6] |= 1LL << (FIELD_SYSm & 63);
+			char SYSm_width = 8;
 
 			static const instruction_format instr_formats[] =
 			{
@@ -13027,19 +13033,19 @@ int msr_reg_app(struct decomp_request *req, struct decomp_result *res)
 	return undefined(req, res);
 }
 
-// gen_crc: 0DB01708
+// gen_crc: 90DA8A57
 int msr_reg_sys(struct decomp_request *req, struct decomp_result *res)
 {
 	int rc = -1;
 
 	res->group = INSN_GROUP_UNKNOWN;
 	/* Encoding T1 */
-	/* pattern="11110,0,1110,0,R.1,Rn.4,10,(0),0,mask.4,(0)(0)(0)(0)(0)(0)(0)(0)" width=32 stringency=24 */
+	/* pattern="11110,0,1110,0,R.1,Rn.4,10,(0),0,mask.4,SYSm.8" width=32 stringency=16 */
 	{
 		uint32_t instr = req->instr_word32;
 		if(((instr & 0xFFE0D000)==0xF3808000)) {
 			res->instrSize = 32;
-			if(!((instr & 0x20FF)==0x0)) {
+			if(!((instr & 0x2000)==0x0)) {
 				res->flags |= FLAG_UNPREDICTABLE;
 			}
 			if(!(req->arch & ARCH_ARMv6T2) && !(req->arch & ARCH_ARMv7)) {
@@ -13056,6 +13062,9 @@ int msr_reg_sys(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_mask] = (instr & 0xF00)>>8;
 			res->fields_mask[FIELD_mask >> 6] |= 1LL << (FIELD_mask & 63);
 			char mask_width = 4;
+			res->fields[FIELD_SYSm] = instr & 0xFF;
+			res->fields_mask[FIELD_SYSm >> 6] |= 1LL << (FIELD_SYSm & 63);
+			char SYSm_width = 8;
 
 			static const instruction_format instr_formats[] =
 			{
