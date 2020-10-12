@@ -552,6 +552,9 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteArithOperand(il, instr, il.And(4, ReadArithOperand(il, instr, 0),
 			il.Not(4, ReadArithOperand(il, instr, 1)), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case armv7::ARMV7_BKPT:
+		il.AddInstruction(il.Breakpoint());
+		break;
 	case armv7::ARMV7_BL:
 	case armv7::ARMV7_BLX:
 		il.AddInstruction(il.Call(ReadILOperand(il, instr, 0)));
