@@ -167,6 +167,7 @@ enum decomp_field {
 	FIELD_round_mode,
 	FIELD_round_nearest,
 	FIELD_round_zero,
+	FIELD_SYSm,
 	FIELD_sat_imm,
 	FIELD_saturate_to,
 	FIELD_set_bigend,
