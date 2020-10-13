@@ -4768,8 +4768,6 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 					il.DivUnsigned(get_register_size(op2.reg), ReadRegisterOrPointer(il, op2, addr), ReadRegisterOrPointer(il, op3, addr))));
 			break;
-			break;
-
 		default:
 			//printf("Instruction: %s\n", get_operation(instr.operation));
 			ConditionExecute(il, instr.cond, il.Unimplemented());
