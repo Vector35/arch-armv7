@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 test_cases = [
+	# temp0 = r2*r3; r0=tmp0&0xFFFFFFFF; r1=tmp0>>32 ... LOGICAL shift since mul is unsigned
+	(b'\x92\x03\x81\xe0', 'LLIL_SET_REG(temp0,LLIL_MUL(LLIL_REG(r2),LLIL_REG(r3))); LLIL_SET_REG(r0,LLIL_LOW_PART(LLIL_REG(temp0))); LLIL_SET_REG(r1,LLIL_LSR(LLIL_REG(temp0),LLIL_CONST(32)))'), # umull r0, r1, r2, r3
+	# same, but ARITHMETIC shift since mul is signed
+	(b'\x92\x03\xc1\xe0', 'LLIL_SET_REG(temp0,LLIL_MUL(LLIL_REG(r2),LLIL_REG(r3))); LLIL_SET_REG(r0,LLIL_LOW_PART(LLIL_REG(temp0))); LLIL_SET_REG(r1,LLIL_ASR(LLIL_REG(temp0),LLIL_CONST(32)))'), # smull r0, r1, r2, r3
 	# multiply and accumulate: mla r0, r1, r2, r3 lift to r0 = r3 + (r1 * r2)
 	(b'\x91\x32\x20\xe0', 'LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r3),LLIL_MUL(LLIL_REG(r1),LLIL_REG(r2))))'), # mla r0, r1, r2, r3
 	# multiply and subtract: mls r0, r1, r2, r3 lift to r0 = r3 - (r1 * r2)
