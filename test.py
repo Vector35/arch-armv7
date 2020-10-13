@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 test_cases = [
+	# multiply and accumulate: mla r0, r1, r2, r3 lift to r0 = r3 + (r1 * r2)
+	(b'\x91\x32\x20\xe0', 'LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r3),LLIL_MUL(LLIL_REG(r1),LLIL_REG(r2))))'), # mla r0, r1, r2, r3
+	# multiply and subtract: mls r0, r1, r2, r3 lift to r0 = r3 - (r1 * r2)
+	(b'\x91\x32\x60\xe0', 'LLIL_SET_REG(r0,LLIL_SUB(LLIL_REG(r3),LLIL_MUL(LLIL_REG(r1),LLIL_REG(r2))))'), # mls r0, r1, r2, r3
 	# sdiv r1, r2, r3 lift to r1=r2/r3 (signed)
 	(b'\x12\xf3\x11\xe7', 'LLIL_SET_REG(r1,LLIL_DIVS(LLIL_REG(r2),LLIL_REG(r3)))'), # 'sdiv r1, r2, r3'
 	# udiv r1, r2, r3 lift to r1=r2/r3 (unsigned)
