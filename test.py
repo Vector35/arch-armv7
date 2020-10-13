@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-test_cases = [
+test_cases_arm = [
 	# temp0 = r2*r3; r0=tmp0&0xFFFFFFFF; r1=tmp0>>32 ... LOGICAL shift since mul is unsigned
 	(b'\x92\x03\x81\xe0', 'LLIL_SET_REG(temp0,LLIL_MUL(LLIL_REG(r2),LLIL_REG(r3))); LLIL_SET_REG(r0,LLIL_LOW_PART(LLIL_REG(temp0))); LLIL_SET_REG(r1,LLIL_LSR(LLIL_REG(temp0),LLIL_CONST(32)))'), # umull r0, r1, r2, r3
 	# same, but ARITHMETIC shift since mul is signed
@@ -24,6 +24,11 @@ test_cases = [
 	(b'\x00\xf0\x20\xe3', ''), # nop, gets optimized from function
 ]
 
+test_cases_thumb2 = [
+	(b'\xb1\xfa\x81\xf0', 'LLIL_SET_REG(temp0,LLIL_CONST(0)); LLIL_SET_REG(temp1,LLIL_REG(r1)); LLIL_GOTO(3); LLIL_IF(LLIL_CMP_NE(LLIL_REG(temp1),LLIL_CONST(0)),4,7); LLIL_SET_REG(temp1,LLIL_LSR(LLIL_REG(temp1),LLIL_CONST(1))); LLIL_SET_REG(temp0,LLIL_ADD(LLIL_REG(temp0),LLIL_CONST(1))); LLIL_GOTO(3); LLIL_SET_REG(r0,LLIL_SUB(LLIL_CONST(32),LLIL_REG(temp0)))'), # 'clz r0, r1'
+	(b'\x00\xbf', ''), # nop, gets optmized from function
+]
+
 import sys
 import binaryninja
 from binaryninja import core
@@ -37,8 +42,8 @@ def il2str(il):
 		return str(il)
 
 # TODO: make this less hacky
-def instr_to_il(data):
-	platform = binaryninja.Platform['linux-armv7']
+def instr_to_il(data, plat_name):
+	platform = binaryninja.Platform[plat_name]
 	# make a pretend function that returns
 	bv = binaryview.BinaryView.new(data)
 	bv.add_function(0, plat=platform)
@@ -56,15 +61,24 @@ def instr_to_il(data):
 
 	return result
 
+def check(test_i, data, actual, expected):
+	print('\t    test: %d' % test_i)
+	print('\t   input: %s' % data.hex())
+	print('\texpected: %s' % expected)
+	print('\t  actual: %s' % actual)
+
+	if actual != expected:
+		print('MISMATCH!')
+		sys.exit(-1)
+
 if __name__ == '__main__':
-	for (test_i, (data, expected)) in enumerate(test_cases):
-		actual = instr_to_il(data)
-		if actual != expected:
-			print('MISMATCH AT TEST %d!' % test_i)
-			print('\t   input: %s' % data.hex())
-			print('\texpected: %s' % expected)
-			print('\t  actual: %s' % actual)
-			sys.exit(-1)
+	for (test_i, (data, expected)) in enumerate(test_cases_arm):
+		actual = instr_to_il(data, 'linux-armv7')
+		check(test_i, data, actual, expected)
+
+	for (test_i, (data, expected)) in enumerate(test_cases_thumb2):
+		actual = instr_to_il(data, 'linux-thumb2')
+		check(test_i, data, actual, expected)
 
 	print('success!')
 	sys.exit(0)
