@@ -554,6 +554,17 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			ConditionalJump(arch, il, instr->fields[FIELD_cond], t, f);
 		}
 		break;
+	case armv7::ARMV7_BFC:
+		{
+			uint32_t lsb = instr->fields[instr->format->operands[1].field0];
+			uint32_t clear_width = instr->fields[instr->format->operands[2].field0];
+			uint32_t mask = ((1 << clear_width) - 1) << lsb;
+			il.AddInstruction(WriteILOperand(il, instr, 0,
+						il.And(4,
+							ReadILOperand(il, instr, 0),
+							il.Const(4, ~mask))));
+		}
+		break;
 	case armv7::ARMV7_BFI:
 	{
 		uint32_t mask;
