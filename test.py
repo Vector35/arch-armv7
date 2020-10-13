@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 
 test_cases = [
+	# ubfx <dst> <src> <lsb> <width>
+	# ubfx r1, r2, #4, #4 should extract b7..b4, lift to r1=(r2>>4)&0b1111
+	(b'\x52\x12\xe3\xe7', 'LLIL_SET_REG(r1,LLIL_AND(LLIL_LSR(LLIL_REG(r2),LLIL_CONST(4)),LLIL_CONST(15)))'), # 'ubfx r1, r2, #4, #4'
+	# ubfx r2, r3, #4, #5 should extract b8..b4, lift to r2=(r3>>4)&0b11111
+	(b'\x53\x22\xe4\xe7', 'LLIL_SET_REG(r2,LLIL_AND(LLIL_LSR(LLIL_REG(r3),LLIL_CONST(4)),LLIL_CONST(31)))'), # 'ubfx r2, r3, #4, #5'
+	# ubfx r3, r4, #0, #16 should extract b15..b0, lift to r3=(r4>>0)&0b1111111111111111
+	# though no shift is needed, no reason to complicate the lifter as the core should see x>>0 == x
+	(b'\x54\x30\xef\xe7', 'LLIL_SET_REG(r3,LLIL_AND(LLIL_LSR(LLIL_REG(r4),LLIL_CONST(0)),LLIL_CONST(65535)))'), # 'ubfx r3, r4, #0, #16'
 	(b'\x00\xf0\x20\xe3', ''), # nop, gets optimized from function
 ]
 
