@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 test_cases = [
+	# sdiv r1, r2, r3 lift to r1=r2/r3 (signed)
+	(b'\x12\xf3\x11\xe7', 'LLIL_SET_REG(r1,LLIL_DIVS(LLIL_REG(r2),LLIL_REG(r3)))'), # 'sdiv r1, r2, r3'
+	# udiv r1, r2, r3 lift to r1=r2/r3 (unsigned)
+	(b'\x12\xf3\x31\xe7', 'LLIL_SET_REG(r1,LLIL_DIVU(LLIL_REG(r2),LLIL_REG(r3)))'), # 'udiv r1, r2, r3'
 	# ubfx <dst> <src> <lsb> <width>
 	# ubfx r1, r2, #4, #4 should extract b7..b4, lift to r1=(r2>>4)&0b1111
 	(b'\x52\x12\xe3\xe7', 'LLIL_SET_REG(r1,LLIL_AND(LLIL_LSR(LLIL_REG(r2),LLIL_CONST(4)),LLIL_CONST(15)))'), # 'ubfx r1, r2, #4, #4'
