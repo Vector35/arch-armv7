@@ -31,6 +31,8 @@ test_cases_arm = [
 ]
 
 test_cases_thumb2 = [
+	# clear b4...b2 so lift to r1 = r1 & 0b11111111111111111111111111100011
+	(b'\x6f\xf3\x84\x01', 'LLIL_SET_REG(r1,LLIL_AND(LLIL_REG(r1),LLIL_CONST(4294967267)))'), # bfc r1, #2, #3
 	# these differ only when the ifThenBlock varies
 	# TODO: vary the ifThenBlock state
 	(b'\x62\xeb\x03\x01', 'LLIL_SET_REG(r1,LLIL_SBB(LLIL_REG(r2),LLIL_REG(r3),LLIL_NOT(LLIL_FLAG(c))))'), # sbc r1, r2, r3
@@ -86,10 +88,13 @@ def instr_to_il(data, plat_name):
 	return result
 
 def check(test_i, data, actual, expected):
-	print('\t    test: %d' % test_i)
-	print('\t   input: %s' % data.hex())
-	print('\texpected: %s' % expected)
-	print('\t  actual: %s' % actual)
+	print_always = False
+
+	if (actual != expected) || print_always:
+		print('\t    test: %d' % test_i)
+		print('\t   input: %s' % data.hex())
+		print('\texpected: %s' % expected)
+		print('\t  actual: %s' % actual)
 
 	if actual != expected:
 		print('MISMATCH!')
