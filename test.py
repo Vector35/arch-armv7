@@ -31,6 +31,14 @@ test_cases_arm = [
 ]
 
 test_cases_thumb2 = [
+	# these differ only when the ifThenBlock varies
+	# TODO: vary the ifThenBlock state
+	(b'\x62\xeb\x03\x01', 'LLIL_SET_REG(r1,LLIL_SBB(LLIL_REG(r2),LLIL_REG(r3),LLIL_NOT(LLIL_FLAG(c))))'), # sbc r1, r2, r3
+	(b'\x72\xeb\x03\x01', 'LLIL_SET_REG(r1,LLIL_SBB(LLIL_REG(r2),LLIL_REG(r3),LLIL_NOT(LLIL_FLAG(c))))'), # sbcs r1, r2, r3
+	# same as arm
+	(b'\x92\xfb\xf3\xf1', 'LLIL_SET_REG(r1,LLIL_DIVS(LLIL_REG(r2),LLIL_REG(r3)))'), # sdiv r1, r2, r3
+	# same as arm
+	(b'\xb2\xfb\xf3\xf1', 'LLIL_SET_REG(r1,LLIL_DIVU(LLIL_REG(r2),LLIL_REG(r3)))'), # udiv r1, r2, r3
 	# this should lift the same as its arm encoding
 	(b'\x61\xf3\x84\x00', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_AND(LLIL_REG(r1),LLIL_CONST(28))))'), # bfi r0, r1, #2, #3
 	(b'\xb1\xfa\x81\xf0', 'LLIL_SET_REG(temp0,LLIL_CONST(0)); LLIL_SET_REG(temp1,LLIL_REG(r1)); LLIL_GOTO(3); LLIL_IF(LLIL_CMP_NE(LLIL_REG(temp1),LLIL_CONST(0)),4,7); LLIL_SET_REG(temp1,LLIL_LSR(LLIL_REG(temp1),LLIL_CONST(1))); LLIL_SET_REG(temp0,LLIL_ADD(LLIL_REG(temp0),LLIL_CONST(1))); LLIL_GOTO(3); LLIL_SET_REG(r0,LLIL_SUB(LLIL_CONST(32),LLIL_REG(temp0)))'), # 'clz r0, r1'
