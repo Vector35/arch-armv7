@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 test_cases_arm = [
+	# s14 = load(0x1000 + 8 + 912)
+	(b'\xe4\x7a\x9f\xed', 'LLIL_SET_REG(s14,LLIL_LOAD(LLIL_ADD(LLIL_CONST_PTR(4104),LLIL_CONST(912))))'), # vldr s14, [pc, #0x390]
+	(b'\x00\x7a\xcd\xed', 'LLIL_STORE(LLIL_REG(sp),LLIL_REG(s15))'), # vstr s15, [sp]
+	(b'\x90\x2a\x17\xee', 'LLIL_SET_REG(r2,LLIL_REG(s15))'), # vmov r2, s15
 	# r0 = (r1 & 0b11111111111111111111111111100011) | (r1 & 0b11100)
 	(b'\x11\x01\xc4\xe7', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_AND(LLIL_REG(r1),LLIL_CONST(28))))'), # bfi r0, r1, #2, #3
 	# temp0 = r2*r3; r0=tmp0&0xFFFFFFFF; r1=tmp0>>32 ... LOGICAL shift since mul is unsigned
@@ -49,8 +53,16 @@ def il2str(il):
 def instr_to_il(data, plat_name):
 	platform = binaryninja.Platform[plat_name]
 	# make a pretend function that returns
-	bv = binaryview.BinaryView.new(data)
-	bv.add_function(0, plat=platform)
+
+	sled = b''
+	sled_len = 0x1000
+	if plat_name == 'linux-thumb2':
+		sled = b'\x00\xbf' * (sled_len//2)
+	elif plat_name == 'linux-armv7':
+		sled = b'\x00\xf0\x20\xe3' * (sled_len//4)
+
+	bv = binaryview.BinaryView.new(sled + data)
+	bv.add_function(sled_len, plat=platform)
 	assert len(bv.functions) == 1
 
 	result = []
