@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "binaryninjaapi.h"
+#include "lowlevelilinstruction.h"
 #include "il.h"
 #include "spec.h"
 #include "disassembler.h"
@@ -576,6 +577,9 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteArithOperand(il, instr, il.And(4, ReadArithOperand(il, instr, 0),
 			il.Not(4, ReadArithOperand(il, instr, 1)), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case armv7::ARMV7_BKPT:
+		il.AddInstruction(il.Breakpoint());
+		break;
 	case armv7::ARMV7_BL:
 	case armv7::ARMV7_BLX:
 		il.AddInstruction(il.Call(ReadILOperand(il, instr, 0)));
@@ -632,6 +636,71 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_CMN:
 		il.AddInstruction(il.Add(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_ALL));
 		break;
+	case armv7::ARMV7_DBG:
+		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DBG, {il.Const(1, instr->fields[FIELD_option])}));
+		break;
+	case armv7::ARMV7_DMB:
+		switch (instr->fields[FIELD_barrier_option]) {
+		case 0xf: /* 0b1111 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_SY, {}));
+			break;
+		case 0xe: /* 0b1110 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_ST, {}));
+			break;
+		case 0xb: /* 0b1011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_ISH, {}));
+			break;
+		case 0xa: /* 0b1010 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_ISHST, {}));
+			break;
+		case 0x7: /* 0b0111 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_NSH, {}));
+			break;
+		case 0x6: /* 0b0110 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_NSHST, {}));
+			break;
+		case 0x3: /* 0b0011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_OSH, {}));
+			break;
+		case 0x2: /* 0b0011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DMB_OSHST, {}));
+			break;
+		default:
+			il.AddInstruction(il.Unimplemented());
+			break;
+		}
+		break;
+	case armv7::ARMV7_DSB:
+		switch (instr->fields[FIELD_barrier_option]) {
+		case 0xf: /* 0b1111 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_SY, {}));
+			break;
+		case 0xe: /* 0b1110 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_ST, {}));
+			break;
+		case 0xb: /* 0b1011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_ISH, {}));
+			break;
+		case 0xa: /* 0b1010 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_ISHST, {}));
+			break;
+		case 0x7: /* 0b0111 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_NSH, {}));
+			break;
+		case 0x6: /* 0b0110 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_NSHST, {}));
+			break;
+		case 0x3: /* 0b0011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_OSH, {}));
+			break;
+		case 0x2: /* 0b0011 */
+			il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DSB_OSHST, {}));
+			break;
+		default:
+			il.AddInstruction(il.Unimplemented());
+			break;
+		}
+		break;
 	case armv7::ARMV7_EOR:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Xor(4, ReadArithOperand(il, instr, 0),
 			ReadArithOperand(il, instr, 1), WritesToStatus(instr, ifThenBlock) ? IL_FLAGWRITE_ALL : 0)));
@@ -639,6 +708,9 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_EORS:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Xor(4, ReadArithOperand(il, instr, 0),
 			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
+		break;
+	case ARMV7_ISB:
+		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_ISB, {}));
 		break;
 	case ARMV7_LDM:
 	case ARMV7_LDMIA:
@@ -873,6 +945,9 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 									       il.Not(1, il.Flag(IL_FLAG_C)),
 									       ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case ARMV7_SEV:
+		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_SEV, {}));
+		break;
 	case ARMV7_STM:
 	case ARMV7_STMIA:
 	case ARMV7_STMDB:
@@ -1033,6 +1108,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_UXTH:
 		il.AddInstruction(WriteArithOperand(il, instr, il.ZeroExtend(4, il.LowPart(2, ReadRotatedOperand(il, instr, 1)))));
+		break;
+	case ARMV7_WFE:
+		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_WFE, {}));
+		break;
+	case ARMV7_WFI:
+		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_WFI, {}));
 		break;
 	default:
 		GetLowLevelILForNEONInstruction(arch, il, instr, ifThenBlock);

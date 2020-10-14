@@ -1308,6 +1308,118 @@ public:
 		return true;
 	}
 
+	virtual string GetIntrinsicName(uint32_t intrinsic) override
+	{
+		switch (intrinsic)
+		{
+		case ARMV7_INTRIN_DBG:
+			return "__dbg";
+		case ARMV7_INTRIN_DMB_SY:
+			return "__dmb_SY";
+		case ARMV7_INTRIN_DMB_ST:
+			return "__dmb_ST";
+		case ARMV7_INTRIN_DMB_ISH:
+			return "__dmb_ISH";
+		case ARMV7_INTRIN_DMB_ISHST:
+			return "__dmb_ISHST";
+		case ARMV7_INTRIN_DMB_NSH:
+			return "__dmb_NSH";
+		case ARMV7_INTRIN_DMB_NSHST:
+			return "__dmb_NSHST";
+		case ARMV7_INTRIN_DMB_OSH:
+			return "__dmb_OSH";
+		case ARMV7_INTRIN_DMB_OSHST:
+			return "__dmb_OSHST";
+		case ARMV7_INTRIN_DSB_SY:
+			return "__dsb_SY";
+		case ARMV7_INTRIN_DSB_ST:
+			return "__dsb_ST";
+		case ARMV7_INTRIN_DSB_ISH:
+			return "__dsb_ISH";
+		case ARMV7_INTRIN_DSB_ISHST:
+			return "__dsb_ISHST";
+		case ARMV7_INTRIN_DSB_NSH:
+			return "__dsb_NSH";
+		case ARMV7_INTRIN_DSB_NSHST:
+			return "__dsb_NSHST";
+		case ARMV7_INTRIN_DSB_OSH:
+			return "__dsb_OSH";
+		case ARMV7_INTRIN_DSB_OSHST:
+			return "__dsb_OSHST";
+		case ARMV7_INTRIN_ISB:
+			return "__isb";
+		case ARMV7_INTRIN_MRS:
+			return "__mrs";
+		case ARMV7_INTRIN_MSR:
+			return "__msr";
+		case ARMV7_INTRIN_SEV:
+			return "__sev";
+		case ARMV7_INTRIN_WFE:
+			return "__wfe";
+		case ARMV7_INTRIN_WFI:
+			return "__wfi";
+		default:
+			return "";
+		}
+	}
+
+	virtual vector<uint32_t> GetAllIntrinsics() override
+	{
+		return vector<uint32_t> {
+			ARMV7_INTRIN_DBG,
+			ARMV7_INTRIN_DMB_SY,
+			ARMV7_INTRIN_DMB_ST,
+			ARMV7_INTRIN_DMB_ISH,
+			ARMV7_INTRIN_DMB_ISHST,
+			ARMV7_INTRIN_DMB_NSH,
+			ARMV7_INTRIN_DMB_NSHST,
+			ARMV7_INTRIN_DMB_OSH,
+			ARMV7_INTRIN_DMB_OSHST,
+			ARMV7_INTRIN_DSB_SY,
+			ARMV7_INTRIN_DSB_ST,
+			ARMV7_INTRIN_DSB_ISH,
+			ARMV7_INTRIN_DSB_ISHST,
+			ARMV7_INTRIN_DSB_NSH,
+			ARMV7_INTRIN_DSB_NSHST,
+			ARMV7_INTRIN_DSB_OSH,
+			ARMV7_INTRIN_DSB_OSHST,
+			ARMV7_INTRIN_ISB,
+			ARMV7_INTRIN_MRS,
+			ARMV7_INTRIN_MSR,
+			ARMV7_INTRIN_SEV,
+			ARMV7_INTRIN_WFE,
+			ARMV7_INTRIN_WFI,
+		};
+	}
+
+	virtual vector<NameAndType> GetIntrinsicInputs(uint32_t intrinsic) override
+	{
+		switch (intrinsic)
+		{
+		case ARMV7_INTRIN_MRS:
+			return {NameAndType(Type::IntegerType(4, false))};
+		case ARMV7_INTRIN_MSR:
+			return {NameAndType(Type::IntegerType(4, false))};
+		case ARMV7_INTRIN_DBG:
+			return {NameAndType(Type::IntegerType(1, false))};
+		default:
+			return vector<NameAndType>();
+		}
+	}
+
+	virtual vector<Confidence<Ref<Type>>> GetIntrinsicOutputs(uint32_t intrinsic) override
+	{
+		switch (intrinsic)
+		{
+		case ARMV7_INTRIN_MRS:
+			return {Type::IntegerType(4, false)};
+		case ARMV7_INTRIN_MSR:
+			return {Type::IntegerType(4, false)};
+		default:
+			return vector<Confidence<Ref<Type>>>();
+		}
+	}
+
 	virtual bool GetInstructionLowLevelIL(const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override
 	{
 		decomp_request request;
