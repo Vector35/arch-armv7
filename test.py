@@ -31,6 +31,10 @@ test_cases_arm = [
 ]
 
 test_cases_thumb2 = [
+	# unsigned extend and add byte - LLIL_LOW_PART() has hidden parameter size=1
+	(b'\x52\xfa\x83\xf1', 'LLIL_SET_REG(r1,LLIL_ADD(LLIL_REG(r2),LLIL_ZX(LLIL_LOW_PART(LLIL_REG(r3)))))'), # uxtab r1, r2, r3
+	# unsigned extend and add halfword - LLIL_LOW_PART() has hidden parameter size=2
+	(b'\x12\xfa\x83\xf1', 'LLIL_SET_REG(r1,LLIL_ADD(LLIL_REG(r2),LLIL_ZX(LLIL_LOW_PART(LLIL_REG(r3)))))'), # ustah r1, r2, r3
 	# clear b4...b2 so lift to r1 = r1 & 0b11111111111111111111111111100011
 	(b'\x6f\xf3\x84\x01', 'LLIL_SET_REG(r1,LLIL_AND(LLIL_REG(r1),LLIL_CONST(4294967267)))'), # bfc r1, #2, #3
 	# these differ only when the ifThenBlock varies
@@ -90,7 +94,7 @@ def instr_to_il(data, plat_name):
 def check(test_i, data, actual, expected):
 	print_always = False
 
-	if (actual != expected) || print_always:
+	if (actual != expected) or print_always:
 		print('\t    test: %d' % test_i)
 		print('\t   input: %s' % data.hex())
 		print('\texpected: %s' % expected)
