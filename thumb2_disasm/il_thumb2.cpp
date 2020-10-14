@@ -1114,6 +1114,18 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_SMULL:
 		il.AddInstruction(WriteSplitOperands(il, instr, 1, 0, il.MultDoublePrecSigned(8, ReadILOperand(il, instr, 2), ReadILOperand(il, instr, 3))));
 		break;
+	case armv7::ARMV7_UXTAB:
+		il.AddInstruction(WriteArithOperand(il, instr,
+			il.Add(4,
+				ReadILOperand(il, instr, 1),
+				il.ZeroExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 2))))));
+		break;
+	case armv7::ARMV7_UXTAH:
+		il.AddInstruction(WriteArithOperand(il, instr,
+			il.Add(4,
+				ReadILOperand(il, instr, 1),
+				il.ZeroExtend(4, il.LowPart(2, ReadRotatedOperand(il, instr, 2))))));
+		break;
 	case armv7::ARMV7_UXTB:
 		il.AddInstruction(WriteArithOperand(il, instr, il.ZeroExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 1)))));
 		break;
