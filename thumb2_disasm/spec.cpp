@@ -1256,7 +1256,7 @@ int add_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(i:imm3:imm8, 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
@@ -1410,7 +1410,7 @@ int add_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -1573,7 +1573,7 @@ int add_sp_plus_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(imm8:'00', 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_imm8]<<2)|(0x0);
@@ -1620,7 +1620,7 @@ int add_sp_plus_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_d] = 13;
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(imm7:'00', 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_imm7]<<2)|(0x0);
@@ -1747,7 +1747,7 @@ int add_sp_plus_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(i:imm3:imm8, 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
@@ -1815,7 +1815,7 @@ int add_sp_plus_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = ((res->fields[FIELD_DM]<<Rdm_width)|(res->fields[FIELD_Rdm]));
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -1867,7 +1867,7 @@ int add_sp_plus_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -2066,7 +2066,7 @@ int adr(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = (res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: add = FALSE */
-			res->fields[FIELD_add] = 2;
+			res->fields[FIELD_add] = 0;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: if BadReg(d) then UNPREDICTABLE */
 			if(BadReg(res->fields[FIELD_d])) {
@@ -3708,7 +3708,7 @@ int bl_blx_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = SignExtend((res->fields[FIELD_S]<<(1+11+10+1+1))|(res->fields[FIELD_I1]<<(1+11+10+1))|(res->fields[FIELD_X1]<<(1+11+10))|(res->fields[FIELD_imm10]<<(1+11))|(res->fields[FIELD_imm11]<<1)|(0x0),1+11+10+1+1+S_width);
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: toARM = FALSE */
-			res->fields[FIELD_toARM] = 2;
+			res->fields[FIELD_toARM] = 0;
 			res->fields_mask[FIELD_toARM >> 6] |= 1LL << (FIELD_toARM & 63);
 			/* pcode: if InITBlock() && !LastInITBlock() then UNPREDICTABLE */
 			if((req->inIfThen == IFTHEN_YES) && (!(req->inIfThenLast == IFTHENLAST_YES))) {
@@ -3773,7 +3773,7 @@ int bl_blx_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = SignExtend((res->fields[FIELD_S]<<(1+11+10+1+1))|(res->fields[FIELD_I1]<<(1+11+10+1))|(res->fields[FIELD_X1]<<(1+11+10))|(res->fields[FIELD_imm10]<<(1+11))|(res->fields[FIELD_imm11]<<1)|(0x0),1+11+10+1+1+S_width);
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: toARM = FALSE */
-			res->fields[FIELD_toARM] = 2;
+			res->fields[FIELD_toARM] = 0;
 			res->fields_mask[FIELD_toARM >> 6] |= 1LL << (FIELD_toARM & 63);
 			/* pcode: if InITBlock() && !LastInITBlock() then UNPREDICTABLE */
 			if((req->inIfThen == IFTHEN_YES) && (!(req->inIfThenLast == IFTHENLAST_YES))) {
@@ -5129,7 +5129,7 @@ int cps(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_disable] = ((res->fields[FIELD_im]) == (0x1));
 			res->fields_mask[FIELD_disable >> 6] |= 1LL << (FIELD_disable & 63);
 			/* pcode: changemode = FALSE */
-			res->fields[FIELD_changemode] = 2;
+			res->fields[FIELD_changemode] = 0;
 			res->fields_mask[FIELD_changemode >> 6] |= 1LL << (FIELD_changemode & 63);
 			/* pcode: affectA = (A == '1') */
 			res->fields[FIELD_affectA] = ((res->fields[FIELD_A]) == (0x1));
@@ -7442,7 +7442,7 @@ int ldr_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -7501,7 +7501,7 @@ int ldr_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -7568,7 +7568,7 @@ int ldr_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 15 && InITBlock() && !LastInITBlock() then UNPREDICTABLE */
 			if((((res->fields[FIELD_t]) == (15)) && (req->inIfThen == IFTHEN_YES)) && (!(req->inIfThenLast == IFTHENLAST_YES))) {
@@ -7876,7 +7876,7 @@ int ldr_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -7951,7 +7951,7 @@ int ldr_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -8036,7 +8036,7 @@ int ldrb_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -8108,7 +8108,7 @@ int ldrb_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 13 then UNPREDICTABLE */
 			if((res->fields[FIELD_t]) == (13)) {
@@ -8371,7 +8371,7 @@ int ldrb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -8451,7 +8451,7 @@ int ldrb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -8528,13 +8528,13 @@ int ldrbt(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -9086,7 +9086,7 @@ int ldrh_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -9158,7 +9158,7 @@ int ldrh_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 13 then UNPREDICTABLE */
 			if((res->fields[FIELD_t]) == (13)) {
@@ -9421,7 +9421,7 @@ int ldrh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -9501,7 +9501,7 @@ int ldrh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -9578,13 +9578,13 @@ int ldrht(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -9673,7 +9673,7 @@ int ldrsb_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 13 then UNPREDICTABLE */
 			if((res->fields[FIELD_t]) == (13)) {
@@ -9936,7 +9936,7 @@ int ldrsb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -10016,7 +10016,7 @@ int ldrsb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -10093,13 +10093,13 @@ int ldrsbt(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -10188,7 +10188,7 @@ int ldrsh_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 13 then UNPREDICTABLE */
 			if((res->fields[FIELD_t]) == (13)) {
@@ -10451,7 +10451,7 @@ int ldrsh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -10531,7 +10531,7 @@ int ldrsh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -10608,13 +10608,13 @@ int ldrsht(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -10689,13 +10689,13 @@ int ldrt(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -12049,7 +12049,7 @@ int mla(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_a] = (res->fields[FIELD_Ra]);
 			res->fields_mask[FIELD_a >> 6] |= 1LL << (FIELD_a & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(d) || BadReg(n) || BadReg(m) || a == 13 then UNPREDICTABLE */
 			if((((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) || ((res->fields[FIELD_a]) == (13))) {
@@ -12320,7 +12320,7 @@ int mov_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(imm4:i:imm3:imm8, 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_imm4]<<(8+3+i_width))|(res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
@@ -12390,7 +12390,7 @@ int mov_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if d == 15 && InITBlock() && !LastInITBlock() then UNPREDICTABLE */
 			if((((res->fields[FIELD_d]) == (15)) && (req->inIfThen == IFTHEN_YES)) && (!(req->inIfThenLast == IFTHENLAST_YES))) {
@@ -13221,7 +13221,7 @@ int mul(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(d) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if(((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -13390,7 +13390,7 @@ int mul_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(d) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if(((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -14613,7 +14613,7 @@ int pld_pldw_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: add = FALSE */
-			res->fields[FIELD_add] = 2;
+			res->fields[FIELD_add] = 0;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 
 			return success();
@@ -14667,7 +14667,7 @@ int pld_pldw_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: add = FALSE */
-			res->fields[FIELD_add] = 2;
+			res->fields[FIELD_add] = 0;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 
 			return success();
@@ -14917,7 +14917,7 @@ int pli_immediate_literal(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: add = FALSE */
-			res->fields[FIELD_add] = 2;
+			res->fields[FIELD_add] = 0;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 
 			return success();
@@ -16520,10 +16520,10 @@ int rfe(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_wback] = ((res->fields[FIELD_W]) == (0x1));
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: increment = FALSE */
-			res->fields[FIELD_increment] = 2;
+			res->fields[FIELD_increment] = 0;
 			res->fields_mask[FIELD_increment >> 6] |= 1LL << (FIELD_increment & 63);
 			/* pcode: wordhigher = FALSE */
-			res->fields[FIELD_wordhigher] = 2;
+			res->fields[FIELD_wordhigher] = 0;
 			res->fields_mask[FIELD_wordhigher >> 6] |= 1LL << (FIELD_wordhigher & 63);
 			/* pcode: if n == 15 then UNPREDICTABLE */
 			if((res->fields[FIELD_n]) == (15)) {
@@ -16586,7 +16586,7 @@ int rfe(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_increment] = 1;
 			res->fields_mask[FIELD_increment >> 6] |= 1LL << (FIELD_increment & 63);
 			/* pcode: wordhigher = FALSE */
-			res->fields[FIELD_wordhigher] = 2;
+			res->fields[FIELD_wordhigher] = 0;
 			res->fields_mask[FIELD_wordhigher >> 6] |= 1LL << (FIELD_wordhigher & 63);
 			/* pcode: if n == 15 then UNPREDICTABLE */
 			if((res->fields[FIELD_n]) == (15)) {
@@ -19007,7 +19007,7 @@ int smlal(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(dLo) || BadReg(dHi) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if((((BadReg(res->fields[FIELD_dLo])) || (BadReg(res->fields[FIELD_dHi]))) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -20899,7 +20899,7 @@ int smull(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(dLo) || BadReg(dHi) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if((((BadReg(res->fields[FIELD_dLo])) || (BadReg(res->fields[FIELD_dHi]))) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -21265,10 +21265,10 @@ int srs(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_wback] = ((res->fields[FIELD_W]) == (0x1));
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: increment = FALSE */
-			res->fields[FIELD_increment] = 2;
+			res->fields[FIELD_increment] = 0;
 			res->fields_mask[FIELD_increment >> 6] |= 1LL << (FIELD_increment & 63);
 			/* pcode: wordhigher = FALSE */
-			res->fields[FIELD_wordhigher] = 2;
+			res->fields[FIELD_wordhigher] = 0;
 			res->fields_mask[FIELD_wordhigher >> 6] |= 1LL << (FIELD_wordhigher & 63);
 			/* pcode: if !IsSecure() && mode == '10110' then UNPREDICTABLE */
 			if(!((req->arch & ARCH_SECURITY_EXTENSIONS /* || SCR.NS=='0' || CPSR.M=='10110' */) && ((res->fields[FIELD_mode]) == (0x16)))) {
@@ -21329,7 +21329,7 @@ int srs(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_increment] = 1;
 			res->fields_mask[FIELD_increment >> 6] |= 1LL << (FIELD_increment & 63);
 			/* pcode: wordhigher = FALSE */
-			res->fields[FIELD_wordhigher] = 2;
+			res->fields[FIELD_wordhigher] = 0;
 			res->fields_mask[FIELD_wordhigher >> 6] |= 1LL << (FIELD_wordhigher & 63);
 			/* pcode: if !IsSecure() && mode == '10110' then UNPREDICTABLE */
 			if(!((req->arch & ARCH_SECURITY_EXTENSIONS /* || SCR.NS=='0' || CPSR.M=='10110' */) && ((res->fields[FIELD_mode]) == (0x16)))) {
@@ -22601,7 +22601,7 @@ int str_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -22660,7 +22660,7 @@ int str_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -22726,7 +22726,7 @@ int str_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if t == 15 then UNPREDICTABLE */
 			if((res->fields[FIELD_t]) == (15)) {
@@ -22912,7 +22912,7 @@ int str_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -22986,7 +22986,7 @@ int str_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -23067,7 +23067,7 @@ int strb_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -23133,7 +23133,7 @@ int strb_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if BadReg(t) then UNPREDICTABLE */
 			if(BadReg(res->fields[FIELD_t])) {
@@ -23314,7 +23314,7 @@ int strb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -23388,7 +23388,7 @@ int strb_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -23464,13 +23464,13 @@ int strbt(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -23975,7 +23975,7 @@ int strh_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 
 			return success();
@@ -24041,7 +24041,7 @@ int strh_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if BadReg(t) then UNPREDICTABLE */
 			if(BadReg(res->fields[FIELD_t])) {
@@ -24222,7 +24222,7 @@ int strh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, 0) */
 			res->fields[FIELD_shift_t] = 0;
@@ -24296,7 +24296,7 @@ int strh_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: wback = FALSE */
-			res->fields[FIELD_wback] = 2;
+			res->fields[FIELD_wback] = 0;
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: (shift_t, shift_n) = (SRType_LSL, UInt(imm2)) */
 			res->fields[FIELD_shift_t] = 0;
@@ -24372,13 +24372,13 @@ int strht(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -24452,13 +24452,13 @@ int strt(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: postindex = FALSE */
-			res->fields[FIELD_postindex] = 2;
+			res->fields[FIELD_postindex] = 0;
 			res->fields_mask[FIELD_postindex >> 6] |= 1LL << (FIELD_postindex & 63);
 			/* pcode: add = TRUE */
 			res->fields[FIELD_add] = 1;
 			res->fields_mask[FIELD_add >> 6] |= 1LL << (FIELD_add & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: imm32 = ZeroExtend(imm8, 32) */
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
@@ -24737,7 +24737,7 @@ int sub_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
 			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(i:imm3:imm8, 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
@@ -24973,7 +24973,7 @@ int sub_sp_minus_immediate(struct decomp_request *req, struct decomp_result *res
 			res->fields[FIELD_d] = 13;
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(imm7:'00', 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_imm7]<<2)|(0x0);
@@ -25100,7 +25100,7 @@ int sub_sp_minus_immediate(struct decomp_request *req, struct decomp_result *res
 			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
 			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: imm32 = ZeroExtend(i:imm3:imm8, 32) */
 			res->fields[FIELD_imm32] = (res->fields[FIELD_i]<<(8+3))|(res->fields[FIELD_imm3]<<8)|(res->fields[FIELD_imm8]);
@@ -25258,7 +25258,7 @@ int subs_pc_lr_related(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_imm32] = res->fields[FIELD_imm8];
 			res->fields_mask[FIELD_imm32 >> 6] |= 1LL << (FIELD_imm32 & 63);
 			/* pcode: register_form = FALSE */
-			res->fields[FIELD_register_form] = 2;
+			res->fields[FIELD_register_form] = 0;
 			res->fields_mask[FIELD_register_form >> 6] |= 1LL << (FIELD_register_form & 63);
 			/* pcode: opcode = '0010' */
 			res->fields[FIELD_opcode] = 0x2;
@@ -27431,7 +27431,7 @@ int umlal(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(dLo) || BadReg(dHi) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if((((BadReg(res->fields[FIELD_dLo])) || (BadReg(res->fields[FIELD_dHi]))) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -27513,7 +27513,7 @@ int umull(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_m] = (res->fields[FIELD_Rm]);
 			res->fields_mask[FIELD_m >> 6] |= 1LL << (FIELD_m & 63);
 			/* pcode: setflags = FALSE */
-			res->fields[FIELD_setflags] = 2;
+			res->fields[FIELD_setflags] = 0;
 			res->fields_mask[FIELD_setflags >> 6] |= 1LL << (FIELD_setflags & 63);
 			/* pcode: if BadReg(dLo) || BadReg(dHi) || BadReg(n) || BadReg(m) then UNPREDICTABLE */
 			if((((BadReg(res->fields[FIELD_dLo])) || (BadReg(res->fields[FIELD_dHi]))) || (BadReg(res->fields[FIELD_n]))) || (BadReg(res->fields[FIELD_m]))) {
@@ -29272,7 +29272,7 @@ int vaba(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_unsigned] = ((res->fields[FIELD_U]) == (0x1));
 			res->fields_mask[FIELD_unsigned >> 6] |= 1LL << (FIELD_unsigned & 63);
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: esize = 8 << UInt(size) */
 			res->fields[FIELD_esize] = (8) << ((res->fields[FIELD_size]));
@@ -29613,7 +29613,7 @@ int vabd_integer(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_unsigned] = ((res->fields[FIELD_U]) == (0x1));
 			res->fields_mask[FIELD_unsigned >> 6] |= 1LL << (FIELD_unsigned & 63);
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: esize = 8 << UInt(size) */
 			res->fields[FIELD_esize] = (8) << ((res->fields[FIELD_size]));
@@ -29813,7 +29813,7 @@ int vabs(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VABS;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -30286,7 +30286,7 @@ int vadd_float(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VADD;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -33661,7 +33661,7 @@ int vcvt_float_int(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_fmt_idx] = (((((((res->fields[FIELD_op]) == (0x0))) * (4))) + (((res->fields[FIELD_opc3]) * (2)))) + (res->fields[FIELD_sz])) + (2);
 			res->fields_mask[FIELD_fmt_idx >> 6] |= 1LL << (FIELD_fmt_idx & 63);
 			/* pcode: if (opc1 == '0') then fmt_idx = sz */
-			if(res->fields[FIELD_opc1] == 0x0) {
+			if(((res->fields[FIELD_opc1]) == (0x0))) {
 				res->fields[FIELD_fmt_idx] = res->fields[FIELD_sz];
 				res->fields_mask[FIELD_fmt_idx >> 6] |= 1LL << (FIELD_fmt_idx & 63);
 			}
@@ -33755,7 +33755,7 @@ int vcvt_float_int(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_elements] = 2;
 			res->fields_mask[FIELD_elements >> 6] |= 1LL << (FIELD_elements & 63);
 			/* pcode: round_nearest = (to_integer == FALSE) */
-			res->fields[FIELD_round_nearest] = ((res->fields[FIELD_to_integer]) == (2));
+			res->fields[FIELD_round_nearest] = ((res->fields[FIELD_to_integer]) == (0));
 			res->fields_mask[FIELD_round_nearest >> 6] |= 1LL << (FIELD_round_nearest & 63);
 			/* pcode: round_zero = to_integer */
 			res->fields[FIELD_round_zero] = res->fields[FIELD_to_integer];
@@ -33870,7 +33870,7 @@ int vcvt_half_single(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: if (half_to_single == FALSE && Vm<0> == '1') then UNDEFINED */
-			if((((res->fields[FIELD_half_to_single]) == (2)) && (((res->fields[FIELD_Vm] & 1)) == (0x1)))) {
+			if((((res->fields[FIELD_half_to_single]) == (0)) && (((res->fields[FIELD_Vm] & 1)) == (0x1)))) {
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: esize = 16 */
@@ -35279,7 +35279,7 @@ int vfma(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VFMA;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -38151,7 +38151,7 @@ int vldm(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: single_regs = FALSE */
-			res->fields[FIELD_single_regs] = 2;
+			res->fields[FIELD_single_regs] = 0;
 			res->fields_mask[FIELD_single_regs >> 6] |= 1LL << (FIELD_single_regs & 63);
 			/* pcode: add = (U == '1') */
 			res->fields[FIELD_add] = ((res->fields[FIELD_U]) == (0x1));
@@ -39059,7 +39059,7 @@ int vmla_float(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VMLA;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -39446,7 +39446,7 @@ int vmla_integer(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: iword = TRUE */
 			res->fields[FIELD_iword] = 1;
@@ -39679,7 +39679,7 @@ int vmla_integer(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: iword = TRUE */
 			res->fields[FIELD_iword] = 1;
@@ -39812,7 +39812,7 @@ int vmla_scalar(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_unsigned] = ((res->fields[FIELD_U]) == (0x1));
 			res->fields_mask[FIELD_unsigned >> 6] |= 1LL << (FIELD_unsigned & 63);
 			/* pcode: floating_point = FALSE */
-			res->fields[FIELD_floating_point] = 2;
+			res->fields[FIELD_floating_point] = 0;
 			res->fields_mask[FIELD_floating_point >> 6] |= 1LL << (FIELD_floating_point & 63);
 			/* pcode: long_destination = TRUE */
 			res->fields[FIELD_long_destination] = 1;
@@ -40028,13 +40028,13 @@ int vmla_scalar(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: unsigned = FALSE */
-			res->fields[FIELD_unsigned] = 2;
+			res->fields[FIELD_unsigned] = 0;
 			res->fields_mask[FIELD_unsigned >> 6] |= 1LL << (FIELD_unsigned & 63);
 			/* pcode: floating_point = (F == '1') */
 			res->fields[FIELD_floating_point] = ((res->fields[FIELD_F]) == (0x1));
 			res->fields_mask[FIELD_floating_point >> 6] |= 1LL << (FIELD_floating_point & 63);
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -40579,7 +40579,7 @@ int vmov_immediate(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_single_register] = ((res->fields[FIELD_sz]) == (0x0));
 			res->fields_mask[FIELD_single_register >> 6] |= 1LL << (FIELD_single_register & 63);
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -40687,7 +40687,7 @@ int vmov_immediate(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: single_register = FALSE */
-			res->fields[FIELD_single_register] = 2;
+			res->fields[FIELD_single_register] = 0;
 			res->fields_mask[FIELD_single_register >> 6] |= 1LL << (FIELD_single_register & 63);
 			/* pcode: advsimd = TRUE */
 			res->fields[FIELD_advsimd] = 1;
@@ -40791,7 +40791,7 @@ int vmov_register(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_single_register] = ((res->fields[FIELD_sz]) == (0x0));
 			res->fields_mask[FIELD_single_register >> 6] |= 1LL << (FIELD_single_register & 63);
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -40888,7 +40888,7 @@ int vmov_register(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: single_register = FALSE */
-			res->fields[FIELD_single_register] = 2;
+			res->fields[FIELD_single_register] = 0;
 			res->fields_mask[FIELD_single_register >> 6] |= 1LL << (FIELD_single_register & 63);
 			/* pcode: advsimd = TRUE */
 			res->fields[FIELD_advsimd] = 1;
@@ -41460,7 +41460,7 @@ int vmul_float(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VMUL;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -41695,7 +41695,7 @@ int vmul_integer(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: esize = 8 << UInt(size) */
 			res->fields[FIELD_esize] = (8) << ((res->fields[FIELD_size]));
@@ -41927,7 +41927,7 @@ int vmul_integer(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: esize = 8 << UInt(size) */
 			res->fields[FIELD_esize] = (8) << ((res->fields[FIELD_size]));
@@ -42049,7 +42049,7 @@ int vmul_scalar(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_long_destination] = 1;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: floating_point = FALSE */
-			res->fields[FIELD_floating_point] = 2;
+			res->fields[FIELD_floating_point] = 0;
 			res->fields_mask[FIELD_floating_point >> 6] |= 1LL << (FIELD_floating_point & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -42183,7 +42183,7 @@ int vmul_scalar(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_floating_point] = ((res->fields[FIELD_F]) == (0x1));
 			res->fields_mask[FIELD_floating_point >> 6] |= 1LL << (FIELD_floating_point & 63);
 			/* pcode: long_destination = FALSE */
-			res->fields[FIELD_long_destination] = 2;
+			res->fields[FIELD_long_destination] = 0;
 			res->fields_mask[FIELD_long_destination >> 6] |= 1LL << (FIELD_long_destination & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -42528,7 +42528,7 @@ int vneg(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VNEG;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));
@@ -43920,7 +43920,7 @@ int vpop(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VPOP;
 
 			/* pcode: single_regs = FALSE */
-			res->fields[FIELD_single_regs] = 2;
+			res->fields[FIELD_single_regs] = 0;
 			res->fields_mask[FIELD_single_regs >> 6] |= 1LL << (FIELD_single_regs & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -44051,7 +44051,7 @@ int vpush(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VPUSH;
 
 			/* pcode: single_regs = FALSE */
-			res->fields[FIELD_single_regs] = 2;
+			res->fields[FIELD_single_regs] = 0;
 			res->fields_mask[FIELD_single_regs >> 6] |= 1LL << (FIELD_single_regs & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -49197,7 +49197,7 @@ int vshll(struct decomp_request *req, struct decomp_result *res)
 			res->fields[FIELD_esize] = (8) << ((res->fields[FIELD_size]));
 			res->fields_mask[FIELD_esize >> 6] |= 1LL << (FIELD_esize & 63);
 			/* pcode: unsigned = FALSE */
-			res->fields[FIELD_unsigned] = 2;
+			res->fields[FIELD_unsigned] = 0;
 			res->fields_mask[FIELD_unsigned >> 6] |= 1LL << (FIELD_unsigned & 63);
 			/* pcode: d = UInt(D:Vd) */
 			res->fields[FIELD_d] = ((res->fields[FIELD_D]<<Vd_width)|(res->fields[FIELD_Vd]));
@@ -51911,7 +51911,7 @@ int vstm(struct decomp_request *req, struct decomp_result *res)
 				res->status |= STATUS_UNDEFINED;
 			}
 			/* pcode: single_regs = FALSE */
-			res->fields[FIELD_single_regs] = 2;
+			res->fields[FIELD_single_regs] = 0;
 			res->fields_mask[FIELD_single_regs >> 6] |= 1LL << (FIELD_single_regs & 63);
 			/* pcode: add = (U == '1') */
 			res->fields[FIELD_add] = ((res->fields[FIELD_U]) == (0x1));
@@ -52161,7 +52161,7 @@ int vsub_float(struct decomp_request *req, struct decomp_result *res)
 			res->mnem = armv7::ARMV7_VSUB;
 
 			/* pcode: advsimd = FALSE */
-			res->fields[FIELD_advsimd] = 2;
+			res->fields[FIELD_advsimd] = 0;
 			res->fields_mask[FIELD_advsimd >> 6] |= 1LL << (FIELD_advsimd & 63);
 			/* pcode: dp_operation = (sz == '1') */
 			res->fields[FIELD_dp_operation] = ((res->fields[FIELD_sz]) == (0x1));

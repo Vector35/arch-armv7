@@ -726,10 +726,10 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 			operation = operation.replace(".<dt>", "")
 		if "<c>" in operation:
 			flags += "|INSTR_FORMAT_FLAG_CONDITIONAL"
-                        if "<c>." in operation:
-                            size = operation.split("<c>")[1].split()[0][1:].upper()
-                            if size in ["F16", "F32", "F64"]:
-                                flags += "|INSTR_FORMAT_FLAG_" + size
+			if "<c>." in operation:
+				size = operation.split("<c>")[1].split()[0][1:].upper()
+				if size in ["F16", "F32", "F64"]:
+					flags += "|INSTR_FORMAT_FLAG_" + size
 			operation = operation.replace("<c>", "")
 		if "{s}" in operation:
 			flags += "|INSTR_FORMAT_FLAG_OPTIONAL_STATUS"
