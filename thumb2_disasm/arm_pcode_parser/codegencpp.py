@@ -436,7 +436,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "statement: returning", str(rv)
+            print("statement: returning", str(rv))
 
         return rv
 
@@ -460,7 +460,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "tuple: returning", str(rv)
+            print("tuple: returning", str(rv))
 
         return rv
 
@@ -486,7 +486,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "expr0: returning", str(rv)
+            print("expr0: returning", str(rv))
 
         return rv
 
@@ -513,7 +513,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "expr1: returning", str(rv)
+            print("expr1: returning", str(rv))
 
         return rv
 
@@ -522,7 +522,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "expr2: returning", rv
+            print("expr2: returning", rv)
 
         return rv
 
@@ -530,7 +530,7 @@ class PcodeSemantics(object):
         rv = 'BLUNDER'
 
         if type(ast) == type([]):
-            #print 'ast is: ', ast
+            #print('ast is: ', ast)
 
             # empty closure, return original
             if len(ast)==2 and ast[1]==[]:
@@ -557,7 +557,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "expr3: returning", str(rv)
+            print("expr3: returning", str(rv))
 
         return rv
 
@@ -568,7 +568,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "number: returning", str(rv)
+            print("number: returning", str(rv))
 
         return rv
 
@@ -577,12 +577,12 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "bits: returning", str(rv)
+            print("bits: returning", str(rv))
 
         return rv
 
     def ident(self, ast):
-        #print 'input ast is: ', str(ast)
+        #print('input ast is: ', str(ast))
 
         # "foo"    has ast ['foo', []]
         # "foo<3>" has ast ['foo', [['<', BetterNode(3), '>']]]
@@ -592,12 +592,12 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "ident: returning", rv
+            print("ident: returning", rv)
 
         return rv
 
     def sliceable(self, ast):
-        #print ast
+        #print(ast)
 
         m = re.match(r'^(.*)<$', ast[0])
         if not m:
@@ -605,7 +605,7 @@ class PcodeSemantics(object):
         ident = BetterNode('ident', [m.group(1)])
 
         if len(ast)==3:
-            #print str([m.group(1), ast[1]])
+            #print(str([m.group(1), ast[1]]))
             return BetterNode('bitslice', [ident, ast[1]])
         elif len(ast)==5:
             return BetterNode('bitslice', [ident, ast[1], ast[3]])
@@ -644,7 +644,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "builtin_value: returning", rv
+            print("builtin_value: returning", rv)
 
         return rv
 
@@ -665,7 +665,7 @@ class PcodeSemantics(object):
 
         global DEBUG
         if DEBUG:
-            print "func_call: returning", rv
+            print("func_call: returning", rv)
 
         return rv
 
@@ -718,14 +718,14 @@ def genBlock(pcode, comments=True):
     lines = tmp
 
     if 0:
-        print 'after mass-lining:'
-        print '\n'.join(lines)
+        print('after mass-lining:')
+        print('\n'.join(lines))
 
     # generate for each line, picking out case/when statements    
     (caseVar, indent) = (None, 0)
 
     for l in lines:
-        #print 'line is: -%s-' % l
+        #print('line is: -%s-' % l)
         if l[0:5] == 'case ':
             m = re.match(r'^case (.*) of', l)
             result.append('/* pcode: %s */' % l.lstrip())
@@ -779,7 +779,7 @@ if __name__ == '__main__':
         stuff = fp.read()
         fp.close()
 
-        print genBlock(stuff)
+        print(genBlock(stuff))
         sys.exit(0)    
     else:
         DEBUG = 1
@@ -787,7 +787,7 @@ if __name__ == '__main__':
 
         parser = pcodeParser(parseInfo=False)
         ast = parser.parse(statement, rule_name='start', semantics=PcodeSemantics())
-        print 'true abstract syntax tree:'
-        print ast
-        print 'generated code:'
-        print ast.gen()
+        print('true abstract syntax tree:')
+        print(ast)
+        print('generated code:')
+        print(ast.gen())

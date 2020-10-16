@@ -337,7 +337,7 @@ footer = '''
 # convert an extended bitmask (having 0,1,x)
 # example: '01xx01x' generates '(var & 0x66) == 0x22'
 def bitMaskGenCheckMatch(maskEx, varName):
-	#print "//bitMaskGenCheckMatch(\"%s\", \"%s\")" % (varName, maskEx)
+	#print("//bitMaskGenCheckMatch(\"%s\", \"%s\")" % (varName, maskEx))
 
 	# if entire spec is "xx..x" then return 1 (always matches)
 	if re.match(r'^x+$', maskEx): return '1'
@@ -602,8 +602,8 @@ class BitPattern:
 	def getVarWidth(self, varName):
 		regex = varName + '\.(\\d)'
 
-		#print "trying to get var: %s" % varName
-		#print "using regex: %s" % regex
+		#print("trying to get var: %s" % varName)
+		#print("using regex: %s" % regex)
 
 		m = re.search(regex, self.text)
 		if not m: parseError('variable %s not found in pattern %s using regex %s' % \
@@ -621,7 +621,7 @@ class BitPattern:
 #------------------------------------------------------------------------------
 
 def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
-	#print "genEncodingBlock on %s with pattern: %s" % (encName, pattern)
+	#print("genEncodingBlock on %s with pattern: %s" % (encName, pattern))
 	#status()
 
 	if not encName: parseError("can't generate encoding block without encoding name!")
@@ -689,7 +689,7 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 		fieldName = 'FIELD_cond'
 		mgr.add('res->fields[%s] = COND_AL;' % fieldName)
 		mgr.add("res->fields_mask[%s >> 6] |= 1LL << (%s & 63);" % (fieldName, fieldName))
-	#print "at line " + str(g_lineNum) + " trying to indent: %s" % temp
+	#print("at line " + str(g_lineNum) + " trying to indent: %s" % temp)
 
 	if temp:
 		mgr.add(temp)
@@ -765,8 +765,8 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 		#
 		#  then operation = 'MOV'
 		#  then    format = '<Rd>,<Rn>,#<imm32>
-		#print '  operation: %s' % operation
-		#print 'operandsStr: %s' % operandsStr
+		#print('  operation: %s' % operation)
+		#print('operandsStr: %s' % operandsStr)
 
 		# split the string into operands
 		operands = []
@@ -794,7 +794,7 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 		for operand in operands:
 			wb_id = ['WRITEBACK_NO', 'WRITEBACK_YES'][operand[-1]=='!']
 
-			#print '  operand: %s' % operand
+			#print('  operand: %s' % operand)
 
 			#
 			# Rn
@@ -1021,9 +1021,9 @@ def genEncodingBlock(mgr, encName, arches, fmts, pattern, pcode):
 	mgr.add('')
 
 	if 0:
-		print '----------------'
-		print 'sending pcode: ' + repr(pcode)
-		print '----------------'
+		print('----------------')
+		print('sending pcode: ' + repr(pcode))
+		print('----------------')
 	temp = codegencpp.genBlock('\n'.join(pcode))
 	if temp:
 		mgr.add(temp)
@@ -1060,7 +1060,7 @@ def status():
 	global g_lines, g_lineNum
 	line = g_lines[g_lineNum]
 	lineNumHuman = g_lineNum+1
-	print "parser status: on line %d (\"%s\")" % (lineNumHuman, line)
+	print("parser status: on line %d (\"%s\")" % (lineNumHuman, line))
 
 # count the number of required bits in a bit descr
 # (used for sorting by stringency)
@@ -1074,7 +1074,7 @@ def edgeStringency(edge):
 		if c in '01':
 			count += 1
 
-	#print "//for \"%s\" calculated stringency %d" % (bitDescr, count)
+	#print("//for \"%s\" calculated stringency %d" % (bitDescr, count))
 	return count
 
 # allows you to easily write code, keeping track of tab level, indents, etc.
@@ -1126,7 +1126,7 @@ def gen_node(mgr, nodeName, lines):
 	state = 'inNode'
 
 	# generate the code for the node
-	crc = binascii.crc32(''.join(lines)) & 0xFFFFFFFF
+	crc = binascii.crc32((''.join(lines)).encode('utf-8')) & 0xFFFFFFFF
 	mgr.add('// gen_crc: %08X' % crc)
 	mgr.add("int %s(struct decomp_request *req, struct decomp_result *res)" % nodeName)
 	mgr.add("{")
@@ -1353,11 +1353,11 @@ def gen_node(mgr, nodeName, lines):
 #------------------------------------------------------------------------------
 if __name__ == '__main__':
 	if ('DEBUG_DECOMP' in os.environ) or ('DEBUG_ALL' in os.environ):
-		print 'generator.py: g_DEBUG_DECOMP on! generating optional printf()\'s'
+		print('generator.py: g_DEBUG_DECOMP on! generating optional printf()\'s')
 		g_DEBUG_DECOMP = 1
 
 	# read file
-	print 'collecting nodes from spec.txt'
+	print('collecting nodes from spec.txt')
 	fp = open('spec.txt', 'r')
 	lines = fp.readlines()
 	fp.close()
@@ -1387,15 +1387,15 @@ if __name__ == '__main__':
 		node2lines[curNodeName] = curNodeLines
 	node2crc = {}
 	for node in node2lines.keys():
-		node2crc[node] = binascii.crc32(''.join(node2lines[node])) & 0xFFFFFFFF
+		node2crc[node] = binascii.crc32((''.join(node2lines[node])).encode('utf-8')) & 0xFFFFFFFF
 
 	# open spec.cpp, read the crc's of generated functions (detecting if they need regen)
-	print 'collecting functions from spec.cpp'
+	print('collecting functions from spec.cpp')
 	fp = open('spec.cpp', 'r')
 	lines = fp.readlines()
 	fp.close()
 
-	lines = map(lambda x: x.rstrip(), lines)
+	lines = list(map(lambda x: x.rstrip(), lines))
 	funcInfo = {}
 	i = 0
 	while i < len(lines):
@@ -1412,7 +1412,7 @@ if __name__ == '__main__':
 		while lines[i] != '}':
 			i += 1
 		funcInfo[name] = {'crc':crc, 'lines':'\n'.join(lines[start:i+1])}
-		#print 'found that %s has crc %08X' % (name, crc)
+		#print('found that %s has crc %08X' % (name, crc))
 
 	# construct the new file
 	mgr = CodeManager()
@@ -1431,19 +1431,19 @@ if __name__ == '__main__':
 		if node in funcInfo:
 			funcCrc = funcInfo[node]['crc']
 
-		print node.ljust(48),
+		print(node.ljust(48),)
 
 		if forceGen:
-			print 'CRC ignored (force gen) generating'
+			print('CRC ignored (force gen) generating')
 			gen_node(mgr, node, node2lines[node])
 		elif funcCrc == node2crc[node]:
-			print 'CRC match (%08X)        recycling' % funcCrc
+			print('CRC match (%08X)        recycling' % funcCrc)
 			mgr.add(funcInfo[node]['lines'])
 		else:
 			if funcCrc:
-				print "CRC mismatch (%08X != %08X) generating" % (funcCrc, nodeCrc)
+				print("CRC mismatch (%08X != %08X) generating" % (funcCrc, nodeCrc))
 			else:
-				print 'CRC missing                 generating'
+				print('CRC missing                 generating')
 			gen_node(mgr, node, node2lines[node])
 		mgr.add('')
 
