@@ -31,6 +31,7 @@ public:
 	virtual BNRegisterInfo GetRegisterInfo(uint32_t reg) override;
 	virtual uint32_t GetStackPointerRegister() override;
 	virtual uint32_t GetLinkRegister() override;
+	virtual bool CanAssemble() override;
 	virtual bool Assemble(const std::string& code, uint64_t addr, BinaryNinja::DataBuffer& result,
 		std::string& errors) override;
 };

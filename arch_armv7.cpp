@@ -1723,6 +1723,11 @@ uint32_t ArmCommonArchitecture::GetLinkRegister()
 	return REG_LR;
 }
 
+bool ArmCommonArchitecture::CanAssemble()
+{
+	return true;
+}
+
 bool ArmCommonArchitecture::Assemble(const string& code, uint64_t addr, DataBuffer& result, string& errors)
 {
 	(void)addr;
