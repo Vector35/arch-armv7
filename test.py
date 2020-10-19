@@ -32,8 +32,17 @@ test_cases_arm = [
 
 test_cases_thumb2 = [
 	# itttt eq; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0;
-	# generates 4 independent if conditions
-	(b'\x01\xbf\x00\x44\x00\x44\x00\x44\x00\x44', 'LLIL_IF(LLIL_FLAG(z),1,3); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(3); LLIL_IF(LLIL_FLAG(z),4,6); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(6); LLIL_IF(LLIL_FLAG(z),7,9); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(9); LLIL_IF(LLIL_FLAG(z),10,12); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(12)'),
+	# generate 1 if/goto that encloses 4
+	(b'\x01\xbf\x00\x44\x00\x44\x00\x44\x00\x44', 'LLIL_IF(LLIL_FLAG(z),1,6); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(6)'),
+	# ittt eq; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0;
+	# generate 1 if/goto that encloses 3
+	(b'\x02\xbf\x00\x44\x00\x44\x00\x44\x00\x44', 'LLIL_IF(LLIL_FLAG(z),1,5); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(5); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0)))'),
+	# itt eq; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0;
+	# generate 1 if/goto that encloses 2
+	(b'\x04\xbf\x00\x44\x00\x44\x00\x44\x00\x44', 'LLIL_IF(LLIL_FLAG(z),1,4); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(4); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0)))'),
+	# it eq; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0; add r0, r0, r0;
+	# generate 1 if/goto that encloses 1
+	(b'\x08\xbf\x00\x44\x00\x44\x00\x44\x00\x44', 'LLIL_IF(LLIL_FLAG(z),1,3); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_GOTO(3); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0))); LLIL_SET_REG(r0,LLIL_ADD(LLIL_REG(r0),LLIL_REG(r0)))'),
 	# unsigned extend and add byte - LLIL_LOW_PART() has hidden parameter size=1
 	(b'\x52\xfa\x83\xf1', 'LLIL_SET_REG(r1,LLIL_ADD(LLIL_REG(r2),LLIL_ZX(LLIL_LOW_PART(LLIL_REG(r3)))))'), # uxtab r1, r2, r3
 	# unsigned extend and add halfword - LLIL_LOW_PART() has hidden parameter size=2
