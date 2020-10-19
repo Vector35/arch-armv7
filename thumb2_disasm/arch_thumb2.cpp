@@ -1440,7 +1440,11 @@ public:
 			uint32_t offset = decomp.instrSize / 8;
 			uint32_t mask = decomp.fields[FIELD_mask];
 			uint32_t cond = decomp.fields[FIELD_firstcond];
+			bool prevCheck = false;
+			bool check;
 			size_t instrCount;
+			LowLevelILLabel thenLabel, elseLabel, doneLabel;
+
 			if (decomp.fields[FIELD_mask] & 1)
 				instrCount = 4;
 			else if (decomp.fields[FIELD_mask] & 2)
@@ -1465,16 +1469,36 @@ public:
 
 				il.SetCurrentAddress(this, request.addr);
 
-				LowLevelILLabel exec, done;
-				if ((i == 0) || (((mask >> (4 - i)) & 1) == (cond & 1)))
-					SetupThumbConditionalInstructionIL(il, exec, done, cond);
-				else
-					SetupThumbConditionalInstructionIL(il, exec, done, cond ^ 1);
+				check = (i == 0) || (((mask >> (4 - i)) & 1) == (cond & 1));
+				if (prevCheck != check) {
+					/* Emit `if()` if this condition differs from the previous */
 
-				il.MarkLabel(exec);
-				GetLowLevelILForThumbInstruction(this, il, &decomp, true);
-				il.AddInstruction(il.Goto(done));
-				il.MarkLabel(done);
+					if (check) {
+						if (i != 0) {
+							il.MarkLabel(doneLabel);
+							doneLabel = LowLevelILLabel();
+						}
+
+						SetupThumbConditionalInstructionIL(il, thenLabel, elseLabel, cond);
+						il.MarkLabel(thenLabel);
+						thenLabel = LowLevelILLabel();
+					} else {
+						if (i != 0)
+							il.AddInstruction(il.Goto(doneLabel));
+
+						il.MarkLabel(elseLabel);
+						elseLabel = LowLevelILLabel();
+					}
+
+					GetLowLevelILForThumbInstruction(this, il, &decomp, true);
+				} else {
+					GetLowLevelILForThumbInstruction(this, il, &decomp, true);
+				}
+				if (i+1 == instrCount) {
+					il.MarkLabel(elseLabel);
+					il.MarkLabel(doneLabel);
+				}
+				prevCheck = check;
 			}
 
 			len = offset;
