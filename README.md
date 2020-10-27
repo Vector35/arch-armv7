@@ -1,6 +1,10 @@
 # arch-armv7
 This is the ARMv7 plugin that ships with Binary Ninja.
 
+## Contributing
+
+If you're interested in contributing when you submit your first PR, you'll receive a notice from [CLA Assistant](https://cla-assistant.io/) that allows you to sign our [Contribution License Agreement](https://binary.ninja/cla.pdf) online. 
+
 ## Building
 
 Building the architecture plugin requires `cmake` 3.9 or above. You will also need the
