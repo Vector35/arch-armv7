@@ -1557,9 +1557,12 @@ public:
 
 	virtual bool ConvertToNop(uint8_t* data, uint64_t, size_t len) override
 	{
-		(void)data;
-		(void)len;
-		return false;
+		uint16_t nop =  0x4600;
+		if (len < sizeof(nop))
+			return false;
+		for (size_t i = 0; i < len/sizeof(nop); i++)
+			((uint16_t*)data)[i] = nop;
+		return true;
 	}
 
 	virtual bool AlwaysBranch(uint8_t* data, uint64_t addr, size_t len) override
