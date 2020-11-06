@@ -58,6 +58,19 @@ protected:
 		req->addr = (uint32_t)addr;
 	}
 
+	virtual bool Disassemble(const uint8_t* data, uint64_t addr, size_t maxLen, decomp_result& result)
+	{
+		(void)addr;
+		(void)maxLen;
+		decomp_request request;
+		populateDecomposeRequest(&request, data, maxLen, addr, IFTHEN_UNKNOWN, IFTHENLAST_UNKNOWN);
+
+		memset(&result, 0, sizeof(result));
+		if (thumb_decompose(&request, &result) != STATUS_OK)
+			return false;
+		return true;
+	}
+
 public:
 	/* initialization list */
 	Thumb2Architecture(const char* name, BNEndianness endian): ArmCommonArchitecture(name, endian)
@@ -1531,10 +1544,11 @@ public:
 
 	virtual bool IsInvertBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
-		(void)data;
-		(void)addr;
-		(void)len;
-		return false;
+		decomp_result decomp;
+		if (!Disassemble(data, addr, len, decomp))
+			return false;
+
+		return (decomp.mnem == ARMV7_B && CONDITIONAL(decomp.fields[FIELD_cond]));
 	}
 
 	virtual bool IsSkipAndReturnZeroPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
@@ -1575,9 +1589,52 @@ public:
 
 	virtual bool InvertBranch(uint8_t* data, uint64_t addr, size_t len) override
 	{
-		(void)data;
 		(void)addr;
-		(void)len;
+		if (len == sizeof(uint16_t)) {
+			uint16_t *value = (uint16_t*)data;
+			Condition cond = COND_NONE;
+			switch ((*value & 0x0f00) >> 8)
+			{
+				case armv7::COND_EQ: cond = armv7::COND_NE; break;
+				case armv7::COND_NE: cond = armv7::COND_EQ; break;
+				case armv7::COND_CS: cond = armv7::COND_CC; break;
+				case armv7::COND_CC: cond = armv7::COND_CS; break;
+				case armv7::COND_MI: cond = armv7::COND_PL; break;
+				case armv7::COND_PL: cond = armv7::COND_MI; break;
+				case armv7::COND_VS: cond = armv7::COND_VC; break;
+				case armv7::COND_VC: cond = armv7::COND_VS; break;
+				case armv7::COND_HI: cond = armv7::COND_LS; break;
+				case armv7::COND_LS: cond = armv7::COND_HI; break;
+				case armv7::COND_GE: cond = armv7::COND_LT; break;
+				case armv7::COND_LT: cond = armv7::COND_GE; break;
+				case armv7::COND_GT: cond = armv7::COND_LE; break;
+				case armv7::COND_LE: cond = armv7::COND_GT; break;
+			}
+			*value = (*value & 0xf0ff) | (cond << 8);
+			return true;
+		} else if (len == sizeof(uint32_t)) {
+			uint32_t *value = (uint32_t*)data;
+			Condition cond = COND_NONE;
+			switch ((*value & 0b0000000000000000001111000000) >> 6)
+			{
+				case armv7::COND_EQ: cond = armv7::COND_NE; break;
+				case armv7::COND_NE: cond = armv7::COND_EQ; break;
+				case armv7::COND_CS: cond = armv7::COND_CC; break;
+				case armv7::COND_CC: cond = armv7::COND_CS; break;
+				case armv7::COND_MI: cond = armv7::COND_PL; break;
+				case armv7::COND_PL: cond = armv7::COND_MI; break;
+				case armv7::COND_VS: cond = armv7::COND_VC; break;
+				case armv7::COND_VC: cond = armv7::COND_VS; break;
+				case armv7::COND_HI: cond = armv7::COND_LS; break;
+				case armv7::COND_LS: cond = armv7::COND_HI; break;
+				case armv7::COND_GE: cond = armv7::COND_LT; break;
+				case armv7::COND_LT: cond = armv7::COND_GE; break;
+				case armv7::COND_GT: cond = armv7::COND_LE; break;
+				case armv7::COND_LE: cond = armv7::COND_GT; break;
+			}
+			*value = (*value & 0b11111111111111111111110000111111) | (cond << 6) ;
+			return true;
+		} 
 		return false;
 	}
 
