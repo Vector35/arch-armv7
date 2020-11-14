@@ -1536,10 +1536,11 @@ public:
 
 	virtual bool IsAlwaysBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
-		(void)data;
-		(void)addr;
-		(void)len;
-		return false;
+		decomp_result decomp;
+		if (!Disassemble(data, addr, len, decomp))
+			return false;
+
+		return (decomp.mnem == ARMV7_B && CONDITIONAL(decomp.fields[FIELD_cond]));
 	}
 
 	virtual bool IsInvertBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
@@ -1581,9 +1582,25 @@ public:
 
 	virtual bool AlwaysBranch(uint8_t* data, uint64_t addr, size_t len) override
 	{
-		(void)data;
 		(void)addr;
-		(void)len;
+
+		if (len == sizeof(uint16_t)) {
+			uint16_t *value = (uint16_t*)data;
+			*value = (*value & 0x00ff) | (COND_NONE << 12);
+			return true;
+		} else if (len == sizeof(uint32_t)) {
+			uint32_t *value = (uint32_t*)data;
+
+			uint8_t j1_bit = (*value >> 29) & 1;
+			uint8_t j2_bit = (*value >> 27) & 1;
+			uint8_t s_bit = (*value >> 10) & 1;
+			uint8_t w = (s_bit << 3) | (s_bit << 2) | (j2_bit << 1) | (j1_bit << 0);
+			*value = (*value & 0b11111111111111111111110000111111) | ((w & 0x0f) << 6);
+			*value = (*value & 0b11000111111111111111111111111111) | ((0b111) << 27);
+
+			return true;
+		} 
+
 		return false;
 	}
 
