@@ -803,7 +803,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					(void) addrSize;
 					(void) instr;
 					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 15; j++)
+					for (int32_t j = 0; j < 16; j++)
 					{
 						if (((op2.reg >> j) & 1) == 1)
 							numToLoad++;
@@ -835,17 +835,22 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 							));
 						}
 					}
-					// If PC is loaded make it a jump
+					// If PC is loaded, Jump after writeback
 					if (((op2.reg >> 15) & 1) == 1)
 					{
 						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(0),
-								il.Load(get_register_size((enum Register)16), ReadRegisterOrPointer(il, op1, addr))));
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), op1.reg,
-								il.Add(get_register_size(op1.reg), ReadRegisterOrPointer(il, op1, addr),
-									il.Const(4,get_register_size((enum Register)16)))));
-						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
+							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(1),
+								il.Load(get_register_size((enum Register)16),
+									il.Register(4, LLIL_TEMP(0))
+								)
+							)
+						);
+						il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
+							il.Add(4,
+								il.Register(4, LLIL_TEMP(0)),
+								il.Const(1, 4)
+							)
+						));
 					}
 					// Check for writeback
 					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
@@ -862,6 +867,11 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(il.SetRegister(4, op1.reg,
 							il.Unimplemented()
 						));
+					}
+					// Deferred Jump
+					if (((op2.reg >> 15) & 1) == 1)
+					{
+						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(1))));
 					}
 				});
 			break;
