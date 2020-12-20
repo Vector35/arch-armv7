@@ -802,74 +802,40 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				{
 					(void) addrSize;
 					(void) instr;
-					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 16; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-							numToLoad++;
-					}
-					//Set base address
-					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-						il.Sub(4,
-							ReadRegisterOrPointer(il, op1, addr),
-							il.Const(1, (4*numToLoad))
+					//Cache register in case it's mutated by loads
+					il.AddInstruction(
+						il.SetRegister(4, LLIL_TEMP(0),
+							il.Sub(4,
+								ReadRegisterOrPointer(il, op1, addr),
+								il.Const(1, 4 * GetNumberOfRegs(op2.reg))
+							)
 						)
-					));
-					//Check only the first 15 bits, 16th bit is PC which is handled at the bottom
-					for (int32_t j = 0; j < 15; j++)
+					);
+					for (int reg = 0, slot = 0; reg < 16; reg++)
 					{
-						if (((op2.reg >> j) & 1) == 1)
+						if (op2.reg & 1 << reg)
 						{
 							il.AddInstruction(
-								il.SetRegister(get_register_size((enum Register)j), j,
-									il.Load(get_register_size((enum Register)j),
-										il.Register(4, LLIL_TEMP(0))
+								il.SetRegister(4, 
+									// writes to PC are deferred to a final Jump
+									(reg != REG_PC) ? reg : LLIL_TEMP(1), 
+									il.Load(4,
+										il.Add(4,
+											il.Register(4, LLIL_TEMP(0)),
+											il.Const(1, 4 * slot++)
+										)
 									)
 								)
 							);
-							il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-								il.Add(4,
-									il.Register(4, LLIL_TEMP(0)),
-									il.Const(1, 4)
-								)
-							));
 						}
 					}
-					// If PC is loaded, Jump after writeback
-					if (((op2.reg >> 15) & 1) == 1)
+					if (op1.flags.wb)
 					{
 						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(1),
-								il.Load(get_register_size((enum Register)16),
-									il.Register(4, LLIL_TEMP(0))
-								)
-							)
+							il.SetRegister(4, op1.reg, il.Register(4, LLIL_TEMP(0)))
 						);
-						il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-							il.Add(4,
-								il.Register(4, LLIL_TEMP(0)),
-								il.Const(1, 4)
-							)
-						));
 					}
-					// Check for writeback
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Sub(4,
-								ReadRegisterOrPointer(il, op1, addr),
-								il.Const(4, 4*numToLoad)
-							)
-						));
-					}
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 1)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Unimplemented()
-						));
-					}
-					// Deferred Jump
-					if (((op2.reg >> 15) & 1) == 1)
+					if (op2.reg & 1 << REG_PC)
 					{
 						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(1))));
 					}
