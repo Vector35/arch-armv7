@@ -738,6 +738,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					(void) addrSize;
 					(void) instr;
 
+					//Cache src address register in case it's mutated by loads
 					ExprId base;
 					switch (instr.operation)
 					{
@@ -746,17 +747,15 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						base = ILREG(op1);
 						break;
 					case ARMV7_LDMIB:
-						base = il.Add(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg) + 4));
-						break;
-					case ARMV7_LDMDA:
-						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg) + 4));
+						base = il.Add(4, ILREG(op1), il.Const(1, 4));
 						break;
 					case ARMV7_LDMDB:
 						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg)));
 						break;
+					case ARMV7_LDMDA:
+						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg) - 4));
+						break;
 					}
-					
-					//Cache src address register in case it's mutated by loads					
 					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), base));
 
 					for (int reg = 0, slot = 0; reg < 16; reg++)
@@ -782,19 +781,29 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						ExprId wb;
 						switch (instr.operation)
 						{
-						case ARMV7_LDMIB:
 						case ARMV7_LDM:
 						case ARMV7_LDMIA:
-							wb = il.Add(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg)));
+							wb = il.Const(1, 4 * GetNumberOfRegs(op2.reg));
+							wb = il.Add(4, il.Register(4, LLIL_TEMP(0)), wb);
+							break;
+						case ARMV7_LDMIB:
+							wb = il.Const(1, 4 * GetNumberOfRegs(op2.reg) - 4);
+							wb = il.Add(4, il.Register(4, LLIL_TEMP(0)), wb);
+							break;
+						case ARMV7_LDMDB:
+							wb = il.Register(4, LLIL_TEMP(0));
 							break;
 						case ARMV7_LDMDA:
-						case ARMV7_LDMDB:
-							wb = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg)));
+							wb = il.Const(1, 4);
+							wb = il.Sub(4, il.Register(4, LLIL_TEMP(0)), wb);
 							break;
+						}
+						if (1 << op1.reg & op2.reg) [[unlikely]] {
+							wb = il.Undefined();
 						}
 						il.AddInstruction(il.SetRegister(4, op1.reg, wb));
 					}
-					if (op2.reg & 1 << REG_PC)
+					if (op2.reg & REG_LIST_PC)
 					{
 						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(1))));
 					}
