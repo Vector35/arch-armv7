@@ -39,6 +39,12 @@ enum Armv7Intrinsic : uint32_t
 	ARMV7_INTRIN_SEV,
 	ARMV7_INTRIN_WFE,
 	ARMV7_INTRIN_WFI,
+	// Following names are from Table D17-2 of ARM DDI 0406C.d, changed  from
+	// CamelCase to UPPERCASE with underscores preserved and ARMV7_INTRIN_ prefixed.
+	ARMV7_INTRIN_COPROC_GETONEWORD, // MRC, MRC2
+	ARMV7_INTRIN_COPROC_GETTWOWORDS, // MRRC, MRRC2
+	ARMV7_INTRIN_COPROC_SENDONEWORD, // MCR, MCR2
+	ARMV7_INTRIN_COPROC_SENDTWOWORDS, // MCRR, MCRR2
 };
 
 bool GetLowLevelILForArmInstruction(BinaryNinja::Architecture* arch, uint64_t addr,
