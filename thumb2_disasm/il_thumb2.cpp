@@ -774,6 +774,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
 		break;
 	}
+	case armv7::ARMV7_LDA:
 	case armv7::ARMV7_LDR:
 		if (instr->format->operandCount == 3)
 		{
@@ -786,6 +787,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.AddInstruction(WriteILOperand(il, instr, 0, il.Load(4, GetMemoryAddress(il, instr, 1, 4))));
 		}
 		break;
+	case armv7::ARMV7_LDAB:
 	case armv7::ARMV7_LDRB:
 		if (instr->format->operandCount == 3)
 		{
@@ -800,6 +802,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 				il.Load(1, GetMemoryAddress(il, instr, 1, 4)))));
 		}
 		break;
+	case armv7::ARMV7_LDAH:
 	case armv7::ARMV7_LDRH:
 		if (instr->format->operandCount == 3)
 		{
@@ -1011,6 +1014,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
 		break;
 	}
+	case armv7::ARMV7_STL:
 	case armv7::ARMV7_STR:
 		if (instr->format->operandCount == 3)
 		{
@@ -1023,6 +1027,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.AddInstruction(il.Store(4, GetMemoryAddress(il, instr, 1, 4), ReadILOperand(il, instr, 0)));
 		}
 		break;
+	case armv7::ARMV7_STLB:
 	case armv7::ARMV7_STRB:
 		if (instr->format->operandCount == 3)
 		{
@@ -1035,6 +1040,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.AddInstruction(il.Store(1, GetMemoryAddress(il, instr, 1, 4), il.LowPart(1, ReadILOperand(il, instr, 0))));
 		}
 		break;
+	case armv7::ARMV7_STLH:
 	case armv7::ARMV7_STRH:
 		if (instr->format->operandCount == 3)
 		{

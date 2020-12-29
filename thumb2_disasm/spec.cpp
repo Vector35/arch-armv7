@@ -80,6 +80,12 @@ int if_then_hints(struct decomp_request *req, struct decomp_result *res);
 int isb(struct decomp_request *req, struct decomp_result *res);
 int it(struct decomp_request *req, struct decomp_result *res);
 int it_related_encodings(struct decomp_request *req, struct decomp_result *res);
+int lda(struct decomp_request *req, struct decomp_result *res);
+int ldab(struct decomp_request *req, struct decomp_result *res);
+int ldaex(struct decomp_request *req, struct decomp_result *res);
+int ldaexb(struct decomp_request *req, struct decomp_result *res);
+int ldaexh(struct decomp_request *req, struct decomp_result *res);
+int ldah(struct decomp_request *req, struct decomp_result *res);
 int ldc_immediate(struct decomp_request *req, struct decomp_result *res);
 int ldc_literal(struct decomp_request *req, struct decomp_result *res);
 int ldm(struct decomp_request *req, struct decomp_result *res);
@@ -220,6 +226,12 @@ int ssax(struct decomp_request *req, struct decomp_result *res);
 int ssub16(struct decomp_request *req, struct decomp_result *res);
 int ssub8(struct decomp_request *req, struct decomp_result *res);
 int stc_stc2(struct decomp_request *req, struct decomp_result *res);
+int stl(struct decomp_request *req, struct decomp_result *res);
+int stlb(struct decomp_request *req, struct decomp_result *res);
+int stlex(struct decomp_request *req, struct decomp_result *res);
+int stlexb(struct decomp_request *req, struct decomp_result *res);
+int stlexh(struct decomp_request *req, struct decomp_result *res);
+int stlh(struct decomp_request *req, struct decomp_result *res);
 int stm(struct decomp_request *req, struct decomp_result *res);
 int stmdb(struct decomp_request *req, struct decomp_result *res);
 int store_single_data_item(struct decomp_request *req, struct decomp_result *res);
@@ -6160,6 +6172,390 @@ int it_related_encodings(struct decomp_request *req, struct decomp_result *res)
 	return undefined(req, res);
 }
 
+// gen_crc: B0DE7858
+int lda(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1010,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D000A0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDA<c> <Rt>,[<Rn>] */
+					"lda", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDA;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 9C05D1D0
+int ldab(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1000,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D00080)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDAB<c> <Rt>,[<Rn>] */
+					"ldab", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDAB;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 9CB16A91
+int ldaex(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1110,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D000E0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDAEX<c> <Rt>,[<Rn>] */
+					"ldaex", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDAEX;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 4B65B815
+int ldaexb(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1100,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D000C0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDAEXB<c> <Rt>,[<Rn>] */
+					"ldaexb", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDAEXB;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: AA50FA44
+int ldaexh(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1101,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D000D0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDAEXH<c> <Rt>,[<Rn>] */
+					"ldaexh", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDAEXH;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 7D309381
+int ldah(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1001,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8D00090)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* LDAH<c> <Rt>,[<Rn>] */
+					"ldah", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_LDAH;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
 // gen_crc: 8E052AF0
 int ldc_immediate(struct decomp_request *req, struct decomp_result *res)
 {
@@ -10912,7 +11308,7 @@ int load_lit_pool(struct decomp_request *req, struct decomp_result *res)
 	return undefined(req, res);
 }
 
-// gen_crc: DFAC931D
+// gen_crc: 216593B4
 int load_store_dual_exclusive_table_branch(struct decomp_request *req, struct decomp_result *res)
 {
 	int rc = -1;
@@ -10931,6 +11327,18 @@ int load_store_dual_exclusive_table_branch(struct decomp_request *req, struct de
 	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0x4) && 1) return ldrexb(req, res);
 	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0x5) && 1) return ldrexh(req, res);
 	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0x7) && 1) return ldrexd(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0x8) && 1) return stlb(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0x9) && 1) return stlh(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0xA) && 1) return stl(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0xC) && 1) return stlexb(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0xD) && 1) return stlexh(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x0) && ((op3 & 0xF)==0xE) && 1) return stlex(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0x8) && 1) return ldab(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0x9) && 1) return ldah(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0xA) && 1) return lda(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0xC) && 1) return ldaexb(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0xD) && 1) return ldaexh(req, res);
+	if(((op1 & 0x3)==0x1) && ((op2 & 0x3)==0x1) && ((op3 & 0xF)==0xE) && 1) return ldaex(req, res);
 	if(((op1 & 0x2)==0x0) && ((op2 & 0x3)==0x3) && !((Rn & 0xF)==0xF) && 1) return ldrd_immediate(req, res);
 	if(((op1 & 0x2)==0x0) && ((op2 & 0x3)==0x3) && ((Rn & 0xF)==0xF) && 1) return ldrd_literal(req, res);
 	if(((op1 & 0x2)==0x2) && ((op2 & 0x1)==0x1) && !((Rn & 0xF)==0xF) && 1) return ldrd_immediate(req, res);
@@ -22289,6 +22697,423 @@ int stc_stc2(struct decomp_request *req, struct decomp_result *res)
 			res->fields_mask[FIELD_wback >> 6] |= 1LL << (FIELD_wback & 63);
 			/* pcode: if n == 15 && (wback || CurrentInstrSet() != InstrSet_ARM) then UNPREDICTABLE */
 			if(((res->fields[FIELD_n]) == (15)) && (((res->fields[FIELD_wback]) || ((req->instrSet) != (res->fields[FIELD_InstrSet_ARM]))))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 87B9D464
+int stl(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1010,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C000A0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STL<c> <Rt>,[<Rn>] */
+					"stl", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STL;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 01D8911F
+int stlb(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1000,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C00080)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STLB<c> <Rt>,[<Rn>] */
+					"stlb", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STLB;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: 41D684D6
+int stlex(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1110,Rd.4" width=32 stringency=20 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C000E0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF00)==0xF00)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+			res->fields[FIELD_Rd] = instr & 0xF;
+			res->fields_mask[FIELD_Rd >> 6] |= 1LL << (FIELD_Rd & 63);
+			char Rd_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STLEX<c> <Rd>,<Rt>,[<Rn>] */
+					"stlex", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rd,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					3 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STLEX;
+
+			/* pcode: d = UInt(Rd) */
+			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
+			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE */
+			if(((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_t]))) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			/* pcode: if d == n || d == t then UNPREDICTABLE */
+			if(((res->fields[FIELD_d]) == (res->fields[FIELD_n])) || ((res->fields[FIELD_d]) == (res->fields[FIELD_t]))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: B856BAB1
+int stlexb(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1100,Rd.4" width=32 stringency=20 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C000C0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF00)==0xF00)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+			res->fields[FIELD_Rd] = instr & 0xF;
+			res->fields_mask[FIELD_Rd >> 6] |= 1LL << (FIELD_Rd & 63);
+			char Rd_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STLEXB<c> <Rd>,<Rt>,[<Rn>] */
+					"stlexb", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rd,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					3 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STLEXB;
+
+			/* pcode: d = UInt(Rd) */
+			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
+			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE */
+			if(((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_t]))) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			/* pcode: if d == n || d == t then UNPREDICTABLE */
+			if(((res->fields[FIELD_d]) == (res->fields[FIELD_n])) || ((res->fields[FIELD_d]) == (res->fields[FIELD_t]))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: D1A095EF
+int stlexh(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1101,Rd.4" width=32 stringency=20 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C000D0)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF00)==0xF00)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+			res->fields[FIELD_Rd] = instr & 0xF;
+			res->fields_mask[FIELD_Rd >> 6] |= 1LL << (FIELD_Rd & 63);
+			char Rd_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STLEXH<c> <Rd>,<Rt>,[<Rn>] */
+					"stlexh", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rd,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					3 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STLEXH;
+
+			/* pcode: d = UInt(Rd) */
+			res->fields[FIELD_d] = (res->fields[FIELD_Rd]);
+			res->fields_mask[FIELD_d >> 6] |= 1LL << (FIELD_d & 63);
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE */
+			if(((BadReg(res->fields[FIELD_d])) || (BadReg(res->fields[FIELD_t]))) || ((res->fields[FIELD_n]) == (15))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			/* pcode: if d == n || d == t then UNPREDICTABLE */
+			if(((res->fields[FIELD_d]) == (res->fields[FIELD_n])) || ((res->fields[FIELD_d]) == (res->fields[FIELD_t]))) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+
+			return success();
+		} /* ENDS if(<encoding_match_test>) ... */
+	} /* ENDS single encoding block */
+
+	/* if fall-thru here, no encoding block matched */
+	return undefined(req, res);
+}
+
+// gen_crc: AB3D4D00
+int stlh(struct decomp_request *req, struct decomp_result *res)
+{
+	int rc = -1;
+
+	res->group = INSN_GROUP_UNKNOWN;
+	/* Encoding T1 */
+	/* pattern="111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1001,(1)(1)(1)(1)" width=32 stringency=24 */
+	{
+		uint32_t instr = req->instr_word32;
+		if(((instr & 0xFFF000F0)==0xE8C00090)) {
+			res->instrSize = 32;
+			if(!((instr & 0xF0F)==0xF0F)) {
+				res->flags |= FLAG_UNPREDICTABLE;
+			}
+			if(!(req->arch & ARCH_ARMv7)) {
+				res->status |= STATUS_ARCH_UNSUPPORTED;
+			}
+			res->fields[FIELD_cond] = COND_AL;
+			res->fields_mask[FIELD_cond >> 6] |= 1LL << (FIELD_cond & 63);
+			res->fields[FIELD_Rn] = (instr & 0xF0000)>>16;
+			res->fields_mask[FIELD_Rn >> 6] |= 1LL << (FIELD_Rn & 63);
+			char Rn_width = 4;
+			res->fields[FIELD_Rt] = (instr & 0xF000)>>12;
+			res->fields_mask[FIELD_Rt >> 6] |= 1LL << (FIELD_Rt & 63);
+			char Rt_width = 4;
+
+			static const instruction_format instr_formats[] =
+			{
+				{ /* STLH<c> <Rt>,[<Rn>] */
+					"stlh", /* .operation (const char *) */
+					0|INSTR_FORMAT_FLAG_CONDITIONAL, /* .operationFlags (uint32_t) */
+					{/* .operands (instruction_operand_format) */
+						{OPERAND_FORMAT_REG,FIELD_Rt,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_MEMORY_ONE_REG,FIELD_Rn,FIELD_UNINIT,"","",WRITEBACK_NO},
+						{OPERAND_FORMAT_END,FIELD_UNINIT,FIELD_UNINIT,"","",WRITEBACK_NO},
+					},
+					2 /* .operandCount */
+				},
+			}; /* ENDS instruction_format array */
+
+			res->formats = instr_formats;
+			res->formatCount = 1;
+			res->mnem = armv7::ARMV7_STLH;
+
+			/* pcode: t = UInt(Rt) */
+			res->fields[FIELD_t] = (res->fields[FIELD_Rt]);
+			res->fields_mask[FIELD_t >> 6] |= 1LL << (FIELD_t & 63);
+			/* pcode: n = UInt(Rn) */
+			res->fields[FIELD_n] = (res->fields[FIELD_Rn]);
+			res->fields_mask[FIELD_n >> 6] |= 1LL << (FIELD_n & 63);
+			/* pcode: if BadReg(t) || n == 15 then UNPREDICTABLE */
+			if((BadReg(res->fields[FIELD_t])) || ((res->fields[FIELD_n]) == (15))) {
 				res->flags |= FLAG_UNPREDICTABLE;
 			}
 

@@ -90,6 +90,18 @@ on op1,op2,op3,Rn
 01,01,0100,xxxx ldrexb
 01,01,0101,xxxx ldrexh
 01,01,0111,xxxx ldrexd
+01,00,1000,xxxx stlb
+01,00,1001,xxxx stlh
+01,00,1010,xxxx stl
+01,00,1100,xxxx stlexb
+01,00,1101,xxxx stlexh
+01,00,1110,xxxx stlex
+01,01,1000,xxxx ldab
+01,01,1001,xxxx ldah
+01,01,1010,xxxx lda
+01,01,1100,xxxx ldaexb
+01,01,1101,xxxx ldaexh
+01,01,1110,xxxx ldaex
 
 // wookie is the imm3:Rd:imm2 from errata markup, necessary
 // for subtable decoding
@@ -1711,6 +1723,78 @@ Encoding T1 ARMv7
 fmt LDREXD<c> <Rt>,<Rt2>,[<Rn>]
 extract32 11101,000110,1,Rn.4,Rt.4,Rt2.4,0111,(1)(1)(1)(1)
 pcode t = UInt(Rt); t2 = UInt(Rt2); n = UInt(Rn); if BadReg(t) || BadReg(t2) || t == t2 || n == 15 then UNPREDICTABLE;
+
+stlb:
+Encoding T1 ARMv7
+fmt STLB<c> <Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1000,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+stlh:
+Encoding T1 ARMv7
+fmt STLH<c> <Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1001,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+stl:
+Encoding T1 ARMv7
+fmt STL<c> <Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1010,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+stlexb:
+Encoding T1 ARMv7
+fmt STLEXB<c> <Rd>,<Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1100,Rd.4
+pcode d = UInt(Rd); t = UInt(Rt); n = UInt(Rn); if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE; if d == n || d == t then UNPREDICTABLE;
+
+stlexh:
+Encoding T1 ARMv7
+fmt STLEXH<c> <Rd>,<Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1101,Rd.4
+pcode d = UInt(Rd); t = UInt(Rt); n = UInt(Rn); if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE; if d == n || d == t then UNPREDICTABLE;
+
+stlex:
+Encoding T1 ARMv7
+fmt STLEX<c> <Rd>,<Rt>,[<Rn>]
+extract32 111,0100,01,1,00,Rn.4,Rt.4,(1)(1)(1)(1),1110,Rd.4
+pcode d = UInt(Rd); t = UInt(Rt); n = UInt(Rn); if BadReg(d) || BadReg(t) || n == 15 then UNPREDICTABLE; if d == n || d == t then UNPREDICTABLE;
+
+ldab:
+Encoding T1 ARMv7
+fmt LDAB<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1000,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+ldah:
+Encoding T1 ARMv7
+fmt LDAH<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1001,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+lda:
+Encoding T1 ARMv7
+fmt LDA<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1010,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+ldaexb:
+Encoding T1 ARMv7
+fmt LDAEXB<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1100,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+ldaexh:
+Encoding T1 ARMv7
+fmt LDAEXH<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1101,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
+
+ldaex:
+Encoding T1 ARMv7
+fmt LDAEX<c> <Rt>,[<Rn>]
+extract32 11101,000110,1,Rn.4,Rt.4,(1)(1)(1)(1),1110,(1)(1)(1)(1)
+pcode t = UInt(Rt); n = UInt(Rn); if BadReg(t) || n == 15 then UNPREDICTABLE;
 
 //-----------------------------------------------------------------------------
 
