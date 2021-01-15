@@ -1819,6 +1819,11 @@ public:
 	{
 		return REG_R0;
 	}
+
+	virtual bool IsEligibleForHeuristics() override
+	{
+		return false;
+	}
 };
 
 
