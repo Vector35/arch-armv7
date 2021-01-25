@@ -2265,6 +2265,8 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 
 extern "C"
 {
+	BN_DECLARE_CORE_ABI_VERSION
+
 #ifdef DEMO_VERSION
 	bool ARMv7PluginInit()
 #else
