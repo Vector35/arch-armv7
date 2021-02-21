@@ -1130,10 +1130,22 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 			{
 				if (((op1.reg >> j) & 1) == 1)
 				{
-					il.AddInstruction(SetRegisterOrBranch(il, (Register)j,
-						il.Pop(get_register_size((enum Register)j))));
+					if (1 << j == REG_LIST_PC)
+					{
+						il.AddInstruction(
+							il.SetRegister(4, LLIL_TEMP(0),
+								il.Pop(get_register_size((enum Register)j))));
+					}
+					else
+					{
+						il.AddInstruction(SetRegisterOrBranch(il, (Register)j,
+							il.Pop(get_register_size((enum Register)j))));
+					}
+
 				}
 			}
+			if ((op1.reg & REG_LIST_PC) == REG_LIST_PC)
+				il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
 
 			if (CONDITIONAL(instr.cond))
 				il.MarkLabel(falseCode);
