@@ -1020,11 +1020,11 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.AddInstruction(il.If(GetCondition(il, instr.cond), trueCode, falseCode));
 				il.MarkLabel(trueCode);
 			}
-			for (int32_t j = 0; j <= 15 << (op1.cls != REG_LIST); j++)
+			for (int32_t j = 0; j <= 15; j++)
 			{
 				if (((op1.reg >> j) & 1) == 1)
 				{
-					if (j == REG_LIST_PC)
+					if (1 << j == REG_LIST_PC)
 					{
 						il.AddInstruction(
 							il.SetRegister(4, LLIL_TEMP(0),
