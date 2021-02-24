@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "il.h"
+#include "lowlevelilinstruction.h"
 
 using namespace BinaryNinja;
 using namespace armv7;
@@ -599,6 +600,8 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 	InstructionOperand& op2 = instr.operands[1];
 	InstructionOperand& op3 = instr.operands[2];
 	InstructionOperand& op4 = instr.operands[3];
+	InstructionOperand& op5 = instr.operands[4];
+	InstructionOperand& op6 = instr.operands[5];
 	LowLevelILLabel trueLabel, falseLabel, endLabel, loopBody, loopStart, loopExit;
 	uint32_t flagOperation[2] = {IL_FLAGWRITE_NONE, IL_FLAGWRITE_ALL};
 	LowLevelILLabel trueCode, falseCode, endCode;
@@ -1040,6 +1043,35 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					ReadRegisterOrPointer(il, op2, addr),
 					ReadILOperand(il, op3, addr), flagOperation[instr.setsFlags])));
 			break;
+		case ARMV7_MCR:
+		case ARMV7_MCR2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDONEWORD,
+					{
+						il.Register(4, op3.reg),
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op4.reg),
+						il.Const(1, op5.reg),
+						il.Const(1, op6.imm),
+					}
+				)
+			);
+			break;
+		case ARMV7_MCRR:
+		case ARMV7_MCRR2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDTWOWORDS,
+					{ 
+						il.Register(4, op4.reg),
+						il.Register(4, op3.reg), 
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op5.reg),
+					}
+				)
+			);
+			break;
 		case ARMV7_MLA:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 				il.Add(get_register_size(op1.reg),
@@ -1074,6 +1106,60 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		case ARMV7_MOVW:
 			ConditionExecute(il, instr.cond,
 				SetRegisterOrBranch(il, op1.reg, il.Const(4, op2.imm)));
+			break;
+		case ARMV7_MRC:
+		case ARMV7_MRC2:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+				{
+					(void)addrSize;
+					(void)instr;
+					auto params = {
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op4.reg),
+						il.Const(1, op5.reg),
+						il.Const(1, op6.imm),
+					};
+					switch (op3.cls) {
+					case REG:
+						il.AddInstruction(
+							il.Intrinsic(
+								{ RegisterOrFlag::Register(op3.reg) },
+								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								params
+							)
+						);
+						break;
+					case REG_SPEC:
+						il.AddInstruction(
+							il.Intrinsic(
+								{ RegisterOrFlag::Register(LLIL_TEMP(0)) },
+								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								params
+							)
+						);
+						il.AddInstruction(il.SetFlag(IL_FLAG_N, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 31))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_Z, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 30))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_C, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 29))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_V, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 28))));
+						break;
+					}
+				});
+			break;
+		case ARMV7_MRRC:
+		case ARMV7_MRRC2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic(
+					{ RegisterOrFlag::Register(op4.reg), RegisterOrFlag::Register(op3.reg) },
+					ARMV7_INTRIN_COPROC_GETTWOWORDS,
+					{ 
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op5.reg),
+					}
+				)
+			);
 			break;
 		case ARMV7_MUL:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
