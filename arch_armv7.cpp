@@ -2251,13 +2251,11 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	armv7->SetBinaryViewTypeConstant("ELF", "R_GLOBAL_DATA", 21);
 	armv7->SetBinaryViewTypeConstant("ELF", "R_JUMP_SLOT", 22);
 
-	if (endian == LittleEndian)
-	{
-		armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
-		armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
-		armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
-		thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
-	}
+	armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
+	armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
+	armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
+	thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
+
 	armv7->GetStandalonePlatform()->AddRelatedPlatform(thumb2, thumb2->GetStandalonePlatform());
 	thumb2->GetStandalonePlatform()->AddRelatedPlatform(armv7, armv7->GetStandalonePlatform());
 }
