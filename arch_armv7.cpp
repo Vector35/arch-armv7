@@ -7,6 +7,7 @@
 #include <exception>
 
 #include "binaryninjaapi.h"
+#include "lowlevelilinstruction.h"
 #include "arch_armv7.h"
 #include "il.h"
 
@@ -1827,6 +1828,41 @@ public:
 };
 
 
+class Thumb2ImportedFunctionRecognizer: public FunctionRecognizer
+{
+public:
+	virtual bool RecognizeLowLevelIL(BinaryView* data, Function* func, LowLevelILFunction* il) override
+	{
+		// Detection for inline veneers for thumb -> arm transitions
+		if (il->GetInstructionCount() == 1)
+		{
+			LowLevelILInstruction instr = il->GetInstruction(0);
+			if ((instr.operation == LLIL_JUMP) || (instr.operation == LLIL_TAILCALL))
+			{
+				LowLevelILInstruction operand = instr.GetDestExpr();
+				if (operand.operation == LLIL_CONST_PTR)
+				{
+					uint64_t entry = operand.GetConstant();
+					if (entry == (func->GetStart() + 4))
+					{
+						Ref<Function> entryFunc = data->GetRecentAnalysisFunctionForAddress(entry);
+						Ref<Symbol> sym = data->GetSymbolByAddress(entry);
+						if (!entryFunc || !sym || (sym->GetType() != ImportedFunctionSymbol))
+							return false;
+
+						Confidence<Ref<Type>> type = entryFunc->GetType();
+						data->DefineImportedFunction(sym, func, type);
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+};
+
+
 uint32_t bswap32(uint32_t x)
 {
 	return ((x & 0xff000000) >> 24) |
@@ -2238,6 +2274,8 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 
 	conv = new LinuxArmv7SystemCallConvention(thumb2);
 	thumb2->RegisterCallingConvention(conv);
+
+	thumb2->RegisterFunctionRecognizer(new Thumb2ImportedFunctionRecognizer());
 
 	// Register the architectures with the binary format parsers so that they know when to use
 	// these architectures for disassembling an executable file
