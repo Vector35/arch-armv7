@@ -742,7 +742,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					(void) instr;
 
 					//Cache src address register in case it's mutated by loads
-					ExprId base;
+					ExprId base = 0;
 					switch (instr.operation)
 					{
 					case ARMV7_LDM:
@@ -757,6 +757,8 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						break;
 					case ARMV7_LDMDA:
 						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg) - 4));
+						break;
+					default:
 						break;
 					}
 					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), base));
@@ -800,8 +802,11 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 							wb = il.Const(1, 4);
 							wb = il.Sub(4, il.Register(4, LLIL_TEMP(0)), wb);
 							break;
+						default:
+							break;
 						}
-						if (1 << op1.reg & op2.reg) [[unlikely]] {
+						//if (1 << op1.reg & op2.reg) [[unlikely]] {
+						if (1 << op1.reg & op2.reg) {
 							wb = il.Undefined();
 						}
 						il.AddInstruction(il.SetRegister(4, op1.reg, wb));
@@ -951,6 +956,8 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(il.SetFlag(IL_FLAG_Z, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 30))));
 						il.AddInstruction(il.SetFlag(IL_FLAG_C, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 29))));
 						il.AddInstruction(il.SetFlag(IL_FLAG_V, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 28))));
+						break;
+					default:
 						break;
 					}
 				});
