@@ -127,6 +127,9 @@ static void ConditionExecute(LowLevelILFunction& il, Condition cond, ExprId true
 
 static ExprId GetShifted(LowLevelILFunction& il, Register reg, ExprId ShiftAmount, Shift shift)
 {
+	if (ShiftAmount == 0)
+		return il.Register(get_register_size(reg), reg);
+
 	switch (shift)
 	{
 		case SHIFT_NONE:
