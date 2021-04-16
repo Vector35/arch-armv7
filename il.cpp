@@ -892,7 +892,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					il.Mult(get_register_size(op2.reg),
 						ReadRegisterOrPointer(il, op2, addr),
 						(op3.cls == NONE) ? ReadRegisterOrPointer(il, op1, addr) : ReadRegisterOrPointer(il, op3, addr)),
-					flagOperation[instr.setsFlags])));
+					instr.setsFlags ? IL_FLAGWRITE_NZ : IL_FLAGWRITE_NONE)));
 			break;
 		case ARMV7_MLS:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
@@ -906,7 +906,8 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		case ARMV7_MOV:
 			ConditionExecute(il, instr.cond,
 				SetRegisterOrBranch(il, op1.reg,
-					ReadILOperand(il, op2, addr), flagOperation[instr.setsFlags]));
+					ReadILOperand(il, op2, addr),
+					instr.setsFlags ? IL_FLAGWRITE_NZ : IL_FLAGWRITE_NONE));
 			break;
 		case ARMV7_MOVT:
 			// op1.reg = (op2.imm << 16) | (op1 & 0x0000ffff)
@@ -981,7 +982,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.Mult(get_register_size(op2.reg),
 					ReadRegisterOrPointer(il, op2, addr),
 					(op3.cls == NONE) ? ReadRegisterOrPointer(il, op1, addr) : ReadRegisterOrPointer(il, op3, addr),
-					flagOperation[instr.setsFlags])));
+					instr.setsFlags ? IL_FLAGWRITE_NZ : IL_FLAGWRITE_NONE)));
 			break;
 		case ARMV7_MVN:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,

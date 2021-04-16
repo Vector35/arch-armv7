@@ -1572,6 +1572,7 @@ string ArmCommonArchitecture::GetFlagWriteTypeName(uint32_t flags)
 	switch (flags)
 	{
 		case IL_FLAGWRITE_ALL: return "*";
+		case IL_FLAGWRITE_NZ: return "nz";
 		default:
 			return "";
 	}
@@ -1600,6 +1601,8 @@ vector<uint32_t> ArmCommonArchitecture::GetFlagsWrittenByFlagWriteType(uint32_t 
 	{
 	case IL_FLAGWRITE_ALL:
 		return vector<uint32_t> { IL_FLAG_N, IL_FLAG_Z, IL_FLAG_C, IL_FLAG_V };
+	case IL_FLAGWRITE_NZ:
+		return vector<uint32_t> { IL_FLAG_N, IL_FLAG_Z };
 	default:
 		return vector<uint32_t> {};
 	}
@@ -1633,6 +1636,37 @@ vector<uint32_t> ArmCommonArchitecture::GetFlagsRequiredForFlagCondition(BNLowLe
 	default:
 		return vector<uint32_t>();
 	}
+}
+
+size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, uint32_t flagWriteType,
+		uint32_t flag, BNRegisterOrConstant* operands, size_t operandCount, LowLevelILFunction& il)
+{
+	switch (op)
+	{
+	case LLIL_SBB:
+		switch (flag)
+		{
+		case IL_FLAG_C:
+			// Copied from arm64
+			// r u< a || (r == a && flag_c)
+			return il.Or(0,
+					il.CompareUnsignedLessThan(size,
+						il.GetExprForRegisterOrConstantOperation(op, size, operands, operandCount),
+						il.GetExprForRegisterOrConstant(operands[0], size)),
+					il.And(0,
+						il.CompareEqual(size,
+							il.GetExprForRegisterOrConstantOperation(op, size, operands, operandCount),
+							il.GetExprForRegisterOrConstant(operands[0], size)),
+						il.Flag(IL_FLAG_C)));
+
+		}
+		break;
+	default:
+		break;
+	}
+
+	BNFlagRole role = GetFlagRole(flag, GetSemanticClassForFlagWriteType(flagWriteType));
+	return GetDefaultFlagWriteLowLevelIL(op, size, role, operands, operandCount, il);
 }
 
 string ArmCommonArchitecture::GetRegisterName(uint32_t reg)
@@ -1683,7 +1717,8 @@ vector<uint32_t> ArmCommonArchitecture::GetAllFlags()
 vector<uint32_t> ArmCommonArchitecture::GetAllFlagWriteTypes()
 {
 	return vector<uint32_t>{
-		IL_FLAGWRITE_ALL
+		IL_FLAGWRITE_ALL,
+		IL_FLAGWRITE_NZ
 	};
 }
 
