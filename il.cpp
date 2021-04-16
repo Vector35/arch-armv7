@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include "il.h"
+#include "lowlevelilinstruction.h"
 
 using namespace BinaryNinja;
 using namespace armv7;
@@ -599,6 +600,8 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 	InstructionOperand& op2 = instr.operands[1];
 	InstructionOperand& op3 = instr.operands[2];
 	InstructionOperand& op4 = instr.operands[3];
+	InstructionOperand& op5 = instr.operands[4];
+	InstructionOperand& op6 = instr.operands[5];
 	LowLevelILLabel trueLabel, falseLabel, endLabel, loopBody, loopStart, loopExit;
 	uint32_t flagOperation[2] = {IL_FLAGWRITE_NONE, IL_FLAGWRITE_ALL};
 	LowLevelILLabel trueCode, falseCode, endCode;
@@ -727,277 +730,90 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					ReadRegisterOrPointer(il, op2, addr),
 					ReadILOperand(il, op3, addr), flagOperation[instr.setsFlags])));
 			break;
+		case ARMV7_LDM:
+		case ARMV7_LDMIA:
+		case ARMV7_LDMIB:
 		case ARMV7_LDMDA:
-			ConditionExecute(addrSize, instr.cond, instr, il,
-				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
-				{
-					(void) addrSize;
-					(void) instr;
-					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-							numToLoad++;
-					}
-					//Set base address
-					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-						il.Sub(4,
-							ReadRegisterOrPointer(il, op1, addr),
-							il.Const(1, (4*numToLoad) - 4)
-						)
-					));
-					//Check only the first 15 bits, 16th bit is PC which is handled at the bottom
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-						{
-							il.AddInstruction(
-								il.SetRegister(get_register_size((enum Register)j), j,
-									il.Load(get_register_size((enum Register)j),
-										il.Register(4, LLIL_TEMP(0))
-									)
-								)
-							);
-							il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-								il.Add(4,
-									il.Register(4, LLIL_TEMP(0)),
-									il.Const(1, 4)
-								)
-							));
-						}
-					}
-					// If PC is loaded make it a jump
-					if (((op2.reg >> 15) & 1) == 1)
-					{
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(0),
-								il.Load(get_register_size((enum Register)16), ReadRegisterOrPointer(il, op1, addr))));
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), op1.reg,
-								il.Add(get_register_size(op1.reg), ReadRegisterOrPointer(il, op1, addr),
-									il.Const(4,get_register_size((enum Register)16)))));
-						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
-					}
-					// Check for writeback
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Sub(4,
-								ReadRegisterOrPointer(il, op1, addr),
-								il.Const(4, 4*numToLoad)
-							)
-						));
-					}
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 1)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Unimplemented()
-						));
-					}
-				});
-			break;
 		case ARMV7_LDMDB:
 			ConditionExecute(addrSize, instr.cond, instr, il,
 				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
 				{
 					(void) addrSize;
 					(void) instr;
-					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 15; j++)
+
+					//Cache src address register in case it's mutated by loads
+					ExprId base = 0;
+					switch (instr.operation)
 					{
-						if (((op2.reg >> j) & 1) == 1)
-							numToLoad++;
+					case ARMV7_LDM:
+					case ARMV7_LDMIA:
+						base = ILREG(op1);
+						break;
+					case ARMV7_LDMIB:
+						base = il.Add(4, ILREG(op1), il.Const(1, 4));
+						break;
+					case ARMV7_LDMDB:
+						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg)));
+						break;
+					case ARMV7_LDMDA:
+						base = il.Sub(4, ILREG(op1), il.Const(1, 4 * GetNumberOfRegs(op2.reg) - 4));
+						break;
+					default:
+						break;
 					}
-					//Set base address
-					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-						il.Sub(4,
-							ReadRegisterOrPointer(il, op1, addr),
-							il.Const(1, (4*numToLoad))
-						)
-					));
-					//Check only the first 15 bits, 16th bit is PC which is handled at the bottom
-					for (int32_t j = 0; j < 15; j++)
+					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), base));
+
+					for (int reg = 0, slot = 0; reg < 16; reg++)
 					{
-						if (((op2.reg >> j) & 1) == 1)
+						if (op2.reg & 1 << reg)
 						{
 							il.AddInstruction(
-								il.SetRegister(get_register_size((enum Register)j), j,
-									il.Load(get_register_size((enum Register)j),
-										il.Register(4, LLIL_TEMP(0))
+								il.SetRegister(4, 
+									// writes to PC are deferred to a final Jump
+									(reg != REG_PC) ? reg : LLIL_TEMP(1), 
+									il.Load(4,
+										il.Add(4,
+											il.Register(4, LLIL_TEMP(0)),
+											il.Const(1, 4 * slot++)
+										)
 									)
 								)
 							);
-							il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-								il.Add(4,
-									il.Register(4, LLIL_TEMP(0)),
-									il.Const(1, 4)
-								)
-							));
 						}
 					}
-					// If PC is loaded make it a jump
-					if (((op2.reg >> 15) & 1) == 1)
+					if (op1.flags.wb)
 					{
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(0),
-								il.Load(get_register_size((enum Register)16), ReadRegisterOrPointer(il, op1, addr))));
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), op1.reg,
-								il.Add(get_register_size(op1.reg), ReadRegisterOrPointer(il, op1, addr),
-									il.Const(4,get_register_size((enum Register)16)))));
-						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
-					}
-					// Check for writeback
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Sub(4,
-								ReadRegisterOrPointer(il, op1, addr),
-								il.Const(4, 4*numToLoad)
-							)
-						));
-					}
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 1)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Unimplemented()
-						));
-					}
-				});
-			break;
-		case ARMV7_LDM:
-		case ARMV7_LDMIA:
-			ConditionExecute(addrSize, instr.cond, instr, il,
-				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
-				{
-					(void) addrSize;
-					(void) instr;
-					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-							numToLoad++;
-					}
-					//Set base address
-					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-						ReadRegisterOrPointer(il, op1, addr)
-					));
-					//Check only the first 15 bits, 16th bit is PC which is handled at the bottom
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
+						ExprId wb;
+						switch (instr.operation)
 						{
-							il.AddInstruction(
-								il.SetRegister(get_register_size((enum Register)j), j,
-									il.Load(get_register_size((enum Register)j),
-										il.Register(4, LLIL_TEMP(0))
-									)
-								)
-							);
-							il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-								il.Add(4,
-									il.Register(4, LLIL_TEMP(0)),
-									il.Const(1, 4)
-								)
-							));
+						case ARMV7_LDM:
+						case ARMV7_LDMIA:
+							wb = il.Const(1, 4 * GetNumberOfRegs(op2.reg));
+							wb = il.Add(4, il.Register(4, LLIL_TEMP(0)), wb);
+							break;
+						case ARMV7_LDMIB:
+							wb = il.Const(1, 4 * GetNumberOfRegs(op2.reg) - 4);
+							wb = il.Add(4, il.Register(4, LLIL_TEMP(0)), wb);
+							break;
+						case ARMV7_LDMDB:
+							wb = il.Register(4, LLIL_TEMP(0));
+							break;
+						case ARMV7_LDMDA:
+							wb = il.Const(1, 4);
+							wb = il.Sub(4, il.Register(4, LLIL_TEMP(0)), wb);
+							break;
+						default:
+							break;
 						}
-					}
-					// If PC is loaded make it a jump
-					if (((op2.reg >> 15) & 1) == 1)
-					{
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(0),
-								il.Load(get_register_size((enum Register)16), ReadRegisterOrPointer(il, op1, addr))));
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), op1.reg,
-								il.Add(get_register_size(op1.reg), ReadRegisterOrPointer(il, op1, addr),
-									il.Const(4,get_register_size((enum Register)16)))));
-						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
-					}
-					// Check for writeback
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Add(4,
-								ReadRegisterOrPointer(il, op1, addr),
-								il.Const(4, 4*numToLoad)
-							)
-						));
-					}
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 1)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Unimplemented()
-						));
-					}
-				});
-			break;
-		case ARMV7_LDMIB:
-			ConditionExecute(addrSize, instr.cond, instr, il,
-				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
-				{
-					(void) addrSize;
-					(void) instr;
-					uint32_t numToLoad = 0;
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-							numToLoad++;
-					}
-					//Set base address
-					il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-						il.Add(4,
-							ReadRegisterOrPointer(il, op1, addr),
-							il.Const(1, 4)
-						)
-					));
-					//Check only the first 15 bits, 16th bit is PC which is handled at the bottom
-					for (int32_t j = 0; j < 15; j++)
-					{
-						if (((op2.reg >> j) & 1) == 1)
-						{
-							il.AddInstruction(
-								il.SetRegister(get_register_size((enum Register)j), j,
-									il.Load(get_register_size((enum Register)j),
-										il.Register(4, LLIL_TEMP(0))
-									)
-								)
-							);
-							il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0),
-								il.Add(4,
-									il.Register(4, LLIL_TEMP(0)),
-									il.Const(1, 4)
-								)
-							));
+						//if (1 << op1.reg & op2.reg) [[unlikely]] {
+						if (1 << op1.reg & op2.reg) {
+							wb = il.Undefined();
 						}
+						il.AddInstruction(il.SetRegister(4, op1.reg, wb));
 					}
-					// If PC is loaded make it a jump
-					if (((op2.reg >> 15) & 1) == 1)
+					if (op2.reg & REG_LIST_PC)
 					{
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), LLIL_TEMP(0),
-								il.Load(get_register_size((enum Register)16), ReadRegisterOrPointer(il, op1, addr))));
-						il.AddInstruction(
-							il.SetRegister(get_register_size((enum Register)16), op1.reg,
-								il.Add(get_register_size(op1.reg), ReadRegisterOrPointer(il, op1, addr),
-									il.Const(4,get_register_size((enum Register)16)))));
-						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
-					}
-					// Check for writeback
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 0)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Add(4,
-								ReadRegisterOrPointer(il, op1, addr),
-								il.Const(4, 4*numToLoad)
-							)
-						));
-					}
-					if (op1.flags.wb == 1 && ((op2.reg >> op1.reg) & 1) == 1)
-					{
-						il.AddInstruction(il.SetRegister(4, op1.reg,
-							il.Unimplemented()
-						));
+						il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(1))));
 					}
 				});
 			break;
@@ -1040,6 +856,35 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					ReadRegisterOrPointer(il, op2, addr),
 					ReadILOperand(il, op3, addr), flagOperation[instr.setsFlags])));
 			break;
+		case ARMV7_MCR:
+		case ARMV7_MCR2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDONEWORD,
+					{
+						il.Register(4, op3.reg),
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op4.reg),
+						il.Const(1, op5.reg),
+						il.Const(1, op6.imm),
+					}
+				)
+			);
+			break;
+		case ARMV7_MCRR:
+		case ARMV7_MCRR2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDTWOWORDS,
+					{ 
+						il.Register(4, op4.reg),
+						il.Register(4, op3.reg), 
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op5.reg),
+					}
+				)
+			);
+			break;
 		case ARMV7_MLA:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 				il.Add(get_register_size(op1.reg),
@@ -1074,6 +919,62 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		case ARMV7_MOVW:
 			ConditionExecute(il, instr.cond,
 				SetRegisterOrBranch(il, op1.reg, il.Const(4, op2.imm)));
+			break;
+		case ARMV7_MRC:
+		case ARMV7_MRC2:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+				{
+					(void)addrSize;
+					(void)instr;
+					auto params = {
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op4.reg),
+						il.Const(1, op5.reg),
+						il.Const(1, op6.imm),
+					};
+					switch (op3.cls) {
+					case REG:
+						il.AddInstruction(
+							il.Intrinsic(
+								{ RegisterOrFlag::Register(op3.reg) },
+								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								params
+							)
+						);
+						break;
+					case REG_SPEC:
+						il.AddInstruction(
+							il.Intrinsic(
+								{ RegisterOrFlag::Register(LLIL_TEMP(0)) },
+								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								params
+							)
+						);
+						il.AddInstruction(il.SetFlag(IL_FLAG_N, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 31))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_Z, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 30))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_C, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 29))));
+						il.AddInstruction(il.SetFlag(IL_FLAG_V, il.TestBit(4, il.Register(4, LLIL_TEMP(0)), il.Const(1, 28))));
+						break;
+					default:
+						break;
+					}
+				});
+			break;
+		case ARMV7_MRRC:
+		case ARMV7_MRRC2:
+			ConditionExecute(il, instr.cond,
+				il.Intrinsic(
+					{ RegisterOrFlag::Register(op4.reg), RegisterOrFlag::Register(op3.reg) },
+					ARMV7_INTRIN_COPROC_GETTWOWORDS,
+					{ 
+						il.Const(1, op1.reg),
+						il.Const(1, op2.imm),
+						il.Const(1, op5.reg),
+					}
+				)
+			);
 			break;
 		case ARMV7_MUL:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
@@ -1126,11 +1027,11 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.AddInstruction(il.If(GetCondition(il, instr.cond), trueCode, falseCode));
 				il.MarkLabel(trueCode);
 			}
-			for (int32_t j = 0; j <= 15 << (op1.cls != REG_LIST); j++)
+			for (int32_t j = 0; j <= 15; j++)
 			{
 				if (((op1.reg >> j) & 1) == 1)
 				{
-					if (j == REG_LIST_PC)
+					if (1 << j == REG_LIST_PC)
 					{
 						il.AddInstruction(
 							il.SetRegister(4, LLIL_TEMP(0),

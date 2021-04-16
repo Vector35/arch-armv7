@@ -98,6 +98,9 @@ static const char* operationString[] = {
 	"hvc",
 	"isb",
 	"it",
+	"lda",
+	"ldab",
+	"ldah",
 	"ldaex", // A32
 	"ldaexb", // A32
 	"ldaexh", // A32
@@ -256,6 +259,8 @@ static const char* operationString[] = {
 	"stc2l",
 	"stcl",
 	"stl", // A32
+	"stlb",
+	"stlh",
 	"stlex", // A32
 	"stlexb", // A32
 	"stlexh", // A32
