@@ -23,6 +23,8 @@ public:
 	virtual BNFlagRole GetFlagRole(uint32_t flag, uint32_t semClass = 0) override;
 	virtual std::vector<uint32_t> GetFlagsWrittenByFlagWriteType(uint32_t flags) override;
 	virtual std::vector<uint32_t> GetFlagsRequiredForFlagCondition(BNLowLevelILFlagCondition cond, uint32_t semClass) override;
+	virtual size_t GetFlagWriteLowLevelIL(BNLowLevelILOperation op, size_t size, uint32_t flagWriteType, uint32_t flag,
+			BNRegisterOrConstant* operands, size_t operandCount, BinaryNinja::LowLevelILFunction& il) override;
 	virtual std::string GetRegisterName(uint32_t reg) override;
 	virtual std::vector<uint32_t> GetFullWidthRegisters() override;
 	virtual std::vector<uint32_t> GetAllRegisters() override;

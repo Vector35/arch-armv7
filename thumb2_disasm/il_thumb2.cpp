@@ -891,7 +891,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_MOVS:
 		il.AddInstruction(WriteILOperand(il, instr, 0, ReadILOperand(il, instr, 1), 4,
-			ifThenBlock ? 0 : IL_FLAGWRITE_ALL));
+			ifThenBlock ? 0 : IL_FLAGWRITE_NZ));
 		break;
 	case armv7::ARMV7_MOVT:
 		il.AddInstruction(WriteILOperand(il, instr, 0, il.Or(4,
@@ -900,11 +900,11 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_MUL:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, ReadArithOperand(il, instr, 0),
-			ReadArithOperand(il, instr, 1), WritesToStatus(instr, ifThenBlock) ? IL_FLAGWRITE_ALL : 0)));
+			ReadArithOperand(il, instr, 1), WritesToStatus(instr, ifThenBlock) ? IL_FLAGWRITE_NZ : 0)));
 		break;
 	case armv7::ARMV7_MULS:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, ReadArithOperand(il, instr, 0),
-			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
+			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_NZ)));
 		break;
 	case armv7::ARMV7_MVN:
 		il.AddInstruction(WriteILOperand(il, instr, 0, il.Not(4, ReadILOperand(il, instr, 1))));
@@ -948,14 +948,14 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteArithOperand(il, instr, il.DivSigned(4, ReadArithOperand(il, instr, 0), ReadArithOperand(il, instr, 1))));
 		break;
 	case armv7::ARMV7_SBC:
-		il.AddInstruction(WriteILOperand(il, instr, 0, il.SubBorrow(4, ReadILOperand(il, instr, 1),
-									       ReadShiftedOperand(il, instr, 2),
+		il.AddInstruction(WriteArithOperand(il, instr, il.SubBorrow(4, ReadArithOperand(il, instr, 0),
+									       ReadArithOperand(il, instr, 1),
 									       il.Not(1, il.Flag(IL_FLAG_C)),
 									       WritesToStatus(instr, ifThenBlock) ? IL_FLAGWRITE_ALL : 0)));
 		break;
 	case armv7::ARMV7_SBCS:
-		il.AddInstruction(WriteILOperand(il, instr, 0, il.SubBorrow(4, ReadILOperand(il, instr, 1),
-									       ReadShiftedOperand(il, instr, 2),
+		il.AddInstruction(WriteArithOperand(il, instr, il.SubBorrow(4, ReadArithOperand(il, instr, 0),
+									       ReadArithOperand(il, instr, 1),
 									       il.Not(1, il.Flag(IL_FLAG_C)),
 									       ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;

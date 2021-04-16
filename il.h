@@ -11,6 +11,7 @@
 
 #define IL_FLAGWRITE_NONE 0
 #define IL_FLAGWRITE_ALL 1
+#define IL_FLAGWRITE_NZ 2
 
 struct decomp_result;
 
