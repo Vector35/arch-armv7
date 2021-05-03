@@ -819,14 +819,19 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_LDRD:
 		{
+			ExprId mem;
+
 			uint32_t rt = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
 			uint32_t rt2 = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
 
-			ExprId value = il.Load(8, GetMemoryAddress(il, instr, 2, 8, instr->format->operandCount != 4));
-			if (arch->GetEndianness() == LittleEndian)
-		 		il.AddInstruction(il.SetRegisterSplit(4, rt2, rt, value));
-			else
-		 		il.AddInstruction(il.SetRegisterSplit(4, rt, rt2, value));
+			mem = GetMemoryAddress(il, instr, 2, 4, instr->format->operandCount != 4);
+			if (arch->GetEndianness() == LittleEndian) {
+				il.AddInstruction(il.SetRegister(4, rt, il.Load(4, mem)));
+				il.AddInstruction(il.SetRegister(4, rt2, il.Load(4, il.Add(4, mem, il.Const(4, 4)))));
+			} else {
+				il.AddInstruction(il.SetRegister(4, rt2, il.Load(4, mem)));
+				il.AddInstruction(il.SetRegister(4, rt, il.Load(4, il.Add(4, mem, il.Const(4, 4)))));
+			}
 
 			if (instr->format->operandCount == 4)
 			{
@@ -1067,16 +1072,16 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_STRD:
 		{
-			uint32_t rt = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
-			uint32_t rt2 = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
+			ExprId mem;
 
-			ExprId value;
-			if (arch->GetEndianness() == LittleEndian)
-		 		value = il.RegisterSplit(4, rt2, rt);
-			else
-		 		value = il.RegisterSplit(4, rt, rt2);
-
-			il.AddInstruction(il.Store(8, GetMemoryAddress(il, instr, 2, 8, instr->format->operandCount != 4), value));
+			mem = GetMemoryAddress(il, instr, 2, 4, instr->format->operandCount != 4);
+			if (arch->GetEndianness() == LittleEndian) {
+				il.AddInstruction(il.Store(4, mem, ReadILOperand(il, instr, 0)));
+				il.AddInstruction(il.Store(4, il.Add(4, mem, il.Const(4, 4)), ReadILOperand(il, instr, 1)));
+			} else {
+				il.AddInstruction(il.Store(4, mem, ReadILOperand(il, instr, 1)));
+				il.AddInstruction(il.Store(4, il.Add(4, mem, il.Const(4, 4)), ReadILOperand(il, instr, 0)));
+			}
 
 			if (instr->format->operandCount == 4)
 			{
