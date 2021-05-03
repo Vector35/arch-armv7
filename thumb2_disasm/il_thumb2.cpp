@@ -755,20 +755,22 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			break;
 		}
 
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
+
 		int32_t regLimit = is16BitForm ? 7 : 15;
 		for (int32_t i = 0; i <= regLimit; i++)
 		{
 			if ((regs >> i) & 1)
 			{
 				il.AddInstruction(il.SetRegister(4, GetRegisterByIndex(i),
-					il.Load(4, il.Add(4, il.Register(4, baseReg), il.Const(4, txCnt * stride)))));
+					il.Load(4, il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, txCnt * stride)))));
 				txCnt++;
 			}
 		}
 
 		if (HasWriteback(instr, 0))
 			il.AddInstruction(il.SetRegister(4, baseReg,
-				il.Add(4, ReadRegister(il, instr, baseReg), il.Const(4, txCnt * stride))));
+				il.Add(4, ReadRegister(il, instr, LLIL_TEMP(0)), il.Const(4, txCnt * stride))));
 
 		if (regs & (1 << armv7::REG_PC))
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
