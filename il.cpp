@@ -1670,33 +1670,12 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 			});
 			break;
 		case ARMV7_REV:
-			ConditionExecute(addr, instr.cond, instr, il, [&](size_t, Instruction&, LowLevelILFunction& il){
-				//Reverse bytes
-				//
-				// TEMP0 = 0
-				// TEMP1 = op2.reg
-				// TEMP2 = 0
-				// while (TEMP0 != 31)
-				//		TEMP2 = TEMP2 | (TEMP1 & 1)
-				//		TEMP2 = TEMP2 << 1
-				// 		TEMP1 = TEMP1 >> 1
-				// 		TEMP0 = TEMP0 + 1
-				// op1.reg = 32 - TEMP0
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Const(4, 0)));
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), ReadRegisterOrPointer(il, op2, addr)));
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(2), il.Const(4, 0)));
-				il.AddInstruction(il.Goto(loopStart));
-				il.MarkLabel(loopStart);
-				il.AddInstruction(il.If(il.CompareNotEqual(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, 3)), loopBody, loopExit));
-				il.MarkLabel(loopBody);
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(2), il.Or(4, il.Register(4, LLIL_TEMP(2)), il.And(4, il.Register(4, LLIL_TEMP(1)), il.Const(4,0xff)))));
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(2), il.ShiftLeft(4, il.Register(4, LLIL_TEMP(2)), il.Const(4,8))));
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), il.LogicalShiftRight(4, il.Register(4, LLIL_TEMP(1)), il.Const(4,8))));
-				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4,1))));
-				il.AddInstruction(il.Goto(loopStart));
-				il.MarkLabel(loopExit);
-				il.AddInstruction(SetRegisterOrBranch(il, op1.reg, il.Register(4, LLIL_TEMP(2))));
-			});
+			ConditionExecute(il, instr.cond, il.SetRegister(4, op1.reg,
+				il.Or(4, il.LogicalShiftRight(4, il.Register(4, op2.reg), il.Const(4, 24)),
+					 il.Or(4, il.And(4, il.LogicalShiftRight(4, il.Register(4, op2.reg), il.Const(4, 16)), il.Const(4, 0xff)),
+						  il.Or(4, il.And(4, il.LogicalShiftRight(4, il.Register(4, op2.reg), il.Const(4, 8)), il.Const(4, 0xff)),
+							   il.And(4, il.Register(4, op2.reg), il.Const(4, 0xff))))),
+				flagOperation[instr.setsFlags]));
 			break;
 		case ARMV7_REV16:
 			ConditionExecute(addr, instr.cond, instr, il, [&](size_t, Instruction&, LowLevelILFunction& il){
