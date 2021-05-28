@@ -2418,6 +2418,7 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	// these architectures for disassembling an executable file
 	BinaryViewType::RegisterArchitecture("Mach-O", 0xc, endian, armv7);
 	BinaryViewType::RegisterArchitecture("ELF", 0x28, endian, armv7);
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c0, endian, armv7); // ARM
 	BinaryViewType::RegisterArchitecture("PE", 0x1c0, endian, armv7); // ARM
 	BinaryViewType::RegisterArchitecture("PE", 0x1c2, endian, armv7); // THUMB
 	BinaryViewType::RegisterArchitecture("PE", 0x1c4, endian, armv7); // ARMv7
