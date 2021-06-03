@@ -275,7 +275,6 @@ static ExprId ReadILOperand(LowLevelILFunction& il, InstructionOperand& op, size
 
 static void Load(
 		LowLevelILFunction& il,
-		Condition cond,
 		bool sx,
 		size_t size,
 		InstructionOperand& dst,
@@ -285,13 +284,6 @@ static void Load(
 	ExprId value, memValue;
 	size_t dstSize = get_register_size(dst.reg);
 	value = ReadAddress(il, src, addr);
-
-	LowLevelILLabel trueCode, falseCode;
-	if (CONDITIONAL(cond))
-	{
-		il.AddInstruction(il.If(GetCondition(il, cond), trueCode, falseCode));
-		il.MarkLabel(trueCode);
-	}
 
 	switch (src.cls)
 	{
@@ -341,18 +333,30 @@ static void Load(
 			il.AddInstruction(il.Unimplemented());
 			break;
 	}
+}
 
-	if (CONDITIONAL(cond))
-	{
-		il.MarkLabel(falseCode);
-	}
+
+static void LoadExclusive(
+		LowLevelILFunction& il,
+		bool sx,
+		size_t size,
+		InstructionOperand& dst,
+		InstructionOperand& src,
+		size_t addr)
+{
+	ExprId address = ReadAddress(il, src, addr);
+	size_t srcSize = get_register_size(src.reg);
+
+	il.AddInstruction(il.Intrinsic({ },
+				ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS,
+				{ address, il.Const(1, srcSize) }));
+	Load(il, sx, size, dst, src, addr);
 }
 
 
 static void LoadPair(
 		Architecture* arch,
 		LowLevelILFunction& il,
-		Condition cond,
 		InstructionOperand& dst1,
 		InstructionOperand& dst2,
 		InstructionOperand& src,
@@ -360,12 +364,6 @@ static void LoadPair(
 {
 	ExprId address, value;
 	size_t dstSize = get_register_size(dst1.reg);
-	LowLevelILLabel trueCode, falseCode;
-	if (CONDITIONAL(cond))
-	{
-		il.AddInstruction(il.If(GetCondition(il, cond), trueCode, falseCode));
-		il.MarkLabel(trueCode);
-	}
 
 	if (src.cls == MEM_PRE_IDX || src.cls == MEM_POST_IDX)
 		address = ILREG(src);
@@ -385,15 +383,29 @@ static void LoadPair(
 
 	if (src.cls == MEM_POST_IDX)
 		il.AddInstruction(SetRegisterOrBranch(il, src.reg, ReadAddress(il, src, addr)));
+}
 
-	if (CONDITIONAL(cond))
-		il.MarkLabel(falseCode);
+
+static void LoadPairExclusive(
+		Architecture* arch,
+		LowLevelILFunction& il,
+		InstructionOperand& dst1,
+		InstructionOperand& dst2,
+		InstructionOperand& src,
+		size_t addr)
+{
+	ExprId address = ReadAddress(il, src, addr);
+	size_t srcSize = get_register_size(src.reg);
+
+	il.AddInstruction(il.Intrinsic({ },
+				ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS,
+				{ address, il.Const(1, srcSize) }));
+	LoadPair(arch, il, dst1, dst2, src, addr);
 }
 
 
 static void Store(
 		LowLevelILFunction& il,
-		Condition cond,
 		uint8_t size,
 		InstructionOperand& src,
 		InstructionOperand& dst,
@@ -401,12 +413,6 @@ static void Store(
 {
 	ExprId address = ReadAddress(il, dst, addr);
 	size_t dstSize = get_register_size(dst.reg);
-	LowLevelILLabel trueCode, falseCode;
-	if (CONDITIONAL(cond))
-	{
-		il.AddInstruction(il.If(GetCondition(il, cond), trueCode, falseCode));
-		il.MarkLabel(trueCode);
-	}
 
 	ExprId regSrc = ILREG(src);
 	size_t srcSize = get_register_size(src.reg);
@@ -430,17 +436,38 @@ static void Store(
 			il.AddInstruction(il.Unimplemented());
 			break;
 	}
-	if (CONDITIONAL(cond))
-	{
-		il.MarkLabel(falseCode);
-	}
+}
+
+
+static void StoreExclusive(
+		LowLevelILFunction& il,
+		uint8_t size,
+		InstructionOperand& status,
+		InstructionOperand& src,
+		InstructionOperand& dst,
+		size_t addr)
+{
+	ExprId address = ReadAddress(il, dst, addr);
+	size_t dstSize = get_register_size(dst.reg);
+
+	LowLevelILLabel trueCode, falseCode;
+	size_t statusSize = get_register_size(status.reg);
+	il.AddInstruction(il.Intrinsic({ RegisterOrFlag::Register(status.reg) },
+				ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS,
+				{ address, il.Const(1, dstSize) }));
+	il.AddInstruction(il.If(il.CompareEqual(statusSize, il.Register(statusSize, status.reg), il.Const(statusSize, 1)),
+				trueCode, falseCode));
+	il.MarkLabel(trueCode);
+
+	Store(il, size, src, dst, addr);
+
+	il.MarkLabel(falseCode);
 }
 
 
 static void StorePair(
 		Architecture* arch,
 		LowLevelILFunction& il,
-		Condition cond,
 		InstructionOperand& src1,
 		InstructionOperand& src2,
 		InstructionOperand& dst,
@@ -449,11 +476,6 @@ static void StorePair(
 	ExprId address, value;
 	size_t srcSize = get_register_size(src1.reg);
 	LowLevelILLabel trueCode, falseCode;
-	if (CONDITIONAL(cond))
-	{
-		il.AddInstruction(il.If(GetCondition(il, cond), trueCode, falseCode));
-		il.MarkLabel(trueCode);
-	}
 
 	if (dst.cls == MEM_POST_IDX)
 		address = ILREG(dst);
@@ -469,9 +491,32 @@ static void StorePair(
 
 	if (dst.cls == MEM_POST_IDX || dst.cls == MEM_PRE_IDX)
 		il.AddInstruction(SetRegisterOrBranch(il, dst.reg, ReadAddress(il, dst, addr)));
+}
 
-	if (CONDITIONAL(cond))
-		il.MarkLabel(falseCode);
+
+static void StorePairExclusive(
+		Architecture* arch,
+		LowLevelILFunction& il,
+		InstructionOperand& status,
+		InstructionOperand& src1,
+		InstructionOperand& src2,
+		InstructionOperand& dst,
+		size_t addr)
+{
+	ExprId address = ReadAddress(il, dst, addr);
+
+	LowLevelILLabel trueCode, falseCode;
+	size_t statusSize = get_register_size(status.reg);
+	il.AddInstruction(il.Intrinsic({ RegisterOrFlag::Register(status.reg) },
+				ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS,
+				{ address, il.Const(1, 8) }));
+	il.AddInstruction(il.If(il.CompareEqual(statusSize, il.Register(statusSize, status.reg), il.Const(statusSize, 1)),
+				trueCode, falseCode));
+	il.MarkLabel(trueCode);
+
+	StorePair(arch, il, src1, src2, dst, addr);
+
+	il.MarkLabel(falseCode);
 }
 
 
@@ -820,32 +865,100 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					}
 				});
 			break;
-		case ARMV7_LDR:
 		case ARMV7_LDREX:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						LoadExclusive(il, false, 4, op1, op2, addr);
+					});
+			break;
+		case ARMV7_LDR:
 		case ARMV7_LDRT:
-			Load(il, instr.cond, false, 4, op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, false, 4, op1, op2, addr);
+					});
+			break;
+		case ARMV7_LDREXH:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						LoadExclusive(il, false, 2, op1, op2, addr);
+					});
 			break;
 		case ARMV7_LDRH:
 		case ARMV7_LDRHT:
-			Load(il, instr.cond, false, 2, op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, false, 2, op1, op2, addr);
+					});
+			break;
+		case ARMV7_LDREXB:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						LoadExclusive(il, false, 1, op1, op2, addr);
+					});
 			break;
 		case ARMV7_LDRB:
-		case ARMV7_LDREXB:
 		case ARMV7_LDRBT:
-			Load(il, instr.cond, false, 1, op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, false, 1, op1, op2, addr);
+					});
 			break;
 		case ARMV7_LDRSH:
-		case ARMV7_LDREXH:
 		case ARMV7_LDRSHT:
-			Load(il, instr.cond, true,  2, op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, true,  2, op1, op2, addr);
+					});
 			break;
 		case ARMV7_LDRSB:
 		case ARMV7_LDRSBT:
-			Load(il, instr.cond, true,  1, op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, true,  1, op1, op2, addr);
+					});
 			break;
 		case ARMV7_LDREXD:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						LoadPairExclusive(arch, il, op1, op2, op3, addr);
+					});
+			break;
 		case ARMV7_LDRD:
-			LoadPair(arch, il, instr.cond, op1, op2, op3, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						LoadPair(arch, il, op1, op2, op3, addr);
+					});
 			break;
 		case ARMV7_LSL:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
@@ -4094,16 +4207,81 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					}
 				});
 			break;
-		case ARMV7_STR:
-		case ARMV7_STRT:   Store(il, instr.cond, 4, op1, op2, addr); break;
-		case ARMV7_STRH:
+		case ARMV7_STREX:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						StoreExclusive(il, 4, op1, op2, op3, addr);
+					});
+			break;
 		case ARMV7_STREXH:
-		case ARMV7_STRHT:  Store(il, instr.cond, 2, op1, op2, addr); break;
-		case ARMV7_STRB:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						StoreExclusive(il, 2, op1, op2, op3, addr);
+					});
+			break;
 		case ARMV7_STREXB:
-		case ARMV7_STRBT:  Store(il, instr.cond, 1, op1, op2, addr); break;
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						StoreExclusive(il, 1, op1, op2, op3, addr);
+					});
+			break;
+		case ARMV7_STR:
+		case ARMV7_STRT:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Store(il, 4, op1, op2, addr);
+					});
+			break;
+		case ARMV7_STRH:
+		case ARMV7_STRHT:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Store(il, 2, op1, op2, addr);
+					});
+			break;
+		case ARMV7_STRB:
+		case ARMV7_STRBT:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Store(il, 1, op1, op2, addr);
+					});
+			break;
 		case ARMV7_STREXD:
-		case ARMV7_STRD:   StorePair(arch, il, instr.cond, op1, op2, op3, addr); break;
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						StorePairExclusive(arch, il, op1, op2, op3, op4, addr);
+					});
+			break;
+		case ARMV7_STRD:
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						StorePair(arch, il, op1, op2, op3, addr);
+					});
+			break;
 		case ARMV7_SUB:
 			ConditionExecute(il, instr.cond,
 					SetRegisterOrBranch(il, op1.reg,
@@ -4658,7 +4836,13 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					il.DivUnsigned(get_register_size(op2.reg), ReadRegisterOrPointer(il, op2, addr), ReadRegisterOrPointer(il, op3, addr))));
 			break;
 		case ARMV7_VLDR:
-			Load(il, instr.cond, false, get_register_size(op1.reg), op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Load(il, false, get_register_size(op1.reg), op1, op2, addr);
+					});
 			break;
 		case ARMV7_VMOV:
 			/* VMOV(register) */
@@ -4673,7 +4857,13 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 			}
 			break;
 		case ARMV7_VSTR:
-			Store(il, instr.cond, get_register_size(op2.reg), op1, op2, addr);
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+						Store(il, get_register_size(op2.reg), op1, op2, addr);
+					});
 			break;
 		default:
 			//printf("Instruction: %s\n", get_operation(instr.operation));
