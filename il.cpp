@@ -701,7 +701,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 			break;
 		case ARMV7_BFI:
 		{
-			uint32_t mask = ((1<<op4.imm) - 1) << op3.imm;
+			uint32_t lsb = op3.imm;
+			uint32_t width_mask = (1<<op4.imm) - 1;
+			uint32_t mask = width_mask << lsb;
 
 			//bit field insert: op1 = (op1 & (~(<width_mask> << lsb))) | ((op2 & <width_mask>) << lsb)
 			//width_mask = (1<<width)-1
@@ -711,11 +713,12 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						ReadRegisterOrPointer(il, op1, addr),
 						il.Const(4, ~mask)
 					),
+				il.ShiftLeft(4,
 					il.And(get_register_size(op1.reg),
 						ReadRegisterOrPointer(il, op2, addr),
-						il.Const(get_register_size(op1.reg), mask)
+						il.Const(get_register_size(op1.reg), width_mask)
 					),
-					il.Const(1, op3.imm))));
+					il.Const(4, lsb)))));
 			break;
 		}
         case ARMV7_BKPT:

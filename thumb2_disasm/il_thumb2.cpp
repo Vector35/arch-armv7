@@ -568,16 +568,22 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_BFI:
 	{
+		uint32_t width_mask;
 		uint32_t mask;
+		uint32_t lsb;
+		uint32_t width;
 
-		mask = ((1 << instr->fields[instr->format->operands[3].field0]) - 1)
-			<< instr->fields[instr->format->operands[2].field0];
+		width = instr->fields[instr->format->operands[3].field0];
+		lsb = instr->fields[instr->format->operands[2].field0];
+		width_mask = (1 << width) - 1;
+		mask = width_mask << lsb;
 		//bit field insert: op1 = (op1 & (~(<width_mask> << lsb))) | ((op2 & <width_mask>) << lsb)
-		//width_mask = (1<<width)-1
 		il.AddInstruction(WriteILOperand(il, instr, 0,
 			il.Or(4,
 				il.And(4, ReadILOperand(il, instr, 0), il.Const(4, ~mask)),
-				il.And(4, ReadILOperand(il, instr, 1), il.Const(4, mask)))));
+			il.ShiftLeft(4,
+				il.And(4, ReadILOperand(il, instr, 1), il.Const(4, width_mask)),
+				il.Const(4, lsb)))));
 		break;
 	}
 	case armv7::ARMV7_BIC:
