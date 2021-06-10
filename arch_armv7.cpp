@@ -1324,6 +1324,10 @@ public:
 			return "Coproc_SendOneWord";
 		case ARMV7_INTRIN_COPROC_SENDTWOWORDS:
 			return "Coproc_SendTwoWords";
+		case ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS:
+			return "ExclusiveMonitorsPass";
+		case ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS:
+			return "SetExclusiveMonitors";
 		default:
 			return "";
 		}
@@ -1336,6 +1340,8 @@ public:
 				ARMV7_INTRIN_COPROC_GETTWOWORDS,
 				ARMV7_INTRIN_COPROC_SENDONEWORD,
 				ARMV7_INTRIN_COPROC_SENDTWOWORDS,
+				ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS,
+				ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS,
 		};
 	}
 
@@ -1374,6 +1380,12 @@ public:
 				NameAndType(Type::IntegerType(1, false)),
 				NameAndType("m", Type::IntegerType(1, false)),
 			};
+		case ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS:
+		case ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS:
+			return {
+				NameAndType("address", Type::PointerType(4, Confidence(Type::VoidType(), 0), Confidence(false), Confidence(false), PointerReferenceType)),
+				NameAndType("size", Type::IntegerType(1, false)),
+			};
 		default:
 			return vector<NameAndType>();
 		}
@@ -1387,6 +1399,8 @@ public:
 			return { Type::IntegerType(4, false) };
 		case ARMV7_INTRIN_COPROC_GETTWOWORDS:
 			return { Type::IntegerType(4, false), Type::IntegerType(4, false) };
+		case ARMV7_INTRIN_EXCLUSIVE_MONITORS_PASS:
+			return { Type::BoolType() };
 		default:
 			return vector<Confidence<Ref<Type>>>();
 		}
@@ -1658,7 +1672,14 @@ size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, s
 							il.GetExprForRegisterOrConstantOperation(op, size, operands, operandCount),
 							il.GetExprForRegisterOrConstant(operands[0], size)),
 						il.Flag(IL_FLAG_C)));
-
+		case IL_FLAG_V:
+			return il.CompareEqual(0,
+					il.CompareSignedLessThan(size,
+						il.GetExprForRegisterOrConstantOperation(op, size, operands, operandCount),
+						il.GetExprForRegisterOrConstant(operands[0], size)),
+					il.CompareEqual(size,
+						il.GetExprForRegisterOrConstant(operands[0], size),
+						il.Const(size, 0)));
 		}
 		break;
 	default:

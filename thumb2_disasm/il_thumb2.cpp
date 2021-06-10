@@ -568,16 +568,22 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_BFI:
 	{
+		uint32_t width_mask;
 		uint32_t mask;
+		uint32_t lsb;
+		uint32_t width;
 
-		mask = ((1 << instr->fields[instr->format->operands[3].field0]) - 1)
-			<< instr->fields[instr->format->operands[2].field0];
+		width = instr->fields[instr->format->operands[3].field0];
+		lsb = instr->fields[instr->format->operands[2].field0];
+		width_mask = (1 << width) - 1;
+		mask = width_mask << lsb;
 		//bit field insert: op1 = (op1 & (~(<width_mask> << lsb))) | ((op2 & <width_mask>) << lsb)
-		//width_mask = (1<<width)-1
 		il.AddInstruction(WriteILOperand(il, instr, 0,
 			il.Or(4,
 				il.And(4, ReadILOperand(il, instr, 0), il.Const(4, ~mask)),
-				il.And(4, ReadILOperand(il, instr, 1), il.Const(4, mask)))));
+			il.ShiftLeft(4,
+				il.And(4, ReadILOperand(il, instr, 1), il.Const(4, width_mask)),
+				il.Const(4, lsb)))));
 		break;
 	}
 	case armv7::ARMV7_BIC:
@@ -755,20 +761,22 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			break;
 		}
 
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
+
 		int32_t regLimit = is16BitForm ? 7 : 15;
 		for (int32_t i = 0; i <= regLimit; i++)
 		{
 			if ((regs >> i) & 1)
 			{
 				il.AddInstruction(il.SetRegister(4, GetRegisterByIndex(i),
-					il.Load(4, il.Add(4, il.Register(4, baseReg), il.Const(4, txCnt * stride)))));
+					il.Load(4, il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, txCnt * stride)))));
 				txCnt++;
 			}
 		}
 
 		if (HasWriteback(instr, 0))
 			il.AddInstruction(il.SetRegister(4, baseReg,
-				il.Add(4, ReadRegister(il, instr, baseReg), il.Const(4, txCnt * stride))));
+				il.Add(4, ReadRegister(il, instr, LLIL_TEMP(0)), il.Const(4, txCnt * stride))));
 
 		if (regs & (1 << armv7::REG_PC))
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
@@ -819,14 +827,19 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_LDRD:
 		{
+			ExprId mem;
+
 			uint32_t rt = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
 			uint32_t rt2 = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
 
-			ExprId value = il.Load(8, GetMemoryAddress(il, instr, 2, 8, instr->format->operandCount != 4));
-			if (arch->GetEndianness() == LittleEndian)
-		 		il.AddInstruction(il.SetRegisterSplit(4, rt2, rt, value));
-			else
-		 		il.AddInstruction(il.SetRegisterSplit(4, rt, rt2, value));
+			mem = GetMemoryAddress(il, instr, 2, 4, instr->format->operandCount != 4);
+			if (arch->GetEndianness() == LittleEndian) {
+				il.AddInstruction(il.SetRegister(4, rt, il.Load(4, mem)));
+				il.AddInstruction(il.SetRegister(4, rt2, il.Load(4, il.Add(4, mem, il.Const(4, 4)))));
+			} else {
+				il.AddInstruction(il.SetRegister(4, rt2, il.Load(4, mem)));
+				il.AddInstruction(il.SetRegister(4, rt, il.Load(4, il.Add(4, mem, il.Const(4, 4)))));
+			}
 
 			if (instr->format->operandCount == 4)
 			{
@@ -932,6 +945,18 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_PUSH:
 		Push(il, instr->fields[FIELD_registers]);
+		break;
+	case armv7::ARMV7_REV:
+		il.AddInstruction(WriteILOperand(il, instr, 0,
+			il.Or(4, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1), il.Const(4, 24)),
+				 il.Or(4, il.And(4, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1), il.Const(4, 16)), il.Const(4, 0xff)),
+					  il.Or(4, il.And(4, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1), il.Const(4, 8)), il.Const(4, 0xff)),
+						   il.And(4, ReadILOperand(il, instr, 1), il.Const(4, 0xff)))))));
+		break;
+	case armv7::ARMV7_REV16:
+		il.AddInstruction(il.SetRegister(2, LLIL_TEMP(0), il.RotateRight(2, il.LowPart(2, ReadILOperand(il, instr, 1)), il.Const(1, 16))));
+		il.AddInstruction(il.SetRegister(2, LLIL_TEMP(1), il.RotateRight(2, il.LogicalShiftRight(2, ReadILOperand(il, instr, 1), il.Const(1, 16)), il.Const(1, 16))));
+		il.AddInstruction(WriteILOperand(il, instr, 0, il.Or(4, il.ShiftLeft(4, il.Register(2, LLIL_TEMP(1)), il.Const(1, 16)), il.Register(2, LLIL_TEMP(0)))));
 		break;
 	case armv7::ARMV7_RSB:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Sub(4, ReadArithOperand(il, instr, 1),
@@ -1055,16 +1080,16 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_STRD:
 		{
-			uint32_t rt = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
-			uint32_t rt2 = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
+			ExprId mem;
 
-			ExprId value;
-			if (arch->GetEndianness() == LittleEndian)
-		 		value = il.RegisterSplit(4, rt2, rt);
-			else
-		 		value = il.RegisterSplit(4, rt, rt2);
-
-			il.AddInstruction(il.Store(8, GetMemoryAddress(il, instr, 2, 8, instr->format->operandCount != 4), value));
+			mem = GetMemoryAddress(il, instr, 2, 4, instr->format->operandCount != 4);
+			if (arch->GetEndianness() == LittleEndian) {
+				il.AddInstruction(il.Store(4, mem, ReadILOperand(il, instr, 0)));
+				il.AddInstruction(il.Store(4, il.Add(4, mem, il.Const(4, 4)), ReadILOperand(il, instr, 1)));
+			} else {
+				il.AddInstruction(il.Store(4, mem, ReadILOperand(il, instr, 1)));
+				il.AddInstruction(il.Store(4, il.Add(4, mem, il.Const(4, 4)), ReadILOperand(il, instr, 0)));
+			}
 
 			if (instr->format->operandCount == 4)
 			{
@@ -1085,6 +1110,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_SUBS:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Sub(4, ReadArithOperand(il, instr, 0),
 			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
+		break;
+	case armv7::ARMV7_SXTAB:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Add(4, ReadILOperand(il, instr, 1), il.SignExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 2))))));
+		break;
+	case armv7::ARMV7_SXTAH:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Add(4, ReadILOperand(il, instr, 1), il.SignExtend(4, il.LowPart(2, ReadRotatedOperand(il, instr, 2))))));
 		break;
 	case armv7::ARMV7_SXTB:
 		il.AddInstruction(WriteArithOperand(il, instr, il.SignExtend(4, il.LowPart(1, ReadRotatedOperand(il, instr, 1)))));
