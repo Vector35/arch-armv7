@@ -2379,6 +2379,25 @@ public:
 	}
 };
 
+class ArmCOFFRelocationHandler: public RelocationHandler
+{
+public:
+	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
+	{
+		(void)view;
+		(void)arch;
+		set<uint64_t> relocTypes;
+		for (auto& reloc: result)
+		{
+			reloc.type = UnhandledRelocation;
+			relocTypes.insert(reloc.nativeType);
+		}
+		for (auto& reloc : relocTypes)
+			LogWarn("Unsupported COFF relocation %s", GetRelocationString((PeArmRelocationType)reloc));
+		return false;
+	}
+};
+
 
 static void RegisterArmArchitecture(const char* armName, const char* thumbName, BNEndianness endian)
 {
@@ -2419,6 +2438,8 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	BinaryViewType::RegisterArchitecture("Mach-O", 0xc, endian, armv7);
 	BinaryViewType::RegisterArchitecture("ELF", 0x28, endian, armv7);
 	BinaryViewType::RegisterArchitecture("COFF", 0x1c0, endian, armv7); // ARM
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c2, endian, thumb2); // THUMB
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c4, endian, thumb2); // ARMNT (ARM Thumb-2)
 	BinaryViewType::RegisterArchitecture("PE", 0x1c0, endian, armv7); // ARM
 	BinaryViewType::RegisterArchitecture("PE", 0x1c2, endian, armv7); // THUMB
 	BinaryViewType::RegisterArchitecture("PE", 0x1c4, endian, armv7); // ARMv7
@@ -2430,6 +2451,8 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
 	armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
 	armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
+	armv7->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
+	thumb2->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
 	thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
 
 	armv7->GetStandalonePlatform()->AddRelatedPlatform(thumb2, thumb2->GetStandalonePlatform());
