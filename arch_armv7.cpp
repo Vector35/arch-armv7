@@ -452,7 +452,13 @@ static const char* GetRelocationString(PeArmRelocationType rel)
 		"IMAGE_REL_ARM_PAIR"
 	};
 	if (rel < MAX_ARM_PE_RELOCATION)
+	{
+		if (rel >= PE_IMAGE_REL_ARM_SECTION)
+		{
+			rel = (PeArmRelocationType) ((int)rel - PE_IMAGE_REL_ARM_SECTION + PE_IMAGE_REL_ARM_BRANCH11 + 1);
+		}
 		return relocTable[rel];
+	}
 	return "Unknown ARM relocation";
 }
 
@@ -2382,6 +2388,163 @@ public:
 class ArmCOFFRelocationHandler: public RelocationHandler
 {
 public:
+	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override
+	{
+		// Note: info.base contains preferred base address and the base where the image is actually loaded
+		(void)view;
+		(void)arch;
+		(void)len;
+		BNRelocationInfo info = reloc->GetInfo();
+		uint64_t target = reloc->GetTarget();
+		uint64_t pc = info.pcRelative ? reloc->GetAddress() : 0;
+		uint64_t base = (info.baseRelative && !target) ? view->GetStart() : 0;
+		uint64_t address = info.address;
+		uint32_t* dest32 = (uint32_t*)dest;
+		uint16_t* dest16 = (uint16_t*)dest;
+		(void)pc;
+		(void)base;
+		(void)dest16;
+
+		LogDebug("COFF ARCH %s: arch: %s %s relocation at 0x%" PRIx64 " len: %lu info.size: %lu", 
+			__FUNCTION__,
+			arch->GetName().c_str(),
+			GetRelocationString((PeArmRelocationType)info.nativeType),
+			reloc->GetAddress(),
+			len,
+			info.size
+		);
+
+		if (len < info.size)
+		{
+			return false;
+		}
+
+		switch (info.nativeType)
+		{
+			case PE_IMAGE_REL_THUMB_MOV32:
+				LogDebug("PE_IMAGE_REL_THUMB_MOV32: arch: %s", arch->GetName().c_str());
+				if (true || arch->GetName() == "thumb2")
+				{
+					enum _mov_type : uint16_t
+					{
+						MOVW = 0b100100,
+						MOVT = 0b101100,
+					};
+					#pragma pack(push,1)
+					union _mov
+					{
+						uint32_t word;
+						struct {
+// MOVW
+// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
+// MOVT
+// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
+
+							uint32_t imm4:4;
+							uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
+							uint32_t imm1:1;
+							uint32_t group2_11:5;
+
+							uint32_t imm8:8;
+							uint32_t rd:4;
+							uint32_t imm3:3;
+							uint32_t group1_15:1;
+
+
+							// uint32_t group2_11:5;
+							// uint32_t imm1:1;
+							// uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
+							// uint32_t imm4:4;
+							// uint32_t group1_15:1;
+							// uint32_t imm3:3;
+							// uint32_t rd:4;
+							// uint32_t imm8:8;
+
+
+						};
+					};
+					struct _target
+					{
+
+						uint16_t imm8:8;
+						uint16_t imm3:3;
+						uint16_t imm1:1;
+						uint16_t imm4:4;
+						// uint16_t _rest:16;
+
+						// uint32_t _rest:16;
+						// uint32_t imm4:4;
+						// uint32_t imm1:1;
+						// uint32_t imm3:3;
+						// uint32_t imm8:8;
+
+					};
+					#pragma pack(pop)
+					_mov* movw = (_mov*)dest32;
+					if (movw->group2_4 != MOVW)
+					{
+						LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ")",
+							movw->word, MOVW, address, movw->group2_4, *dest32);
+					}
+					_mov* movt = (_mov*)dest32 + 1;
+					if (movt->group2_4 != MOVT)
+					{
+						LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ")",
+							movt->word, MOVT, address + 4, movt->group2_4, *dest32);
+					}
+					LogDebug("movw.imm8: 0x%04x", movw->imm8);
+					LogDebug("movw.rd: 0x%04x", movw->rd);
+					LogDebug("movw.imm3: 0x%04x", movw->imm3);
+					LogDebug("movw.group1_15: 0x%04x", movw->group1_15);
+					LogDebug("movw.imm4: 0x%04x", movw->imm4);
+					LogDebug("movw.group2_4: 0x%04x", movw->group2_4);
+					LogDebug("movw.imm1: 0x%04x", movw->imm1);
+					LogDebug("movw.group2_11: 0x%04x", movw->group2_11);
+
+					LogDebug("movt.imm8: 0x%04x", movt->imm8);
+					LogDebug("movt.rd: 0x%04x", movt->rd);
+					LogDebug("movt.imm3: 0x%04x", movt->imm3);
+					LogDebug("movt.group1_15: 0x%04x", movt->group1_15);
+					LogDebug("movt.imm4: 0x%04x", movt->imm4);
+					LogDebug("movt.group2_4: 0x%04x", movt->group2_4);
+					LogDebug("movt.imm1: 0x%04x", movt->imm1);
+					LogDebug("movt.group2_11: 0x%04x", movt->group2_11);
+
+					_target *targetHiLo = (_target*)&target;
+					LogDebug("sizeof(_target) = %u, target: 0x%" PRIx64, sizeof(_target), target);
+					LogDebug("targetHiLo[0].imm8: 0x%02x", targetHiLo[0].imm8);
+					LogDebug("targetHiLo[0].imm3: 0x%02x", targetHiLo[0].imm3);
+					LogDebug("targetHiLo[0].imm1: 0x%02x", targetHiLo[0].imm1);
+					LogDebug("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
+					LogDebug("targetHiLo[1].imm8: 0x%02x", targetHiLo[1].imm8);
+					LogDebug("targetHiLo[1].imm3: 0x%02x", targetHiLo[1].imm3);
+					LogDebug("targetHiLo[1].imm1: 0x%02x", targetHiLo[1].imm1);
+					LogDebug("targetHiLo[1].imm4: 0x%02x", targetHiLo[1].imm4);
+
+					if (true)
+					{
+						movw->imm8 = targetHiLo[0].imm8;
+						movw->imm3 = targetHiLo[0].imm3;
+						movw->imm1 = targetHiLo[0].imm1;
+						movw->imm4 = targetHiLo[0].imm4;
+						movt->imm8 = targetHiLo[1].imm8;
+						movt->imm3 = targetHiLo[1].imm3;
+						movt->imm1 = targetHiLo[1].imm1;
+						movt->imm4 = targetHiLo[1].imm4;
+					}
+				}
+				break;
+			case PE_IMAGE_REL_THUMB_BRANCH24:
+				LogDebug("PE_IMAGE_REL_THUMB_BRANCH24: arch: %s", arch->GetName().c_str());
+				break;
+			default:
+				return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
+		}
+		return true;
+	}
+
 	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
 	{
 		(void)view;
@@ -2389,8 +2552,16 @@ public:
 		set<uint64_t> relocTypes;
 		for (auto& reloc: result)
 		{
-			reloc.type = UnhandledRelocation;
-			relocTypes.insert(reloc.nativeType);
+			LogWarn("%s COFF relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
+			switch (reloc.nativeType)
+			{
+			case PE_IMAGE_REL_THUMB_MOV32:
+				break;
+			default:
+				reloc.type = UnhandledRelocation;
+				relocTypes.insert(reloc.nativeType);
+				break;
+			}
 		}
 		for (auto& reloc : relocTypes)
 			LogWarn("Unsupported COFF relocation %s", GetRelocationString((PeArmRelocationType)reloc));
