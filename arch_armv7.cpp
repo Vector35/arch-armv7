@@ -2405,9 +2405,13 @@ public:
 		(void)base;
 		(void)dest16;
 
-		LogDebug("COFF ARCH %s: arch: %s %s relocation at 0x%" PRIx64 " len: %lu info.size: %lu", 
+		Ref<Architecture> associatedArch = arch->GetAssociatedArchitectureByAddress(address);
+
+		LogDebug("COFF ARCH %s: arch: %s (%s @ 0x%" PRIx64 ") %s relocation at 0x%" PRIx64 " len: %lu info.size: %lu", 
 			__FUNCTION__,
 			arch->GetName().c_str(),
+			associatedArch ? associatedArch->GetName().c_str() : "<none>",
+			address,
 			GetRelocationString((PeArmRelocationType)info.nativeType),
 			reloc->GetAddress(),
 			len,
@@ -2419,6 +2423,7 @@ public:
 			return false;
 		}
 
+		//auto swap = [&arch](uint32_t x) { return (arch->GetEndianness() == LittleEndian)? x : bswap32(x); };
 		switch (info.nativeType)
 		{
 			case PE_IMAGE_REL_THUMB_MOV32:
@@ -2536,9 +2541,59 @@ public:
 					}
 				}
 				break;
+			case PE_IMAGE_REL_THUMB_BRANCH20:
 			case PE_IMAGE_REL_THUMB_BRANCH24:
+			case PE_IMAGE_REL_THUMB_BLX23:
+			{
 				LogDebug("PE_IMAGE_REL_THUMB_BRANCH24: arch: %s", arch->GetName().c_str());
+				// TODO: not portable
+				#pragma pack(push, 1)
+				// Unions cover all of b (Encoding T4), bl (Encoding T1), and blx (Encoding T2)
+				// conditional b (Encoding T3) only uses the low 6 bits of offHi, upper 4 are cond
+				union _thumb32_bl_hw1 {
+					uint16_t word;
+					union {
+						struct {
+							uint16_t offHi:10; // 21-12
+							uint16_t sign:1; // 31-24
+							uint16_t group:5;
+						};
+						struct {
+							uint16_t offHi:6; // 17-12
+							uint16_t cond:4;
+							uint16_t sign:1; // 31-24
+							uint16_t group:5;
+						} b_cond;
+					};
+				};
+
+				union _thumb32_bl_hw2 {
+					uint16_t word;
+					struct {
+						uint16_t offLo:11; //b11-1
+						uint16_t j2:1; //b18
+						union {
+							uint16_t thumb:1;
+							uint16_t cond:1;
+						};
+						uint16_t j1:1; //b19
+						uint16_t i2:1; //b22
+						uint16_t i1:1; //b23
+					};
+				};
+				#pragma pack(pop)
+				_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
+				_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest + 2);
+				int32_t newTarget = (int32_t)(target - reloc->GetAddress());
+				bl_hw1->sign = newTarget < 0 ? 1 : 0;
+				if (bl_hw2->cond) // && info.nativeType == PE_IMAGE_REL_THUMB_BRANCH20)
+					// In practice, this probably makes no difference, but it is correct for conditional b instructions
+					bl_hw1->b_cond.offHi = newTarget >> 12;
+				else
+					bl_hw1->offHi = newTarget >> 12;
+				bl_hw2->offLo = newTarget >> 1;
 				break;
+			}
 			default:
 				return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
 		}
@@ -2556,6 +2611,9 @@ public:
 			switch (reloc.nativeType)
 			{
 			case PE_IMAGE_REL_THUMB_MOV32:
+			case PE_IMAGE_REL_THUMB_BRANCH20:
+			case PE_IMAGE_REL_THUMB_BRANCH24:
+			case PE_IMAGE_REL_THUMB_BLX23:
 				break;
 			default:
 				reloc.type = UnhandledRelocation;
