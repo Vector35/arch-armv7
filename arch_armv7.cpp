@@ -2546,7 +2546,9 @@ public:
 			case PE_IMAGE_REL_THUMB_BLX23:
 			{
 				LogDebug("PE_IMAGE_REL_THUMB_BRANCH24: arch: %s", arch->GetName().c_str());
+				// Adapted from R_ARM_THM_CALL & R_ARM_THM_JUMP24 cases of ArmElfRelocationHandler::ApplyRelocation
 				// TODO: not portable
+				//       ^^^^^^^^^^^^ I believe this is because the bit-field structs will break on big-endian hosts?
 				#pragma pack(push, 1)
 				// Unions cover all of b (Encoding T4), bl (Encoding T1), and blx (Encoding T2)
 				// conditional b (Encoding T3) only uses the low 6 bits of offHi, upper 4 are cond
@@ -2584,14 +2586,24 @@ public:
 				#pragma pack(pop)
 				_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
 				_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest + 2);
-				int32_t newTarget = (int32_t)(target - reloc->GetAddress());
+				int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
+				int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
 				bl_hw1->sign = newTarget < 0 ? 1 : 0;
-				if (bl_hw2->cond) // && info.nativeType == PE_IMAGE_REL_THUMB_BRANCH20)
+
+				LogDebug(
+					"COFF arm %s: %d target: 0x%" PRIx32
+					", curTarget: 0x%" PRIx32
+					", newTarget: 0x%" PRIx32
+					", address: 0x%" PRIx32
+					", base: 0x%" PRIx32,
+					__func__, bl_hw2->cond, target, curTarget, newTarget, address, info.base
+				);
+				if (bl_hw2->cond == 0)
 					// In practice, this probably makes no difference, but it is correct for conditional b instructions
-					bl_hw1->b_cond.offHi = newTarget >> 12;
+					bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
 				else
-					bl_hw1->offHi = newTarget >> 12;
-				bl_hw2->offLo = newTarget >> 1;
+					bl_hw1->offHi = (newTarget >> 12)  & ((1 << 10) - 1);
+				bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
 				break;
 			}
 			default:
