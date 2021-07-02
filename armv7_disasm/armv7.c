@@ -749,21 +749,21 @@ static const char* endianSpecStrings[] = {
 
 static const char* dsbOptionStrings[] = {
 	"",
+	"oshld", // 1
+	"oshst", // 2
+	"osh",   // 3
 	"",
-	"oshst",
-	"osh",
+	"nshld", // 5
+	"nshst", // 6
+	"nsh",   // 7
 	"",
+	"ishld", // 9
+	"ishst", // 10
+	"ish",   // 11
 	"",
-	"nshst",
-	"nsh",
-	"",
-	"",
-	"ishst",
-	"ish",
-	"",
-	"",
-	"st",
-	"sy",
+	"ld",    // 13
+	"st",    // 14
+	"sy",    // 15
 };
 
 static const char* shiftString[] = {
