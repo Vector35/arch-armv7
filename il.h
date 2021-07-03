@@ -51,6 +51,11 @@ enum Armv7Intrinsic : uint32_t
 	ARMV7_INTRIN_SET_EXCLUSIVE_MONITORS,
 };
 
+enum ArmFakeRegister: uint32_t
+{
+	FAKEREG_SYSCALL_INFO = armv7::REG_Q15+1
+};
+
 bool GetLowLevelILForArmInstruction(BinaryNinja::Architecture* arch, uint64_t addr,
     BinaryNinja::LowLevelILFunction& il, armv7::Instruction& instr, size_t addrSize);
 bool GetLowLevelILForThumbInstruction(BinaryNinja::Architecture* arch,

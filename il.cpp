@@ -819,9 +819,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						if (op2.reg & 1 << reg)
 						{
 							il.AddInstruction(
-								il.SetRegister(4, 
+								il.SetRegister(4,
 									// writes to PC are deferred to a final Jump
-									(reg != REG_PC) ? reg : LLIL_TEMP(1), 
+									(reg != REG_PC) ? reg : LLIL_TEMP(1),
 									il.Load(4,
 										il.Add(4,
 											il.Register(4, LLIL_TEMP(0)),
@@ -994,9 +994,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		case ARMV7_MCRR2:
 			ConditionExecute(il, instr.cond,
 				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDTWOWORDS,
-					{ 
+					{
 						il.Register(4, op4.reg),
-						il.Register(4, op3.reg), 
+						il.Register(4, op3.reg),
 						il.Const(1, op1.reg),
 						il.Const(1, op2.imm),
 						il.Const(1, op5.reg),
@@ -1059,7 +1059,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(
 							il.Intrinsic(
 								{ RegisterOrFlag::Register(op3.reg) },
-								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								ARMV7_INTRIN_COPROC_GETONEWORD,
 								params
 							)
 						);
@@ -1068,7 +1068,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(
 							il.Intrinsic(
 								{ RegisterOrFlag::Register(LLIL_TEMP(0)) },
-								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								ARMV7_INTRIN_COPROC_GETONEWORD,
 								params
 							)
 						);
@@ -1088,7 +1088,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.Intrinsic(
 					{ RegisterOrFlag::Register(op4.reg), RegisterOrFlag::Register(op3.reg) },
 					ARMV7_INTRIN_COPROC_GETTWOWORDS,
-					{ 
+					{
 						il.Const(1, op1.reg),
 						il.Const(1, op2.imm),
 						il.Const(1, op5.reg),
@@ -4293,10 +4293,15 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 							ReadILOperand(il, op3, addr), flagOperation[instr.setsFlags])));
 			break;
 		case ARMV7_SVC:
-			if (op1.cls == IMM && op1.imm == 0)
-				ConditionExecute(il, instr.cond, il.SystemCall());
-			else
-				ConditionExecute(il, instr.cond, il.Undefined());
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+
+						il.AddInstruction(il.SetRegister(4, FAKEREG_SYSCALL_INFO, il.Const(4, op1.imm)));
+						il.AddInstruction(il.SystemCall());
+					});
 			break;
 		case ARMV7_SWP:
 			if (op1.reg == op2.reg)

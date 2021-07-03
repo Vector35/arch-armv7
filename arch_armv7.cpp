@@ -1364,7 +1364,7 @@ public:
 			};
 		case ARMV7_INTRIN_COPROC_SENDONEWORD:
 			return {
-				NameAndType(Type::IntegerType(4, false)), 
+				NameAndType(Type::IntegerType(4, false)),
 				NameAndType("cp", Type::IntegerType(1, false)),
 				NameAndType(Type::IntegerType(1, false)),
 				NameAndType("n", Type::IntegerType(1, false)),
@@ -1691,12 +1691,18 @@ size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, s
 
 string ArmCommonArchitecture::GetRegisterName(uint32_t reg)
 {
-	if (reg > REG_Q15)
+	if (reg >= REG_R0 && reg <= REG_Q15)
 	{
-		LogError("Unknown Register: %x - Please report this as a bug.\n", reg);
-		return "unknown";
+		return get_register_name((enum Register)reg);
 	}
-	return get_register_name((enum Register)reg);
+
+	if (reg == FAKEREG_SYSCALL_INFO)
+	{
+		return "syscall_info";
+	}
+
+	LogError("Unknown Register: %x - Please report this as a bug.\n", reg);
+	return "unknown";
 }
 
 vector<uint32_t> ArmCommonArchitecture::GetFullWidthRegisters()
@@ -1724,6 +1730,8 @@ vector<uint32_t> ArmCommonArchitecture::GetAllRegisters()
 		REG_D24,  REG_D25,  REG_D26,  REG_D27,  REG_D28,  REG_D29,  REG_D30,  REG_D31,
 		REG_Q0,   REG_Q1,   REG_Q2,   REG_Q3,   REG_Q4,   REG_Q5,   REG_Q6,   REG_Q7,
 		REG_Q8,   REG_Q9,   REG_Q10,  REG_Q11,  REG_Q12,  REG_Q13,  REG_Q14,  REG_Q15,
+		/* fake registers */
+		FAKEREG_SYSCALL_INFO
 	};
 }
 
@@ -1846,6 +1854,8 @@ BNRegisterInfo ArmCommonArchitecture::GetRegisterInfo(uint32_t reg)
 		case REG_Q14:
 		case REG_Q15:
 			return RegisterInfo(reg, 0, 16);
+		case FAKEREG_SYSCALL_INFO:
+			return RegisterInfo(reg, 0, 4);
 	}
 	return RegisterInfo(0, 0, 0);
 }
