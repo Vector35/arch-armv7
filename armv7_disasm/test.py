@@ -1,7 +1,18 @@
 #!/usr/bin/env python
 
+# compile disassembler to ctypes-able shared object:
+# MAC: gcc armv7.c -shared -o disasm.dylib
+
 # (bytes, expected_disassembly, options)
 test_cases = (
+        # supervisor calls
+	(b'\x10\x00\x00\xef', 'svc #0x10', {}),
+	(b'\x00\x00\x00\xef', 'svc #0', {}),
+	(b'\xff\xff\xff\xef', 'svc #0xffffff', {}),
+	(b'\x01\x00\x00\xef', 'svc #0x1', {}),
+	(b'\x02\x00\x00\xef', 'svc #0x2', {}),
+	(b'\x56\x34\x12\xef', 'svc #0x123456', {}),
+        #
 	(b'\x93\xfc\x80\xe1', 'stl r3, [r0]', {}), # NOT 'strex pc, r3, [r0]'
 	(b'\x94\xfc\x81\xe1', 'stl r4, [r1]', {}),
 	(b'\x95\xfc\x82\xe1', 'stl r5, [r2]', {}),
@@ -418,7 +429,7 @@ test_cases = (
 	(b'\x58\x62\x07\xe0', 'and r6, r7, r8, asr r2', {}),
 	(b'\x78\x62\x07\xe0', 'and r6, r7, r8, ror r2', {}),
 	(b'\x66\xa0\x01\xe0', 'and r10, r1, r6, rrx', {}),
-	(b'\x02\x21\xc3\xe3', 'bic r2, r3, #-0x80000000', {}),
+	(b'\x02\x21\xc3\xe3', 'bic r2, r3, #0x80000000', {}),
 	(b'\x0f\x10\x01\xe2', 'and r1, r1, #0xf', {}),
 	(b'\x01\xa0\x0a\xe0', 'and r10, r10, r1', {}),
 	(b'\x01\xa5\x0a\xe0', 'and r10, r10, r1, lsl #0xa', {}),
@@ -1167,9 +1178,6 @@ test_cases = (
 	(b'\x77\x69\x46\xe0', 'sub r6, r6, r7, ror r9', {}),
 	(b'\x22\x30\x41\xe0', 'sub r3, r1, r2, lsr #0x20', {}),
 	(b'\x42\x30\x41\xe0', 'sub r3, r1, r2, asr #0x20', {}),
-	(b'\x10\x00\x00\xef', 'svc #0x10', {}),
-	(b'\x00\x00\x00\xef', 'svc #0', {}),
-	(b'\xff\xff\xff\xef', 'svc #0xffffff', {}),
 	(b'\x92\x10\x03\xe1', 'swp r1, r2, [r3]', {}),
 	(b'\x94\x40\x06\xe1', 'swp r4, r4, [r6]', {}),
 	(b'\x91\x50\x49\xe1', 'swpb r5, r1, [r9]', {}),

@@ -4296,10 +4296,15 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 							ReadILOperand(il, op3, addr), flagOperation[instr.setsFlags])));
 			break;
 		case ARMV7_SVC:
-			if (op1.cls == IMM && op1.imm == 0)
-				ConditionExecute(il, instr.cond, il.SystemCall());
-			else
-				ConditionExecute(il, instr.cond, il.Undefined());
+			ConditionExecute(addrSize, instr.cond, instr, il,
+					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
+					{
+						(void) addrSize;
+						(void) instr;
+
+						il.AddInstruction(il.SetRegister(4, FAKEREG_SYSCALL_INFO, il.Const(4, op1.imm)));
+						il.AddInstruction(il.SystemCall());
+					});
 			break;
 		case ARMV7_SWP:
 			if (op1.reg == op2.reg)
