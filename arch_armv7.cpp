@@ -1681,6 +1681,32 @@ size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, s
 						il.Const(size, 0)));
 		}
 		break;
+	case LLIL_LSR:
+		switch (flag)
+		{
+		case IL_FLAG_C:
+			/*
+			 * The last bit spilled out of the register by the shift lands in the carry flag.
+			 * For example, `((u32)1) >> 1` sets the carry flag, `((u32)2) >> 1` clears it.
+			 * We can simplify this to a bit test: `x & (1 << (shift_amt - 1))`
+			 */
+			return il.TestBit(0,
+					il.GetExprForRegisterOrConstant(operands[0], size),
+					il.Sub(size, il.GetExprForRegisterOrConstant(operands[1], size), il.Const(size, 1)));
+		}
+	case LLIL_LSL:
+		switch (flag)
+		{
+		case IL_FLAG_C:
+			/*
+			 * Just like the carry flag for LSR, this is the last bit spilled out of the register.
+			 * Also equivalent to a bit test, just indexing from the most significant bit rather
+			 * than the least.
+			 */
+			return il.TestBit(0,
+					il.GetExprForRegisterOrConstant(operands[0], size),
+					il.Sub(size, il.Const(size, 8 * size), il.GetExprForRegisterOrConstant(operands[1], size)));
+		}
 	default:
 		break;
 	}
