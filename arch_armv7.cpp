@@ -2565,12 +2565,12 @@ public:
 							uint32_t bit_lo_15:1;
 						};
 						struct {
-// MOVW
-// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
-// MOVT
-// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
+							// MOVW
+							// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+							// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
+							// MOVT
+							// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+							// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
 							uint32_t _imm4:4;
 							uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
 							uint32_t _imm1:1;
@@ -2778,12 +2778,12 @@ public:
 				{
 					uint32_t word;
 					struct {
-// MOVW
-// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
-// cond        0  0  1  1  0  0  0  0  imm4        Rd          imm12
-// MOVT
-// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
-// cond        0  0  1  1  0  1  0  0  imm4        Rd          imm12
+						// MOVW
+						// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+						// cond        0  0  1  1  0  0  0  0  imm4        Rd          imm12
+						// MOVT
+						// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+						// cond        0  0  1  1  0  1  0  0  imm4        Rd          imm12
 						uint32_t imm12:12;
 						uint32_t rd:4;
 						uint32_t imm4:4;
@@ -2803,23 +2803,23 @@ public:
 				#pragma pack(pop)
 				_mov* mov = (_mov*)dest32;
 
-				LogWarn("mov.imm12: 0x%04x", mov->imm12);
-				LogWarn("mov.rd: 0x%04x", mov->rd);
-				LogWarn("mov.imm4: 0x%04x", mov->imm4);
-				LogWarn("mov.bits_20_21: 0x%04x", mov->bits_20_21);
-				LogWarn("mov.is_movt_flag: %d", mov->is_movt_flag);
-				LogWarn("mov.bit_22: %d", mov->bit_23);
-				LogWarn("mov.bits_24_27: 0x%04x", mov->bits_24_27);
-				LogWarn("mov.cond: 0x%04x", mov->cond);
+				// LogDebug("mov.imm12: 0x%04x", mov->imm12);
+				// LogDebug("mov.rd: 0x%04x", mov->rd);
+				// LogDebug("mov.imm4: 0x%04x", mov->imm4);
+				// LogDebug("mov.bits_20_21: 0x%04x", mov->bits_20_21);
+				// LogDebug("mov.is_movt_flag: %d", mov->is_movt_flag);
+				// LogDebug("mov.bit_22: %d", mov->bit_23);
+				// LogDebug("mov.bits_24_27: 0x%04x", mov->bits_24_27);
+				// LogDebug("mov.cond: 0x%04x", mov->cond);
 
 				int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
 				_target *targetHiLo = (_target*)&newTarget;
 
-				LogWarn("sizeof(_target) = %lu, target: 0x%" PRIx64, sizeof(_target), target);
-				LogWarn("targetHiLo[0].imm12: 0x%02x", targetHiLo[0].imm12);
-				LogWarn("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
-				LogWarn("targetHiLo[1].imm12: 0x%02x", targetHiLo[1].imm12);
-				LogWarn("targetHiLo[1].imm4: 0x%02x", targetHiLo[1].imm4);
+				// LogDebug("sizeof(_target) = %lu, target: 0x%" PRIx64, sizeof(_target), target);
+				// LogDebug("targetHiLo[0].imm12: 0x%02x", targetHiLo[0].imm12);
+				// LogDebug("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
+				// LogDebug("targetHiLo[1].imm12: 0x%02x", targetHiLo[1].imm12);
+				// LogDebug("targetHiLo[1].imm4: 0x%02x", targetHiLo[1].imm4);
 
 				mov->imm12 = targetHiLo[mov->is_movt_flag].imm12;
 				mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
