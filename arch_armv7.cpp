@@ -273,6 +273,51 @@ enum PeArmRelocationType : uint32_t
 	MAX_ARM_PE_RELOCATION
 };
 
+enum PeRelocationType : uint32_t
+{
+	PE_IMAGE_REL_BASED_ABSOLUTE       = 0,  // The base relocation is skipped. This type can be used to pad a block.
+	PE_IMAGE_REL_BASED_HIGH           = 1,  // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word.
+	PE_IMAGE_REL_BASED_LOW            = 2,  // The base relocation adds the low 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the low half of a 32-bit word.
+	PE_IMAGE_REL_BASED_HIGHLOW        = 3,  // The base relocation applies all 32 bits of the difference to the 32-bit field at offset.
+	PE_IMAGE_REL_BASED_HIGHADJ        = 4,  // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word. The low 16 bits of the 32-bit value are stored in the 16-bit word that follows this base relocation. This means that this base relocation occupies two slots.
+	PE_IMAGE_REL_BASED_MIPS_JMPADDR   = 5,  // The relocation interpretation is dependent on the machine type. When the machine type is MIPS, the base relocation applies to a MIPS jump instruction.
+	PE_IMAGE_REL_BASED_ARM_MOV32      = 5,  // This relocation is meaningful only when the machine type is ARM or Thumb. The base relocation applies the 32-bit address of a symbol across a consecutive MOVW/MOVT instruction pair.
+	PE_IMAGE_REL_BASED_RISCV_HIGH20   = 5,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the high 20 bits of a 32-bit absolute address.
+	PE_IMAGE_REL_BASE_RESERVED        = 6,  // Reserved, must be zero.
+	PE_IMAGE_REL_BASED_THUMB_MOV32    = 7,  // This relocation is meaningful only when the machine type is Thumb. The base relocation applies the 32-bit address of a symbol to a consecutive MOVW/MOVT instruction pair.
+	PE_IMAGE_REL_BASED_RISCV_LOW12I   = 7,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V I-type instruction format.
+	PE_IMAGE_REL_BASED_RISCV_LOW12S   = 8,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V S-type instruction format.
+	PE_IMAGE_REL_BASED_MIPS_JMPADDR16 = 9,  // The relocation is only meaningful when the machine type is MIPS. The base relocation applies to a MIPS16 jump instruction.
+	PE_IMAGE_REL_BASED_DIR64          = 10, // The base relocation applies the difference to the 64-bit field at offset.
+	MAX_PE_RELOCATION
+};
+
+
+static const char* GetRelocationString(PeRelocationType relocType)
+{
+	static const char* relocTable[] =
+	{
+		"PE_IMAGE_REL_BASED_ABSOLUTE",
+		"PE_IMAGE_REL_BASED_HIGH",
+		"PE_IMAGE_REL_BASED_LOW",
+		"PE_IMAGE_REL_BASED_HIGHLOW",
+		"PE_IMAGE_REL_BASED_HIGHADJ",
+		"PE_IMAGE_REL_BASED_MIPS_JMPADDR",
+		"PE_IMAGE_REL_BASED_ARM_MOV32",
+		"PE_IMAGE_REL_BASED_RISCV_HIGH20",
+		"PE_IMAGE_REL_BASE_RESERVED",
+		"PE_IMAGE_REL_BASED_THUMB_MOV32",
+		"PE_IMAGE_REL_BASED_RISCV_LOW12I",
+		"PE_IMAGE_REL_BASED_RISCV_LOW12S",
+		"PE_IMAGE_REL_BASED_MIPS_JMPADDR16",
+		"PE_IMAGE_REL_BASED_DIR64"
+	};
+
+	if (relocType < MAX_PE_RELOCATION)
+		return relocTable[relocType];
+	return "Unknown relocation";
+}
+
 static const char* GetRelocationString(MachoArmRelocationType rel)
 {
 	static const char* relocTable[] =
@@ -2372,6 +2417,38 @@ public:
 class ArmPERelocationHandler: public RelocationHandler
 {
 public:
+	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override
+	{
+		// Note: info.base contains preferred base address and the base where the image is actually loaded
+		(void)view;
+		(void)arch;
+		(void)len;
+		uint64_t* data64 = (uint64_t*)dest;
+		uint32_t* data32 = (uint32_t*)dest;
+		uint16_t* data16 = (uint16_t*)dest;
+		auto info = reloc->GetInfo();
+		if (info.size == 8)
+		{
+			data64[0] += info.base;
+		}
+		else if (info.size == 4)
+		{
+			data32[0] += (uint32_t)info.base;
+		}
+		else if (info.size == 2)
+		{
+			if (info.nativeType == PE_IMAGE_REL_BASED_HIGH)
+			{
+				data16[0] = data16[0] + (uint16_t)(info.base >> 16);
+			}
+			else if (info.nativeType == PE_IMAGE_REL_BASED_LOW)
+			{
+				data16[0] = data16[0] + (uint16_t)(info.base & 0xffff);
+			}
+		}
+		return true;
+	}
+
 	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
 	{
 		(void)view;
@@ -2379,12 +2456,44 @@ public:
 		set<uint64_t> relocTypes;
 		for (auto& reloc: result)
 		{
-			reloc.type = UnhandledRelocation;
-			relocTypes.insert(reloc.nativeType);
+			switch (reloc.nativeType)
+			{
+			case PE_IMAGE_REL_BASED_ABSOLUTE:
+				reloc.type = IgnoredRelocation;
+				break;
+			case PE_IMAGE_REL_BASED_HIGHLOW:
+				reloc.size = 4;
+				break;
+			case PE_IMAGE_REL_BASED_DIR64:
+				reloc.size = 8;
+				break;
+			case PE_IMAGE_REL_BASED_HIGH:
+				reloc.size = 2;
+				break;
+			case PE_IMAGE_REL_BASED_LOW:
+				reloc.size = 2;
+				break;
+			default:
+				// By default, PE relocations are correct when not rebased.
+				// Upon rebasing, support would need to be added to correctly process the relocation
+				reloc.type = UnhandledRelocation;
+				relocTypes.insert(reloc.nativeType);
+			}
 		}
 		for (auto& reloc : relocTypes)
-			LogWarn("Unsupported PE relocation %s", GetRelocationString((PeArmRelocationType)reloc));
+			LogWarn("Unsupported PE relocation %s", GetRelocationString((PeRelocationType)reloc));
 		return false;
+	}
+
+	virtual size_t GetOperandForExternalRelocation(const uint8_t* data, uint64_t addr, size_t length,
+		Ref<LowLevelILFunction> il, Ref<Relocation> relocation) override
+	{
+		(void)data;
+		(void)addr;
+		(void)length;
+		(void)il;
+		(void)relocation;
+		return BN_AUTOCOERCE_EXTERN_PTR;
 	}
 };
 
@@ -2706,7 +2815,7 @@ public:
 				int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
 				_target *targetHiLo = (_target*)&newTarget;
 
-				LogWarn("sizeof(_target) = %u, target: 0x%" PRIx64, sizeof(_target), target);
+				LogWarn("sizeof(_target) = %lu, target: 0x%" PRIx64, sizeof(_target), target);
 				LogWarn("targetHiLo[0].imm12: 0x%02x", targetHiLo[0].imm12);
 				LogWarn("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
 				LogWarn("targetHiLo[1].imm12: 0x%02x", targetHiLo[1].imm12);
