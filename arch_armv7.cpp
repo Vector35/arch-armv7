@@ -2658,8 +2658,8 @@ public:
 				int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
 				int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
 				bl_hw1->sign = newTarget < 0 ? 1 : 0;
-				bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
 
+				// bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
 				// LogDebug(
 				// 	"COFF arm %s: %sbranch%s, target: 0x%" PRIx64
 				// 	", curTarget: 0x%" PRIx32
@@ -2727,7 +2727,8 @@ public:
 					curTarget |= bl->bit_24_blx_H << 1;
 				}
 
-				_target newTarget = { .word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address) };
+				_target newTarget;
+				newTarget.word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
 				bl->imm24 = newTarget.imm24;
 				if (bl->cond == 0xf)
 				{
