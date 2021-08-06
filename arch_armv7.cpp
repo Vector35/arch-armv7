@@ -2519,17 +2519,6 @@ public:
 
 		Ref<Architecture> associatedArch = arch->GetAssociatedArchitectureByAddress(address);
 
-		LogDebug("COFF ARCH %s: arch: %s (%s @ 0x%" PRIx64 ") %s relocation at 0x%" PRIx64 " len: %lu info.size: %lu",
-			__FUNCTION__,
-			arch->GetName().c_str(),
-			associatedArch ? associatedArch->GetName().c_str() : "<none>",
-			address,
-			GetRelocationString((PeArmRelocationType)info.nativeType),
-			reloc->GetAddress(),
-			len,
-			info.size
-		);
-
 		if (len < info.size)
 		{
 			return false;
@@ -2539,7 +2528,6 @@ public:
 		switch (info.nativeType)
 		{
 			case PE_IMAGE_REL_THUMB_MOV32:
-				LogDebug("PE_IMAGE_REL_THUMB_MOV32: arch: %s", arch->GetName().c_str());
 				if (true || arch->GetName() == "thumb2")
 				{
 					enum _mov_type : uint16_t
@@ -2603,39 +2591,15 @@ public:
 						LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
 							movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
 					}
-					// LogDebug("movw.imm8: 0x%04x", movw->imm8);
-					// LogDebug("movw.rd: 0x%04x", movw->rd);
-					// LogDebug("movw.imm3: 0x%04x", movw->imm3);
-					// LogDebug("movw.group1_15: 0x%04x", movw->group1_15);
-					// LogDebug("movw.imm4: 0x%04x", movw->imm4);
-					// LogDebug("movw.group2_4: 0x%04x", movw->group2_4);
-					// LogDebug("movw.imm1: 0x%04x", movw->imm1);
-					// LogDebug("movw.group2_11: 0x%04x", movw->group2_11);
-
-					// LogDebug("movt.imm8: 0x%04x", movt->imm8);
-					// LogDebug("movt.rd: 0x%04x", movt->rd);
-					// LogDebug("movt.imm3: 0x%04x", movt->imm3);
-					// LogDebug("movt.group1_15: 0x%04x", movt->group1_15);
-					// LogDebug("movt.imm4: 0x%04x", movt->imm4);
-					// LogDebug("movt.group2_4: 0x%04x", movt->group2_4);
-					// LogDebug("movt.imm1: 0x%04x", movt->imm1);
-					// LogDebug("movt.group2_11: 0x%04x", movt->group2_11);
 
 					_target *targetHiLo = (_target*)&target;
-					// LogDebug("sizeof(_target) = %u, target: 0x%" PRIx64, sizeof(_target), target);
-					// LogDebug("targetHiLo[0].imm8: 0x%02x", targetHiLo[0].imm8);
-					// LogDebug("targetHiLo[0].imm3: 0x%02x", targetHiLo[0].imm3);
-					// LogDebug("targetHiLo[0].imm1: 0x%02x", targetHiLo[0].imm1);
-					// LogDebug("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
-					// LogDebug("targetHiLo[1].imm8: 0x%02x", targetHiLo[1].imm8);
-					// LogDebug("targetHiLo[1].imm3: 0x%02x", targetHiLo[1].imm3);
-					// LogDebug("targetHiLo[1].imm1: 0x%02x", targetHiLo[1].imm1);
-					// LogDebug("targetHiLo[1].imm4: 0x%02x", targetHiLo[1].imm4);
 
+					// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
 					movw->imm8 = targetHiLo[0].imm8;
 					movw->imm3 = targetHiLo[0].imm3;
 					movw->imm1 = targetHiLo[0].imm1;
 					movw->imm4 = targetHiLo[0].imm4;
+
 					movt->imm8 = targetHiLo[1].imm8;
 					movt->imm3 = targetHiLo[1].imm3;
 					movt->imm1 = targetHiLo[1].imm1;
@@ -2646,7 +2610,6 @@ public:
 			case PE_IMAGE_REL_THUMB_BRANCH24:
 			case PE_IMAGE_REL_THUMB_BLX23:
 			{
-				LogDebug("PE_IMAGE_REL_THUMB_BRANCH24: arch: %s", arch->GetName().c_str());
 				// Adapted from R_ARM_THM_CALL & R_ARM_THM_JUMP24 cases of ArmElfRelocationHandler::ApplyRelocation
 				// TODO: not portable
 				//       ^^^^^^^^^^^^ I believe this is because the bit-field structs will break on big-endian hosts?
@@ -2689,6 +2652,7 @@ public:
 					};
 				};
 				#pragma pack(pop)
+
 				_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
 				_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest + 2);
 				int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
@@ -2696,19 +2660,19 @@ public:
 				bl_hw1->sign = newTarget < 0 ? 1 : 0;
 				bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
 
-				LogDebug(
-					"COFF arm %s: %sbranch%s, target: 0x%" PRIx64
-					", curTarget: 0x%" PRIx32
-					", newTarget: 0x%" PRIx32
-					", address: 0x%" PRIx64
-					", base: 0x%" PRIx64,
-					__func__,
-					is_conditional_branch ? "conditional " :
-						bl_hw2->branch_and_link ? "linking " : "",
-					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-					// is_conditional_branch ? "conditional" : bl_hw2->branch_and_link ? "",
-					target, curTarget, newTarget, address, info.base
-				);
+				// LogDebug(
+				// 	"COFF arm %s: %sbranch%s, target: 0x%" PRIx64
+				// 	", curTarget: 0x%" PRIx32
+				// 	", newTarget: 0x%" PRIx32
+				// 	", address: 0x%" PRIx64
+				// 	", base: 0x%" PRIx64,
+				// 	__func__,
+				// 	is_conditional_branch ? "conditional " :
+				// 		bl_hw2->branch_and_link ? "linking " : "",
+				// 	(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
+				// 	// is_conditional_branch ? "conditional" : bl_hw2->branch_and_link ? "",
+				// 	target, curTarget, newTarget, address, info.base
+				// );
 				if (!bl_hw2->branch_and_link && bl_hw2->not_conditional == 0)
 					// In practice, this probably makes no difference, but it is correct for conditional b instructions
 					bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
@@ -2751,8 +2715,10 @@ public:
 						uint32_t unused:6;
 					};
 				};
+
 				_arm_b_bl_blx* bl = (_arm_b_bl_blx*)dest;
 				int32_t curTarget = bl->imm24 << 2;
+
 				if (bl->cond == 0xf)
 				{
 					// BLX is unconditional, and incorporates one more bit into the target address,
@@ -2760,6 +2726,7 @@ public:
 					// TODO: determine whether the target address should have its low bit set after relocation
 					curTarget |= bl->bit_24_blx_H << 1;
 				}
+
 				_target newTarget = { .word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address) };
 				bl->imm24 = newTarget.imm24;
 				if (bl->cond == 0xf)
@@ -2801,33 +2768,13 @@ public:
 					uint16_t imm4:4;
 				};
 				#pragma pack(pop)
+
 				_mov* mov = (_mov*)dest32;
-
-				// LogDebug("mov.imm12: 0x%04x", mov->imm12);
-				// LogDebug("mov.rd: 0x%04x", mov->rd);
-				// LogDebug("mov.imm4: 0x%04x", mov->imm4);
-				// LogDebug("mov.bits_20_21: 0x%04x", mov->bits_20_21);
-				// LogDebug("mov.is_movt_flag: %d", mov->is_movt_flag);
-				// LogDebug("mov.bit_22: %d", mov->bit_23);
-				// LogDebug("mov.bits_24_27: 0x%04x", mov->bits_24_27);
-				// LogDebug("mov.cond: 0x%04x", mov->cond);
-
 				int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
 				_target *targetHiLo = (_target*)&newTarget;
 
-				// LogDebug("sizeof(_target) = %lu, target: 0x%" PRIx64, sizeof(_target), target);
-				// LogDebug("targetHiLo[0].imm12: 0x%02x", targetHiLo[0].imm12);
-				// LogDebug("targetHiLo[0].imm4: 0x%02x", targetHiLo[0].imm4);
-				// LogDebug("targetHiLo[1].imm12: 0x%02x", targetHiLo[1].imm12);
-				// LogDebug("targetHiLo[1].imm4: 0x%02x", targetHiLo[1].imm4);
-
 				mov->imm12 = targetHiLo[mov->is_movt_flag].imm12;
 				mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
-
-				// _mov* mov = (_mov*)dest32;
-				// int64_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
-				// mov->imm12 = (newTarget >> 16) & 0xfff;
-				// mov->imm4 = (newTarget >> 28) & 0xf;
 				break;
 			}
 			case PE_IMAGE_REL_ARM_PAIR:
