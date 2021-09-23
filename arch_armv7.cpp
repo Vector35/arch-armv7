@@ -20,6 +20,8 @@ using namespace std;
 #define snprintf _snprintf
 #endif
 
+#define DEBUG_COFF 1
+
 #define DISASM_SUCCESS 0
 #define FAILED_TO_DISASSEMBLE_OPERAND 1
 #define FAILED_TO_DISASSEMBLE_REGISTER 2
@@ -2527,263 +2529,311 @@ public:
 		//auto swap = [&arch](uint32_t x) { return (arch->GetEndianness() == LittleEndian)? x : bswap32(x); };
 		switch (info.nativeType)
 		{
-			case PE_IMAGE_REL_THUMB_MOV32:
-				if (true || arch->GetName() == "thumb2")
-				{
-					enum _mov_type : uint16_t
-					{
-						MOVW = 0b100100,
-						MOVT = 0b101100,
-					};
-					#pragma pack(push,1)
-					union _mov
-					{
-						uint32_t word;
-						struct {
-							uint32_t imm4:4;
-							uint32_t bits_hi_4_6:3;
-							uint32_t is_movt_flag:1;
-							uint32_t bits_hi_8_9:2;
-							uint32_t imm1:1;
-							uint32_t bits_hi_11_15:5;
-
-							uint32_t imm8:8;
-							uint32_t rd:4;
-							uint32_t imm3:3;
-							uint32_t bit_lo_15:1;
-						};
-						struct {
-							// MOVW
-							// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-							// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
-							// MOVT
-							// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-							// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
-							uint32_t _imm4:4;
-							uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
-							uint32_t _imm1:1;
-							uint32_t group2_11:5;
-
-							uint32_t _imm8:8;
-							uint32_t _rd:4;
-							uint32_t _imm3:3;
-							uint32_t group1_15:1;
-						};
-					};
-					struct _target
-					{
-
-						uint16_t imm8:8;
-						uint16_t imm3:3;
-						uint16_t imm1:1;
-						uint16_t imm4:4;
-					};
-					#pragma pack(pop)
-					_mov* movw = (_mov*)dest32;
-					if (movw->is_movt_flag != 0) //movw->group2_4 != MOVW)
-					{
-						LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
-							movw->word, MOVW, address, movw->group2_4, *dest32, movw->is_movt_flag);
-					}
-					_mov* movt = (_mov*)dest32 + 1;
-					if (movt->is_movt_flag != 1) // movt->group2_4 != MOVT)
-					{
-						LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
-							movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
-					}
-
-					_target *targetHiLo = (_target*)&target;
-
-					// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
-					movw->imm8 = targetHiLo[0].imm8;
-					movw->imm3 = targetHiLo[0].imm3;
-					movw->imm1 = targetHiLo[0].imm1;
-					movw->imm4 = targetHiLo[0].imm4;
-
-					movt->imm8 = targetHiLo[1].imm8;
-					movt->imm3 = targetHiLo[1].imm3;
-					movt->imm1 = targetHiLo[1].imm1;
-					movt->imm4 = targetHiLo[1].imm4;
-				}
-				break;
-			case PE_IMAGE_REL_THUMB_BRANCH20:
-			case PE_IMAGE_REL_THUMB_BRANCH24:
-			case PE_IMAGE_REL_THUMB_BLX23:
+		case PE_IMAGE_REL_THUMB_MOV32:
+			if (true || arch->GetName() == "thumb2")
 			{
-				// Adapted from R_ARM_THM_CALL & R_ARM_THM_JUMP24 cases of ArmElfRelocationHandler::ApplyRelocation
-				// TODO: not portable
-				//       ^^^^^^^^^^^^ I believe this is because the bit-field structs will break on big-endian hosts?
-				#pragma pack(push, 1)
-				// Unions cover all of b (Encoding T4), bl (Encoding T1), and blx (Encoding T2)
-				// conditional b (Encoding T3) only uses the low 6 bits of offHi, upper 4 are cond
-				union _thumb32_bl_hw1 {
-					uint16_t word;
-					union {
-						struct {
-							uint16_t offHi:10; // 21-12
-							uint16_t sign:1; // 31-24
-							uint16_t group:5;
-						};
-						struct {
-							uint16_t offHi:6; // 17-12
-							uint16_t cond:4;
-							uint16_t sign:1; // 31-24
-							uint16_t group:5;
-						} b_cond;
-					};
-				};
-
-				union _thumb32_bl_hw2 {
-					uint16_t word;
-					struct {
-						uint16_t offLo:11; //b11-1 10-0
-						uint16_t j2:1; //b12 11
-						union { //b13 12
-							uint16_t thumb:1;
-							uint16_t not_blx:1;
-							uint16_t not_conditional:1;
-						};
-						uint16_t j1:1; //b14 13
-						union { //b15 14
-							uint16_t i2:1;
-							uint16_t branch_and_link:1;
-						};
-						uint16_t i1:1; //b16 15
-					};
-				};
-				#pragma pack(pop)
-
-				_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
-				_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest + 2);
-				int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
-				int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
-				bl_hw1->sign = newTarget < 0 ? 1 : 0;
-
-				// bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
-				// LogDebug(
-				// 	"COFF arm %s: %sbranch%s, target: 0x%" PRIx64
-				// 	", curTarget: 0x%" PRIx32
-				// 	", newTarget: 0x%" PRIx32
-				// 	", address: 0x%" PRIx64
-				// 	", base: 0x%" PRIx64,
-				// 	__func__,
-				// 	is_conditional_branch ? "conditional " :
-				// 		bl_hw2->branch_and_link ? "linking " : "",
-				// 	(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-				// 	// is_conditional_branch ? "conditional" : bl_hw2->branch_and_link ? "",
-				// 	target, curTarget, newTarget, address, info.base
-				// );
-				if (!bl_hw2->branch_and_link && bl_hw2->not_conditional == 0)
-					// In practice, this probably makes no difference, but it is correct for conditional b instructions
-					bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
-				else
-					bl_hw1->offHi = (newTarget >> 12)  & ((1 << 10) - 1);
-				bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
-				break;
-			}
-			case PE_IMAGE_REL_THUMB_UNUSED:
-				break;
-
-			case PE_IMAGE_REL_ARM_ABSOLUTE:
-			case PE_IMAGE_REL_ARM_ADDR32:
-			case PE_IMAGE_REL_ARM_ADDR32NB:
-				break;
-			case PE_IMAGE_REL_ARM_BRANCH11:
-			case PE_IMAGE_REL_ARM_BLX11:
-				// obsolete: only < ARMv7
-				break;
-			case PE_IMAGE_REL_ARM_BRANCH24:
-			case PE_IMAGE_REL_ARM_BLX24:
-			{
-				struct _arm_b_bl_blx {
-					union {
-						uint32_t word;
-						struct {
-							uint32_t imm24:24;
-							uint32_t bit_24_blx_H:1;
-							uint32_t bits_25_27:3;
-							uint32_t cond:4;
-						};
-					};
-				};
-				union _target {
-					int32_t word;
-					struct {
-						uint32_t lo_bit:1;
-						uint32_t H_bit:1;
-						uint32_t imm24:24;
-						uint32_t unused:6;
-					};
-				};
-
-				_arm_b_bl_blx* bl = (_arm_b_bl_blx*)dest;
-				int32_t curTarget = bl->imm24 << 2;
-
-				if (bl->cond == 0xf)
+				enum _mov_type : uint16_t
 				{
-					// BLX is unconditional, and incorporates one more bit into the target address,
-					// to allow for 2-byte aligned thumb target offsets.
-					// TODO: determine whether the target address should have its low bit set after relocation
-					curTarget |= bl->bit_24_blx_H << 1;
-				}
-
-				_target newTarget;
-				newTarget.word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
-				bl->imm24 = newTarget.imm24;
-				if (bl->cond == 0xf)
-				{
-					bl->bit_24_blx_H = newTarget.H_bit;
-				}
-				break;
-			}
-			case PE_IMAGE_REL_ARM_SECTION:
-			case PE_IMAGE_REL_ARM_SECREL:
-				break;
-			case PE_IMAGE_REL_ARM_MOV32:
-			{
+					MOVW = 0b100100,
+					MOVT = 0b101100,
+				};
 				#pragma pack(push,1)
 				union _mov
 				{
 					uint32_t word;
 					struct {
-						// MOVW
-						// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
-						// cond        0  0  1  1  0  0  0  0  imm4        Rd          imm12
-						// MOVT
-						// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
-						// cond        0  0  1  1  0  1  0  0  imm4        Rd          imm12
-						uint32_t imm12:12;
-						uint32_t rd:4;
 						uint32_t imm4:4;
-						uint32_t bits_20_21:2;
+						uint32_t bits_hi_4_6:3;
 						uint32_t is_movt_flag:1;
-						uint32_t bit_23:1;
-						uint32_t bits_24_27:4;
-						uint32_t cond:4;
+						uint32_t bits_hi_8_9:2;
+						uint32_t imm1:1;
+						uint32_t bits_hi_11_15:5;
 
+						uint32_t imm8:8;
+						uint32_t rd:4;
+						uint32_t imm3:3;
+						uint32_t bit_lo_15:1;
+					};
+					struct {
+						// MOVW
+						// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+						// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
+						// MOVT
+						// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+						// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
+						uint32_t _imm4:4;
+						uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
+						uint32_t _imm1:1;
+						uint32_t group2_11:5;
+
+						uint32_t _imm8:8;
+						uint32_t _rd:4;
+						uint32_t _imm3:3;
+						uint32_t group1_15:1;
 					};
 				};
 				struct _target
 				{
-					uint16_t imm12:12;
+
+					uint16_t imm8:8;
+					uint16_t imm3:3;
+					uint16_t imm1:1;
 					uint16_t imm4:4;
 				};
 				#pragma pack(pop)
+				_mov* movw = (_mov*)dest32;
+				if (movw->is_movt_flag != 0) //movw->group2_4 != MOVW)
+				{
+					LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+						movw->word, MOVW, address, movw->group2_4, *dest32, movw->is_movt_flag);
+				}
+				_mov* movt = (_mov*)dest32 + 1;
+				if (movt->is_movt_flag != 1) // movt->group2_4 != MOVT)
+				{
+					LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+						movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
+				}
 
-				_mov* mov = (_mov*)dest32;
-				int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
-				_target *targetHiLo = (_target*)&newTarget;
+				_target *targetHiLo = (_target*)&target;
 
-				mov->imm12 = targetHiLo[mov->is_movt_flag].imm12;
-				mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
-				break;
+				// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
+				movw->imm8 = targetHiLo[0].imm8;
+				movw->imm3 = targetHiLo[0].imm3;
+				movw->imm1 = targetHiLo[0].imm1;
+				movw->imm4 = targetHiLo[0].imm4;
+
+				movt->imm8 = targetHiLo[1].imm8;
+				movt->imm3 = targetHiLo[1].imm3;
+				movt->imm1 = targetHiLo[1].imm1;
+				movt->imm4 = targetHiLo[1].imm4;
+#if DEBUG_COFF
+				LogWarn(
+					"COFF arm %s: address: 0x%" PRIx64 " %s %s/%s target: 0x%" PRIx64
+					", base: 0x%" PRIx64
+					", addend: %" PRId32,
+					__func__,
+					address,
+					GetRelocationString((PeArmRelocationType) info.nativeType),
+					movw->is_movt_flag ? "MOVT" : "MOVW",
+					movt->is_movt_flag ? "MOVT" : "MOVW",
+					target,
+					info.base, info.addend
+				);
+#endif /* DEBUG_COFF */
 			}
-			case PE_IMAGE_REL_ARM_PAIR:
-				break;
+			break;
+		case PE_IMAGE_REL_THUMB_BRANCH20:
+		case PE_IMAGE_REL_THUMB_BRANCH24:
+		case PE_IMAGE_REL_THUMB_BLX23:
+		{
+			// Adapted from R_ARM_THM_CALL & R_ARM_THM_JUMP24 cases of ArmElfRelocationHandler::ApplyRelocation
+			// TODO: not portable
+			//       ^^^^^^^^^^^^ I believe this is because the bit-field structs will break on big-endian hosts?
+			#pragma pack(push, 1)
+			// Unions cover all of b (Encoding T4), bl (Encoding T1), and blx (Encoding T2)
+			// conditional b (Encoding T3) only uses the low 6 bits of offHi, upper 4 are cond
+			union _thumb32_bl_hw1 {
+				uint16_t word;
+				union {
+					struct {
+						uint16_t offHi:10; // 21-12
+						uint16_t sign:1; // 31-24
+						uint16_t group:5;
+					};
+					struct {
+						uint16_t offHi:6; // 17-12
+						uint16_t cond:4;
+						uint16_t sign:1; // 31-24
+						uint16_t group:5;
+					} b_cond;
+				};
+			};
+
+			union _thumb32_bl_hw2 {
+				uint16_t word;
+				struct {
+					uint16_t offLo:11; //b11-1 10-0
+					uint16_t j2:1; //b12 11
+					union { //b13 12
+						uint16_t thumb:1;
+						uint16_t not_blx:1;
+						uint16_t not_conditional:1;
+					};
+					uint16_t j1:1; //b14 13
+					union { //b15 14
+						uint16_t i2:1;
+						uint16_t branch_and_link:1;
+					};
+					uint16_t i1:1; //b16 15
+				};
+			};
+			#pragma pack(pop)
+			struct _thumb32_bl_hw {
+				_thumb32_bl_hw1 hw1;
+				_thumb32_bl_hw2 hw2;
+			};
+
+			_thumb32_bl_hw *hw = (_thumb32_bl_hw *)dest;
+			// _thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
+			_thumb32_bl_hw1* bl_hw1 = &hw->hw1;
+			// _thumb32_bl_hw2* bl_hw2 = ((_thumb32_bl_hw2*)dest) + 1;
+			// _thumb32_bl_hw2* bl_hw2 = &(hw + 1)->hw2;
+			_thumb32_bl_hw2* bl_hw2 = &hw->hw2;
+			int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
+			int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
+			bl_hw1->sign = newTarget < 0 ? 1 : 0;
+
+#if DEBUG_COFF
+			bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
+			LogWarn(
+				"COFF arm %s: address: 0x%" PRIx64 " %s %sbranch%s, target: 0x%" PRIx64
+				", curTarget: 0x%" PRIx32
+				", newTarget: 0x%" PRIx32
+				", actual new target: 0x%" PRIx32
+				", base: 0x%" PRIx64
+				", addend: %" PRId32,
+				__func__,
+				address,
+				GetRelocationString((PeArmRelocationType) info.nativeType),
+				is_conditional_branch ? "conditional " :
+					bl_hw2->branch_and_link ? "linking " : "",
+				(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
+				// is_conditional_branch ? "conditional" : bl_hw2->branch_and_link ? "",
+				target, curTarget, newTarget,
+				(uint32_t) ((uint32_t) address + newTarget),
+				info.base, info.addend
+			);
+#endif /* DEBUG_COFF */
+			if (!bl_hw2->branch_and_link && bl_hw2->not_conditional == 0)
+				// In practice, this probably makes no difference, but it is correct for conditional b instructions
+				bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
+			else
+				bl_hw1->offHi = (newTarget >> 12)  & ((1 << 10) - 1);
+			bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
+			break;
+		}
+		case PE_IMAGE_REL_THUMB_UNUSED:
+			break;
+
+		case PE_IMAGE_REL_ARM_ABSOLUTE:
+		case PE_IMAGE_REL_ARM_ADDR32:
+		case PE_IMAGE_REL_ARM_ADDR32NB:
+			break;
+		case PE_IMAGE_REL_ARM_BRANCH11:
+		case PE_IMAGE_REL_ARM_BLX11:
+			// obsolete: only < ARMv7
+			break;
+		case PE_IMAGE_REL_ARM_BRANCH24:
+		case PE_IMAGE_REL_ARM_BLX24:
+		{
+			struct _arm_b_bl_blx {
+				union {
+					uint32_t word;
+					struct {
+						uint32_t imm24:24;
+						uint32_t bit_24_blx_H:1;
+						uint32_t bits_25_27:3;
+						uint32_t cond:4;
+					};
+				};
+			};
+			union _target {
+				int32_t word;
+				struct {
+					uint32_t lo_bit:1;
+					uint32_t H_bit:1;
+					uint32_t imm24:24;
+					uint32_t unused:6;
+				};
+			};
+
+			_arm_b_bl_blx* bl = (_arm_b_bl_blx*)dest;
+			int32_t curTarget = bl->imm24 << 2;
+
+			if (bl->cond == 0xf)
+			{
+				// BLX is unconditional, and incorporates one more bit into the target address,
+				// to allow for 2-byte aligned thumb target offsets.
+				// TODO: determine whether the target address should have its low bit set after relocation
+				curTarget |= bl->bit_24_blx_H << 1;
+			}
+
+			_target newTarget;
+			newTarget.word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
+			bl->imm24 = newTarget.imm24;
+			if (bl->cond == 0xf)
+			{
+				bl->bit_24_blx_H = newTarget.H_bit;
+			}
+#if DEBUG_COFF
+			bool is_conditional_branch = bl->cond != 0xff;
+			LogWarn(
+				"COFF arm %s: address: 0x%" PRIx64 " %s %sbranch, target: 0x%" PRIx64
+				", curTarget: 0x%" PRIx32
+				", newTarget: 0x%" PRIx32
+				", actual new target: 0x%" PRIx32
+				", base: 0x%" PRIx64
+				", addend: %" PRId32,
+				__func__,
+				address,
+				GetRelocationString((PeArmRelocationType) info.nativeType),
+				is_conditional_branch ? "conditional " : "",
+				target, curTarget, newTarget.word,
+				(uint32_t) ((uint32_t) address + newTarget.word),
+				info.base, info.addend
+			);
+#endif /* DEBUG_COFF */
+			break;
+		}
+		case PE_IMAGE_REL_ARM_SECTION:
+		case PE_IMAGE_REL_ARM_SECREL:
+			break;
+		case PE_IMAGE_REL_ARM_MOV32:
+		{
+			#pragma pack(push,1)
+			union _mov
+			{
+				uint32_t word;
+				struct {
+					// MOVW
+					// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+					// cond        0  0  1  1  0  0  0  0  imm4        Rd          imm12
+					// MOVT
+					// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+					// cond        0  0  1  1  0  1  0  0  imm4        Rd          imm12
+					uint32_t imm12:12;
+					uint32_t rd:4;
+					uint32_t imm4:4;
+					uint32_t bits_20_21:2;
+					uint32_t is_movt_flag:1;
+					uint32_t bit_23:1;
+					uint32_t bits_24_27:4;
+					uint32_t cond:4;
+
+				};
+			};
+			struct _target
+			{
+				uint16_t imm12:12;
+				uint16_t imm4:4;
+			};
+			#pragma pack(pop)
+
+			_mov* mov = (_mov*)dest32;
+			int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
+			_target *targetHiLo = (_target*)&newTarget;
+
+			mov->imm12 = targetHiLo[mov->is_movt_flag].imm12;
+			mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
+			break;
+		}
+		case PE_IMAGE_REL_ARM_PAIR:
+			// TODO
+			break;
 
 
-			default:
-				return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
+		default:
+			return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
 		}
 		return true;
 	}
@@ -2795,13 +2845,51 @@ public:
 		set<uint64_t> relocTypes;
 		for (auto& reloc: result)
 		{
-			LogWarn("%s COFF relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
+			LogWarn("COFF %s relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
 			switch (reloc.nativeType)
 			{
-			case PE_IMAGE_REL_THUMB_MOV32:
+			case PE_IMAGE_REL_ARM_BRANCH24:
+			case PE_IMAGE_REL_ARM_BRANCH11:
+			case PE_IMAGE_REL_ARM_BLX24:
+			case PE_IMAGE_REL_ARM_BLX11:
+				reloc.addend = -8;
+				reloc.pcRelative = true;
+				reloc.size = 4;
+				reloc.implicitAddend = false;
+				reloc.baseRelative = true;
+				break;
 			case PE_IMAGE_REL_THUMB_BRANCH20:
 			case PE_IMAGE_REL_THUMB_BRANCH24:
 			case PE_IMAGE_REL_THUMB_BLX23:
+				reloc.addend = -4;
+				reloc.pcRelative = true;
+				reloc.size = 4;
+				reloc.implicitAddend = false;
+				reloc.baseRelative = true;
+				break;
+			case PE_IMAGE_REL_THUMB_MOV32:
+			case PE_IMAGE_REL_ARM_MOV32:
+				// reloc.addend = -4;
+				reloc.pcRelative = false;
+				reloc.size = 4;
+				reloc.implicitAddend = false;
+				reloc.baseRelative = true;
+				break;
+			case PE_IMAGE_REL_ARM_ABSOLUTE:
+			case PE_IMAGE_REL_ARM_ADDR32:
+			case PE_IMAGE_REL_ARM_ADDR32NB:	// TODO: CHECK NB case
+				reloc.addend = 0;
+				reloc.pcRelative = false;
+				reloc.size = 4;
+				reloc.implicitAddend = false;
+				reloc.baseRelative = true;
+				break;
+			case PE_IMAGE_REL_ARM_REL32:
+				reloc.addend = -4;
+				reloc.pcRelative = true;
+				reloc.size = 4;
+				reloc.implicitAddend = false;
+				reloc.baseRelative = true;
 				break;
 			default:
 				reloc.type = UnhandledRelocation;
