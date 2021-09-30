@@ -20,7 +20,7 @@ using namespace std;
 #define snprintf _snprintf
 #endif
 
-#define DEBUG_COFF 1
+#define DEBUG_COFF LogWarn
 
 #define DISASM_SUCCESS 0
 #define FAILED_TO_DISASSEMBLE_OPERAND 1
@@ -2521,6 +2521,19 @@ public:
 
 		Ref<Architecture> associatedArch = arch->GetAssociatedArchitectureByAddress(address);
 
+#ifdef DEBUG_COFF
+		DEBUG_COFF("COFF ARCH %s: arch: %s (%s @ 0x%" PRIx64 ") %s relocation at 0x%" PRIx64 " len: %zu info.size: %zu",
+				__FUNCTION__,
+				arch->GetName().c_str(),
+				associatedArch ? associatedArch->GetName().c_str() : "<none>",
+				address,
+				GetRelocationString((PeArmRelocationType)info.nativeType),
+				reloc->GetAddress(),
+				len,
+				info.size
+		);
+#endif /* DEBUG_COFF */
+
 		if (len < info.size)
 		{
 			return false;
@@ -2606,11 +2619,11 @@ public:
 				movt->imm3 = targetHiLo[1].imm3;
 				movt->imm1 = targetHiLo[1].imm1;
 				movt->imm4 = targetHiLo[1].imm4;
-#if DEBUG_COFF
-				LogWarn(
+#ifdef DEBUG_COFF
+				DEBUG_COFF(
 					"COFF arm %s: address: 0x%" PRIx64 " %s %s/%s target: 0x%" PRIx64
 					", base: 0x%" PRIx64
-					", addend: %" PRId32,
+					", addend: %zu",
 					__func__,
 					address,
 					GetRelocationString((PeArmRelocationType) info.nativeType),
@@ -2654,62 +2667,63 @@ public:
 				struct {
 					uint16_t offLo:11; //b11-1 10-0
 					uint16_t j2:1; //b12 11
-					union { //b13 12
-						uint16_t thumb:1;
-						uint16_t not_blx:1;
-						uint16_t not_conditional:1;
-					};
+					uint16_t not_blx:1; //b13 12
 					uint16_t j1:1; //b14 13
-					union { //b15 14
-						uint16_t i2:1;
-						uint16_t branch_and_link:1;
-					};
+					uint16_t branch_and_link:1; //b15 14 (i2)
 					uint16_t i1:1; //b16 15
 				};
+				struct {
+					uint16_t offLo:11; //b11-1 10-0
+					uint16_t j2:1; //b12 11
+					uint16_t not_conditional:1; //b13 12
+					uint16_t j1:1; //b14 13
+					uint16_t branch_and_link:1; //b15 14 (i2)
+					uint16_t i1:1; //b16 15
+				} b_cond;
+
 			};
 			#pragma pack(pop)
-			struct _thumb32_bl_hw {
-				_thumb32_bl_hw1 hw1;
-				_thumb32_bl_hw2 hw2;
-			};
 
-			_thumb32_bl_hw *hw = (_thumb32_bl_hw *)dest;
-			// _thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest;
-			_thumb32_bl_hw1* bl_hw1 = &hw->hw1;
-			// _thumb32_bl_hw2* bl_hw2 = ((_thumb32_bl_hw2*)dest) + 1;
-			// _thumb32_bl_hw2* bl_hw2 = &(hw + 1)->hw2;
-			_thumb32_bl_hw2* bl_hw2 = &hw->hw2;
+			_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest16;
+			_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest16 + 1);
+
+#ifdef DEBUG_COFF
+			uint32_t old_value = *dest32;
+			uint16_t old_value1 = bl_hw1->word;
+			uint16_t old_value2 = bl_hw2->word;
+#endif /* DEBUG_COFF */
+
 			int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
 			int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
 			bl_hw1->sign = newTarget < 0 ? 1 : 0;
 
-#if DEBUG_COFF
-			bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->not_conditional;
-			LogWarn(
-				"COFF arm %s: address: 0x%" PRIx64 " %s %sbranch%s, target: 0x%" PRIx64
-				", curTarget: 0x%" PRIx32
-				", newTarget: 0x%" PRIx32
-				", actual new target: 0x%" PRIx32
-				", base: 0x%" PRIx64
-				", addend: %" PRId32,
-				__func__,
-				address,
-				GetRelocationString((PeArmRelocationType) info.nativeType),
-				is_conditional_branch ? "conditional " :
-					bl_hw2->branch_and_link ? "linking " : "",
-				(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-				// is_conditional_branch ? "conditional" : bl_hw2->branch_and_link ? "",
-				target, curTarget, newTarget,
-				(uint32_t) ((uint32_t) address + newTarget),
-				info.base, info.addend
-			);
-#endif /* DEBUG_COFF */
-			if (!bl_hw2->branch_and_link && bl_hw2->not_conditional == 0)
+			if (!bl_hw2->branch_and_link && !bl_hw2->b_cond.not_conditional)
 				// In practice, this probably makes no difference, but it is correct for conditional b instructions
 				bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
 			else
 				bl_hw1->offHi = (newTarget >> 12)  & ((1 << 10) - 1);
 			bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
+
+#ifdef DEBUG_COFF
+			bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->b_cond.not_conditional;
+			DEBUG_COFF(
+					"COFF thumb2 %s: %sbranch%s, target: 0x%" PRIx64
+					", curTarget: 0x%" PRIx32
+					", newTarget: 0x%" PRIx32
+					", address: 0x%" PRIx64
+					", base: 0x%" PRIx64
+					", old/new value: 0x%" PRIx32 "/0x%" PRIx32 ":0x%" PRIx16 " 0x%" PRIx16
+					" sizeof(%zu %zu)"
+					,
+					__func__,
+					is_conditional_branch ? "conditional " :
+							bl_hw2->branch_and_link ? "linking " : "",
+					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
+					target, curTarget, newTarget, address, info.base, old_value, *dest32, old_value1, old_value2,
+					sizeof(*bl_hw1), sizeof(*bl_hw2)
+			);
+#endif /* DEBUG_COFF */
+
 			break;
 		}
 		case PE_IMAGE_REL_THUMB_UNUSED:
@@ -2765,15 +2779,15 @@ public:
 			{
 				bl->bit_24_blx_H = newTarget.H_bit;
 			}
-#if DEBUG_COFF
+#ifdef DEBUG_COFF
 			bool is_conditional_branch = bl->cond != 0xff;
-			LogWarn(
+			DEBUG_COFF(
 				"COFF arm %s: address: 0x%" PRIx64 " %s %sbranch, target: 0x%" PRIx64
 				", curTarget: 0x%" PRIx32
 				", newTarget: 0x%" PRIx32
 				", actual new target: 0x%" PRIx32
 				", base: 0x%" PRIx64
-				", addend: %" PRId32,
+				", addend: %zu",
 				__func__,
 				address,
 				GetRelocationString((PeArmRelocationType) info.nativeType),
