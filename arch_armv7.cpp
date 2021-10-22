@@ -2509,9 +2509,15 @@ public:
 		(void)arch;
 		(void)len;
 		BNRelocationInfo info = reloc->GetInfo();
-		uint64_t target = reloc->GetTarget();
+		uint64_t target = info.target; // reloc->GetTarget();
 		uint64_t pc = info.pcRelative ? reloc->GetAddress() : 0;
-		uint64_t base = (info.baseRelative && !target) ? view->GetStart() : 0;
+		// uint64_t base = (info.baseRelative && !target) ? view->GetStart() : 0;
+		// uint64_t base = (info.baseRelative && !target) ? info.base : 0;
+		uint64_t base = info.base;
+		// if (info.baseRelative)
+		// 	target += base;
+		if (! info.baseRelative && info.pcRelative)
+			target -= base;
 		uint64_t address = info.address;
 		uint32_t* dest32 = (uint32_t*)dest;
 		uint16_t* dest16 = (uint16_t*)dest;
@@ -2701,7 +2707,7 @@ public:
 				// In practice, this probably makes no difference, but it is correct for conditional b instructions
 				bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
 			else
-				bl_hw1->offHi = (newTarget >> 12)  & ((1 << 10) - 1);
+				bl_hw1->offHi = (newTarget >> 12) & ((1 << 10) - 1);
 			bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
 
 #ifdef DEBUG_COFF
@@ -2710,6 +2716,7 @@ public:
 					"COFF thumb2 %s: %sbranch%s, target: 0x%" PRIx64
 					", curTarget: 0x%" PRIx32
 					", newTarget: 0x%" PRIx32
+					", actual new target: 0x%" PRIx32
 					", address: 0x%" PRIx64
 					", base: 0x%" PRIx64
 					", old/new value: 0x%" PRIx32 "/0x%" PRIx32 ":0x%" PRIx16 " 0x%" PRIx16
@@ -2719,7 +2726,9 @@ public:
 					is_conditional_branch ? "conditional " :
 							bl_hw2->branch_and_link ? "linking " : "",
 					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-					target, curTarget, newTarget, address, info.base, old_value, *dest32, old_value1, old_value2,
+					target, curTarget, newTarget, 
+					(uint32_t) ((uint32_t) address + newTarget),
+					address, info.base, old_value, *dest32, old_value1, old_value2,
 					sizeof(*bl_hw1), sizeof(*bl_hw2)
 			);
 #endif /* DEBUG_COFF */
@@ -2879,7 +2888,7 @@ public:
 				reloc.pcRelative = true;
 				reloc.size = 4;
 				reloc.implicitAddend = false;
-				reloc.baseRelative = true;
+				reloc.baseRelative = false;
 				break;
 			case PE_IMAGE_REL_THUMB_MOV32:
 			case PE_IMAGE_REL_ARM_MOV32:
