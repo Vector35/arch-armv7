@@ -4846,6 +4846,32 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 					il.DivUnsigned(get_register_size(op2.reg), ReadRegisterOrPointer(il, op2, addr), ReadRegisterOrPointer(il, op3, addr))));
 			break;
+		case ARMV7_VADD:
+			if((instr.dataType != DT_F32) && (instr.dataType != DT_F32) && (instr.dataType != DT_F64))
+				break;
+
+			ConditionExecute(il, instr.cond,
+				il.SetRegister(get_register_size(op1.reg), op1.reg,
+					il.FloatAdd(get_register_size(op1.reg),
+						il.Register(get_register_size(op2.reg), op2.reg),
+						il.Register(get_register_size(op3.reg), op3.reg)
+					)
+				)
+			);
+			break;
+		case ARMV7_VDIV:
+			if((instr.dataType != DT_F32) && (instr.dataType != DT_F32) && (instr.dataType != DT_F64))
+				break;
+
+			ConditionExecute(il, instr.cond,
+				il.SetRegister(get_register_size(op1.reg), op1.reg,
+					il.FloatDiv(get_register_size(op1.reg),
+						il.Register(get_register_size(op2.reg), op2.reg),
+						il.Register(get_register_size(op3.reg), op3.reg)
+					)
+				)
+			);
+			break;
 		case ARMV7_VLDR:
 			ConditionExecute(addrSize, instr.cond, instr, il,
 					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
@@ -4867,6 +4893,19 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				ConditionExecute(il, instr.cond, il.Unimplemented());
 			}
 			break;
+		case ARMV7_VMUL:
+			if((instr.dataType != DT_F32) && (instr.dataType != DT_F32) && (instr.dataType != DT_F64))
+				break;
+
+			ConditionExecute(il, instr.cond,
+				il.SetRegister(get_register_size(op1.reg), op1.reg,
+					il.FloatMult(get_register_size(op1.reg),
+						il.Register(get_register_size(op2.reg), op2.reg),
+						il.Register(get_register_size(op3.reg), op3.reg)
+					)
+				)
+			);
+			break;
 		case ARMV7_VSTR:
 			ConditionExecute(addrSize, instr.cond, instr, il,
 					[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
@@ -4875,6 +4914,19 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						(void) instr;
 						Store(il, get_register_size(op2.reg), op1, op2, addr);
 					});
+			break;
+		case ARMV7_VSUB:
+			if((instr.dataType != DT_F32) && (instr.dataType != DT_F32) && (instr.dataType != DT_F64))
+				break;
+
+			ConditionExecute(il, instr.cond,
+				il.SetRegister(get_register_size(op1.reg), op1.reg,
+					il.FloatSub(get_register_size(op1.reg),
+						il.Register(get_register_size(op2.reg), op2.reg),
+						il.Register(get_register_size(op3.reg), op3.reg)
+					)
+				)
+			);
 			break;
 		default:
 			//printf("Instruction: %s\n", get_operation(instr.operation));

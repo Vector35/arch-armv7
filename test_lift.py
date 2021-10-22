@@ -2,6 +2,14 @@
 
 test_cases = \
 [
+    # vadd.f32 s0, s1, s2
+    (b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    # vsub.f32 s0, s1, s2
+    (b'\xc1\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FSUB.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    # vmul.f32 s0, s1, s2
+    (b'\x81\x0a\x20\xee', 'LLIL_SET_REG.d(s0,LLIL_FMUL.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    # vdiv.f32 s0, s1, s2
+    (b'\x81\x0a\x80\xee', 'LLIL_SET_REG.d(s0,LLIL_FDIV.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # svc #0
     # svc #1
     # svc #2
