@@ -2509,34 +2509,35 @@ public:
 		(void)arch;
 		(void)len;
 		BNRelocationInfo info = reloc->GetInfo();
-		uint64_t target = info.target; // reloc->GetTarget();
-		uint64_t pc = info.pcRelative ? reloc->GetAddress() : 0;
-		// uint64_t base = (info.baseRelative && !target) ? view->GetStart() : 0;
-		// uint64_t base = (info.baseRelative && !target) ? info.base : 0;
+		uint64_t target = info.target;
+		// uint64_t pc = info.pcRelative ? reloc->GetAddress() : 0;
 		uint64_t base = info.base;
-		// if (info.baseRelative)
-		// 	target += base;
-		if (! info.baseRelative && info.pcRelative)
+		if (! info.baseRelative)
 			target -= base;
 		uint64_t address = info.address;
 		uint32_t* dest32 = (uint32_t*)dest;
 		uint16_t* dest16 = (uint16_t*)dest;
-		(void)pc;
-		(void)base;
+		// (void)pc;
+		// (void)base;
 		(void)dest16;
 
 		Ref<Architecture> associatedArch = arch->GetAssociatedArchitectureByAddress(address);
 
 #ifdef DEBUG_COFF
-		DEBUG_COFF("COFF ARCH %s: arch: %s (%s @ 0x%" PRIx64 ") %s relocation at 0x%" PRIx64 " len: %zu info.size: %zu",
-				__FUNCTION__,
+		DEBUG_COFF("COFF ARCH %s: arch: %s (%s @ %#" PRIx64 ") %s relocation at %#" PRIx64 " len: %zu info.size: %zu addend: %zu pc rel: %s base rel: %s target: %#" PRIx64 " base: %#" PRIx64,
+				__func__,
 				arch->GetName().c_str(),
 				associatedArch ? associatedArch->GetName().c_str() : "<none>",
-				address,
+				info.address,
 				GetRelocationString((PeArmRelocationType)info.nativeType),
 				reloc->GetAddress(),
 				len,
-				info.size
+				info.size,
+				info.addend,
+				info.pcRelative ? "yes" : "no",
+				info.baseRelative ? "yes" : "no",
+				info.target,
+				info.base
 		);
 #endif /* DEBUG_COFF */
 
@@ -2739,8 +2740,6 @@ public:
 			break;
 
 		case PE_IMAGE_REL_ARM_ABSOLUTE:
-		case PE_IMAGE_REL_ARM_ADDR32:
-		case PE_IMAGE_REL_ARM_ADDR32NB:
 			break;
 		case PE_IMAGE_REL_ARM_BRANCH11:
 		case PE_IMAGE_REL_ARM_BLX11:
@@ -2808,9 +2807,6 @@ public:
 #endif /* DEBUG_COFF */
 			break;
 		}
-		case PE_IMAGE_REL_ARM_SECTION:
-		case PE_IMAGE_REL_ARM_SECREL:
-			break;
 		case PE_IMAGE_REL_ARM_MOV32:
 		{
 			#pragma pack(push,1)
@@ -2853,8 +2849,20 @@ public:
 		case PE_IMAGE_REL_ARM_PAIR:
 			// TODO
 			break;
-
-
+		case PE_IMAGE_REL_ARM_SECTION:
+			// dest16[0] = info.sectionIndex + 1;
+			break;
+		case PE_IMAGE_REL_ARM_SECREL:
+		{
+			// auto sections = view->GetSectionsAt(info.target);
+			// if (sections.size() > 0)
+			// {
+			// 	dest32[0] = info.target - sections[0]->GetStart();
+			// }
+			break;
+		}
+		case PE_IMAGE_REL_ARM_ADDR32:
+		case PE_IMAGE_REL_ARM_ADDR32NB:
 		default:
 			return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
 		}
@@ -2875,44 +2883,57 @@ public:
 			case PE_IMAGE_REL_ARM_BRANCH11:
 			case PE_IMAGE_REL_ARM_BLX24:
 			case PE_IMAGE_REL_ARM_BLX11:
-				reloc.addend = -8;
 				reloc.pcRelative = true;
+				reloc.baseRelative = false;
 				reloc.size = 4;
-				reloc.implicitAddend = false;
-				reloc.baseRelative = true;
+				reloc.addend = -8;
 				break;
 			case PE_IMAGE_REL_THUMB_BRANCH20:
 			case PE_IMAGE_REL_THUMB_BRANCH24:
 			case PE_IMAGE_REL_THUMB_BLX23:
-				reloc.addend = -4;
 				reloc.pcRelative = true;
-				reloc.size = 4;
-				reloc.implicitAddend = false;
 				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = -4;
 				break;
 			case PE_IMAGE_REL_THUMB_MOV32:
 			case PE_IMAGE_REL_ARM_MOV32:
-				// reloc.addend = -4;
 				reloc.pcRelative = false;
-				reloc.size = 4;
-				reloc.implicitAddend = false;
 				reloc.baseRelative = true;
+				reloc.size = 4;
 				break;
 			case PE_IMAGE_REL_ARM_ABSOLUTE:
 			case PE_IMAGE_REL_ARM_ADDR32:
-			case PE_IMAGE_REL_ARM_ADDR32NB:	// TODO: CHECK NB case
-				reloc.addend = 0;
 				reloc.pcRelative = false;
-				reloc.size = 4;
-				reloc.implicitAddend = false;
 				reloc.baseRelative = true;
+				reloc.size = 4;
+				reloc.addend = 0;
+				break;
+			case PE_IMAGE_REL_ARM_ADDR32NB:	// TODO: CHECK NB case
+				reloc.pcRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = 0;
 				break;
 			case PE_IMAGE_REL_ARM_REL32:
-				reloc.addend = -4;
 				reloc.pcRelative = true;
+				reloc.baseRelative = false;
 				reloc.size = 4;
-				reloc.implicitAddend = false;
-				reloc.baseRelative = true;
+				reloc.addend = -4;
+				break;
+			case PE_IMAGE_REL_ARM_SECTION:
+				// The 16-bit section index of the section that contains the target. This is used to support debugging information.
+				// TODO: is the section index 0-based or 1-based?
+				reloc.baseRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 2;
+				reloc.addend = 0;
+				break;
+			case PE_IMAGE_REL_ARM_SECREL:
+				// The 32-bit offset of the target from the beginning of its section. This is used to support debugging information and static thread local storage.				reloc.baseRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = 0;
 				break;
 			default:
 				reloc.type = UnhandledRelocation;
@@ -2922,7 +2943,7 @@ public:
 		}
 		for (auto& reloc : relocTypes)
 			LogWarn("Unsupported COFF relocation %s", GetRelocationString((PeArmRelocationType)reloc));
-		return false;
+		return true;
 	}
 };
 
