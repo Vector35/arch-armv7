@@ -20,7 +20,7 @@ using namespace std;
 #define snprintf _snprintf
 #endif
 
-#define DEBUG_COFF LogWarn
+// #define DEBUG_COFF LogDebug
 
 #define DISASM_SUCCESS 0
 #define FAILED_TO_DISASSEMBLE_OPERAND 1
@@ -2876,7 +2876,9 @@ public:
 		set<uint64_t> relocTypes;
 		for (auto& reloc: result)
 		{
-			LogWarn("COFF %s relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
+#ifdef DEBUG_COFF
+			DEBUG_COFF("COFF %s relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
+#endif
 			switch (reloc.nativeType)
 			{
 			case PE_IMAGE_REL_ARM_BRANCH24:
