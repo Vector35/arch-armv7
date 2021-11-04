@@ -2643,98 +2643,97 @@ public:
 		switch (info.nativeType)
 		{
 		case PE_IMAGE_REL_THUMB_MOV32:
-			if (true || arch->GetName() == "thumb2")
+		{
+			enum _mov_type : uint16_t
 			{
-				enum _mov_type : uint16_t
-				{
-					MOVW = 0b100100,
-					MOVT = 0b101100,
+				MOVW = 0b100100,
+				MOVT = 0b101100,
+			};
+			#pragma pack(push,1)
+			union _mov
+			{
+				uint32_t word;
+				struct {
+					uint32_t imm4:4;
+					uint32_t bits_hi_4_6:3;
+					uint32_t is_movt_flag:1;
+					uint32_t bits_hi_8_9:2;
+					uint32_t imm1:1;
+					uint32_t bits_hi_11_15:5;
+
+					uint32_t imm8:8;
+					uint32_t rd:4;
+					uint32_t imm3:3;
+					uint32_t bit_lo_15:1;
 				};
-				#pragma pack(push,1)
-				union _mov
-				{
-					uint32_t word;
-					struct {
-						uint32_t imm4:4;
-						uint32_t bits_hi_4_6:3;
-						uint32_t is_movt_flag:1;
-						uint32_t bits_hi_8_9:2;
-						uint32_t imm1:1;
-						uint32_t bits_hi_11_15:5;
+				struct {
+					// MOVW
+					// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+					// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
+					// MOVT
+					// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+					// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
+					uint32_t _imm4:4;
+					uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
+					uint32_t _imm1:1;
+					uint32_t group2_11:5;
 
-						uint32_t imm8:8;
-						uint32_t rd:4;
-						uint32_t imm3:3;
-						uint32_t bit_lo_15:1;
-					};
-					struct {
-						// MOVW
-						// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-						// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
-						// MOVT
-						// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-						// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
-						uint32_t _imm4:4;
-						uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
-						uint32_t _imm1:1;
-						uint32_t group2_11:5;
-
-						uint32_t _imm8:8;
-						uint32_t _rd:4;
-						uint32_t _imm3:3;
-						uint32_t group1_15:1;
-					};
+					uint32_t _imm8:8;
+					uint32_t _rd:4;
+					uint32_t _imm3:3;
+					uint32_t group1_15:1;
 				};
-				struct _target
-				{
+			};
+			struct _target
+			{
 
-					uint16_t imm8:8;
-					uint16_t imm3:3;
-					uint16_t imm1:1;
-					uint16_t imm4:4;
-				};
-				#pragma pack(pop)
-				_mov* movw = (_mov*)dest32;
-				if (movw->is_movt_flag != 0) //movw->group2_4 != MOVW)
-				{
-					LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
-						movw->word, MOVW, address, movw->group2_4, *dest32, movw->is_movt_flag);
-				}
-				_mov* movt = (_mov*)dest32 + 1;
-				if (movt->is_movt_flag != 1) // movt->group2_4 != MOVT)
-				{
-					LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
-						movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
-				}
-
-				_target *targetHiLo = (_target*)&target;
-
-				// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
-				movw->imm8 = targetHiLo[0].imm8;
-				movw->imm3 = targetHiLo[0].imm3;
-				movw->imm1 = targetHiLo[0].imm1;
-				movw->imm4 = targetHiLo[0].imm4;
-
-				movt->imm8 = targetHiLo[1].imm8;
-				movt->imm3 = targetHiLo[1].imm3;
-				movt->imm1 = targetHiLo[1].imm1;
-				movt->imm4 = targetHiLo[1].imm4;
-#ifdef DEBUG_COFF
-				DEBUG_COFF(
-					"COFF arm %s: address: 0x%" PRIx64 " %s %s/%s target: 0x%" PRIx64
-					", base: 0x%" PRIx64
-					", addend: %zu",
-					__func__,
-					address,
-					GetRelocationString((PeArmRelocationType) info.nativeType),
-					movw->is_movt_flag ? "MOVT" : "MOVW",
-					movt->is_movt_flag ? "MOVT" : "MOVW",
-					target,
-					info.base, info.addend
-				);
-#endif /* DEBUG_COFF */
+				uint16_t imm8:8;
+				uint16_t imm3:3;
+				uint16_t imm1:1;
+				uint16_t imm4:4;
+			};
+			#pragma pack(pop)
+			_mov* movw = (_mov*)dest32;
+			if (movw->is_movt_flag != 0) //movw->group2_4 != MOVW)
+			{
+				LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+					movw->word, MOVW, address, movw->group2_4, *dest32, movw->is_movt_flag);
 			}
+			_mov* movt = (_mov*)dest32 + 1;
+			if (movt->is_movt_flag != 1) // movt->group2_4 != MOVT)
+			{
+				LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+					movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
+			}
+
+			_target *targetHiLo = (_target*)&target;
+
+			// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
+			movw->imm8 = targetHiLo[0].imm8;
+			movw->imm3 = targetHiLo[0].imm3;
+			movw->imm1 = targetHiLo[0].imm1;
+			movw->imm4 = targetHiLo[0].imm4;
+
+			movt->imm8 = targetHiLo[1].imm8;
+			movt->imm3 = targetHiLo[1].imm3;
+			movt->imm1 = targetHiLo[1].imm1;
+			movt->imm4 = targetHiLo[1].imm4;
+#ifdef DEBUG_COFF
+			DEBUG_COFF(
+				"COFF arm %s: address: 0x%" PRIx64 " %s %s/%s target: 0x%" PRIx64
+				", base: 0x%" PRIx64
+				", addend: %zu",
+				__func__,
+				address,
+				GetRelocationString((PeArmRelocationType) info.nativeType),
+				movw->is_movt_flag ? "MOVT" : "MOVW",
+				movt->is_movt_flag ? "MOVT" : "MOVW",
+				target,
+				info.base, info.addend
+			);
+#endif /* DEBUG_COFF */
 			break;
+		}
 		case PE_IMAGE_REL_THUMB_BRANCH20:
 		case PE_IMAGE_REL_THUMB_BRANCH24:
 		case PE_IMAGE_REL_THUMB_BLX23:
@@ -2820,7 +2819,7 @@ public:
 					is_conditional_branch ? "conditional " :
 							bl_hw2->branch_and_link ? "linking " : "",
 					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-					target, curTarget, newTarget,
+					target, curTarget, newTarget, 
 					(uint32_t) ((uint32_t) address + newTarget),
 					address, info.base, old_value, *dest32, old_value1, old_value2,
 					sizeof(*bl_hw1), sizeof(*bl_hw2)
@@ -2939,21 +2938,21 @@ public:
 			mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
 			break;
 		}
+		case PE_IMAGE_REL_ARM_PAIR:
+			// TODO
+			break;
 		case PE_IMAGE_REL_ARM_SECTION:
-			// TODO: test this implementation, but for now, just don't warn about it
-			dest16[0] = info.sectionIndex + 1;
+			// dest16[0] = info.sectionIndex + 1;
 			break;
 		case PE_IMAGE_REL_ARM_SECREL:
 		{
-			// TODO: test this implementation, but for now, just don't warn about it
-			auto sections = view->GetSectionsAt(info.target);
-			if (sections.size() > 0)
-			{
-				dest32[0] = info.target - sections[0]->GetStart();
-			}
+			// auto sections = view->GetSectionsAt(info.target);
+			// if (sections.size() > 0)
+			// {
+			// 	dest32[0] = info.target - sections[0]->GetStart();
+			// }
 			break;
 		}
-		case PE_IMAGE_REL_ARM_PAIR:
 		case PE_IMAGE_REL_ARM_ADDR32:
 		case PE_IMAGE_REL_ARM_ADDR32NB:
 		default:
@@ -3020,6 +3019,7 @@ public:
 				break;
 			case PE_IMAGE_REL_ARM_SECTION:
 				// The 16-bit section index of the section that contains the target. This is used to support debugging information.
+				// TODO: is the section index 0-based or 1-based?
 				reloc.baseRelative = false;
 				reloc.size = 2;
 				reloc.addend = 0;
