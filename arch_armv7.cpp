@@ -7,6 +7,7 @@
 #include <exception>
 
 #include "binaryninjaapi.h"
+#include "lowlevelilinstruction.h"
 #include "arch_armv7.h"
 #include "il.h"
 
@@ -18,6 +19,8 @@ using namespace std;
 #if defined(_MSC_VER)
 #define snprintf _snprintf
 #endif
+
+// #define DEBUG_COFF LogDebug
 
 #define DISASM_SUCCESS 0
 #define FAILED_TO_DISASSEMBLE_OPERAND 1
@@ -257,6 +260,9 @@ enum PeArmRelocationType : uint32_t
 	PE_IMAGE_REL_ARM_ADDR32NB   = 0x0002, // The 32-bit RVA of the target.
 	PE_IMAGE_REL_ARM_BRANCH24   = 0x0003, // The 24-bit relative displacement to the target.
 	PE_IMAGE_REL_ARM_BRANCH11   = 0x0004, // The reference to a subroutine call. The reference consists of two 16-bit instructions with 11-bit offsets.
+	PE_IMAGE_REL_ARM_BLX24      = 0x0008, // The most significant 24 or 25 bits of the signed 26-bit relative displacement of the target. Applied to an unconditional BL instruction in ARM mode. The BL is transformed to a BLX during relocation if the target is in Thumb mode.
+	PE_IMAGE_REL_ARM_BLX11      = 0x0009, // The most significant 21 or 22 bits of the signed 23-bit relative displacement of the target. Applied to a contiguous 16-bit B+BL pair in Thumb mode prior to ARMv7. The BL is transformed to a BLX during relocation if the target is in ARM mode.
+	PE_IMAGE_REL_ARM_REL32      = 0x000A, // TODO: description
 	PE_IMAGE_REL_ARM_SECTION    = 0x000E, // The 16-bit section index of the section that contains the target. This is used to support debugging information.
 	PE_IMAGE_REL_ARM_SECREL     = 0x000F, // The 32-bit offset of the target from the beginning of its section. This is used to support debugging information and static thread local storage.
 	PE_IMAGE_REL_ARM_MOV32      = 0x0010, // The 32-bit VA of the target. This relocation is applied using a MOVW instruction for the low 16 bits followed by a MOVT for the high 16 bits.
@@ -268,6 +274,51 @@ enum PeArmRelocationType : uint32_t
 	PE_IMAGE_REL_ARM_PAIR       = 0x0016, // The relocation is valid only when it immediately follows a ARM_REFHI or THUMB_REFHI. Its SymbolTableIndex contains a displacement and not an index into the symbol table.
 	MAX_ARM_PE_RELOCATION
 };
+
+enum PeRelocationType : uint32_t
+{
+	PE_IMAGE_REL_BASED_ABSOLUTE       = 0,  // The base relocation is skipped. This type can be used to pad a block.
+	PE_IMAGE_REL_BASED_HIGH           = 1,  // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word.
+	PE_IMAGE_REL_BASED_LOW            = 2,  // The base relocation adds the low 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the low half of a 32-bit word.
+	PE_IMAGE_REL_BASED_HIGHLOW        = 3,  // The base relocation applies all 32 bits of the difference to the 32-bit field at offset.
+	PE_IMAGE_REL_BASED_HIGHADJ        = 4,  // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word. The low 16 bits of the 32-bit value are stored in the 16-bit word that follows this base relocation. This means that this base relocation occupies two slots.
+	PE_IMAGE_REL_BASED_MIPS_JMPADDR   = 5,  // The relocation interpretation is dependent on the machine type. When the machine type is MIPS, the base relocation applies to a MIPS jump instruction.
+	PE_IMAGE_REL_BASED_ARM_MOV32      = 5,  // This relocation is meaningful only when the machine type is ARM or Thumb. The base relocation applies the 32-bit address of a symbol across a consecutive MOVW/MOVT instruction pair.
+	PE_IMAGE_REL_BASED_RISCV_HIGH20   = 5,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the high 20 bits of a 32-bit absolute address.
+	PE_IMAGE_REL_BASE_RESERVED        = 6,  // Reserved, must be zero.
+	PE_IMAGE_REL_BASED_THUMB_MOV32    = 7,  // This relocation is meaningful only when the machine type is Thumb. The base relocation applies the 32-bit address of a symbol to a consecutive MOVW/MOVT instruction pair.
+	PE_IMAGE_REL_BASED_RISCV_LOW12I   = 7,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V I-type instruction format.
+	PE_IMAGE_REL_BASED_RISCV_LOW12S   = 8,  // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V S-type instruction format.
+	PE_IMAGE_REL_BASED_MIPS_JMPADDR16 = 9,  // The relocation is only meaningful when the machine type is MIPS. The base relocation applies to a MIPS16 jump instruction.
+	PE_IMAGE_REL_BASED_DIR64          = 10, // The base relocation applies the difference to the 64-bit field at offset.
+	MAX_PE_RELOCATION
+};
+
+
+static const char* GetRelocationString(PeRelocationType relocType)
+{
+	static const char* relocTable[] =
+	{
+		"PE_IMAGE_REL_BASED_ABSOLUTE",
+		"PE_IMAGE_REL_BASED_HIGH",
+		"PE_IMAGE_REL_BASED_LOW",
+		"PE_IMAGE_REL_BASED_HIGHLOW",
+		"PE_IMAGE_REL_BASED_HIGHADJ",
+		"PE_IMAGE_REL_BASED_MIPS_JMPADDR",
+		"PE_IMAGE_REL_BASED_ARM_MOV32",
+		"PE_IMAGE_REL_BASED_RISCV_HIGH20",
+		"PE_IMAGE_REL_BASE_RESERVED",
+		"PE_IMAGE_REL_BASED_THUMB_MOV32",
+		"PE_IMAGE_REL_BASED_RISCV_LOW12I",
+		"PE_IMAGE_REL_BASED_RISCV_LOW12S",
+		"PE_IMAGE_REL_BASED_MIPS_JMPADDR16",
+		"PE_IMAGE_REL_BASED_DIR64"
+	};
+
+	if (relocType < MAX_PE_RELOCATION)
+		return relocTable[relocType];
+	return "Unknown relocation";
+}
 
 static const char* GetRelocationString(MachoArmRelocationType rel)
 {
@@ -451,7 +502,13 @@ static const char* GetRelocationString(PeArmRelocationType rel)
 		"IMAGE_REL_ARM_PAIR"
 	};
 	if (rel < MAX_ARM_PE_RELOCATION)
+	{
+		if (rel >= PE_IMAGE_REL_ARM_SECTION)
+		{
+			rel = (PeArmRelocationType) ((int)rel - PE_IMAGE_REL_ARM_SECTION + PE_IMAGE_REL_ARM_BRANCH11 + 1);
+		}
 		return relocTable[rel];
+	}
 	return "Unknown ARM relocation";
 }
 
@@ -2000,6 +2057,41 @@ public:
 };
 
 
+class Thumb2ImportedFunctionRecognizer: public FunctionRecognizer
+{
+public:
+	virtual bool RecognizeLowLevelIL(BinaryView* data, Function* func, LowLevelILFunction* il) override
+	{
+		// Detection for inline veneers for thumb -> arm transitions
+		if (il->GetInstructionCount() == 1)
+		{
+			LowLevelILInstruction instr = il->GetInstruction(0);
+			if ((instr.operation == LLIL_JUMP) || (instr.operation == LLIL_TAILCALL))
+			{
+				LowLevelILInstruction operand = instr.GetDestExpr();
+				if (operand.operation == LLIL_CONST_PTR)
+				{
+					uint64_t entry = operand.GetConstant();
+					if (entry == (func->GetStart() + 4))
+					{
+						Ref<Function> entryFunc = data->GetRecentAnalysisFunctionForAddress(entry);
+						Ref<Symbol> sym = data->GetSymbolByAddress(entry);
+						if (!entryFunc || !sym || (sym->GetType() != ImportedFunctionSymbol))
+							return false;
+
+						Confidence<Ref<Type>> type = entryFunc->GetType();
+						data->DefineImportedFunction(sym, func, type);
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+};
+
+
 uint32_t bswap32(uint32_t x)
 {
 	return ((x & 0xff000000) >> 24) |
@@ -2363,6 +2455,38 @@ public:
 class ArmPERelocationHandler: public RelocationHandler
 {
 public:
+	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override
+	{
+		// Note: info.base contains preferred base address and the base where the image is actually loaded
+		(void)view;
+		(void)arch;
+		(void)len;
+		uint64_t* data64 = (uint64_t*)dest;
+		uint32_t* data32 = (uint32_t*)dest;
+		uint16_t* data16 = (uint16_t*)dest;
+		auto info = reloc->GetInfo();
+		if (info.size == 8)
+		{
+			data64[0] += info.base;
+		}
+		else if (info.size == 4)
+		{
+			data32[0] += (uint32_t)info.base;
+		}
+		else if (info.size == 2)
+		{
+			if (info.nativeType == PE_IMAGE_REL_BASED_HIGH)
+			{
+				data16[0] = data16[0] + (uint16_t)(info.base >> 16);
+			}
+			else if (info.nativeType == PE_IMAGE_REL_BASED_LOW)
+			{
+				data16[0] = data16[0] + (uint16_t)(info.base & 0xffff);
+			}
+		}
+		return true;
+	}
+
 	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
 	{
 		(void)view;
@@ -2370,12 +2494,495 @@ public:
 		set<uint64_t> relocTypes;
 		for (auto& reloc: result)
 		{
-			reloc.type = UnhandledRelocation;
-			relocTypes.insert(reloc.nativeType);
+			switch (reloc.nativeType)
+			{
+			case PE_IMAGE_REL_BASED_ABSOLUTE:
+				reloc.type = IgnoredRelocation;
+				break;
+			case PE_IMAGE_REL_BASED_HIGHLOW:
+				reloc.size = 4;
+				break;
+			case PE_IMAGE_REL_BASED_DIR64:
+				reloc.size = 8;
+				break;
+			case PE_IMAGE_REL_BASED_HIGH:
+				reloc.size = 2;
+				break;
+			case PE_IMAGE_REL_BASED_LOW:
+				reloc.size = 2;
+				break;
+			default:
+				// By default, PE relocations are correct when not rebased.
+				// Upon rebasing, support would need to be added to correctly process the relocation
+				reloc.type = UnhandledRelocation;
+				relocTypes.insert(reloc.nativeType);
+			}
 		}
 		for (auto& reloc : relocTypes)
-			LogWarn("Unsupported PE relocation %s", GetRelocationString((PeArmRelocationType)reloc));
+			LogWarn("Unsupported PE relocation %s", GetRelocationString((PeRelocationType)reloc));
 		return false;
+	}
+
+	virtual size_t GetOperandForExternalRelocation(const uint8_t* data, uint64_t addr, size_t length,
+		Ref<LowLevelILFunction> il, Ref<Relocation> relocation) override
+	{
+		(void)data;
+		(void)addr;
+		(void)length;
+		(void)il;
+		(void)relocation;
+		return BN_AUTOCOERCE_EXTERN_PTR;
+	}
+};
+
+class ArmCOFFRelocationHandler: public RelocationHandler
+{
+public:
+	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override
+	{
+		// Note: info.base contains preferred base address and the base where the image is actually loaded
+		(void)view;
+		(void)arch;
+		(void)len;
+		BNRelocationInfo info = reloc->GetInfo();
+		uint64_t target = info.target;
+		// uint64_t pc = info.pcRelative ? reloc->GetAddress() : 0;
+		uint64_t base = info.base;
+		if (! info.baseRelative)
+			target -= base;
+		uint64_t address = info.address;
+		uint32_t* dest32 = (uint32_t*)dest;
+		uint16_t* dest16 = (uint16_t*)dest;
+		// (void)pc;
+		// (void)base;
+		(void)dest16;
+
+		Ref<Architecture> associatedArch = arch->GetAssociatedArchitectureByAddress(address);
+
+#ifdef DEBUG_COFF
+		DEBUG_COFF("COFF ARCH %s: arch: %s (%s @ %#" PRIx64 ") %s relocation at %#" PRIx64 " len: %zu info.size: %zu addend: %zu pc rel: %s base rel: %s target: %#" PRIx64 " base: %#" PRIx64,
+				__func__,
+				arch->GetName().c_str(),
+				associatedArch ? associatedArch->GetName().c_str() : "<none>",
+				info.address,
+				GetRelocationString((PeArmRelocationType)info.nativeType),
+				reloc->GetAddress(),
+				len,
+				info.size,
+				info.addend,
+				info.pcRelative ? "yes" : "no",
+				info.baseRelative ? "yes" : "no",
+				info.target,
+				info.base
+		);
+#endif /* DEBUG_COFF */
+
+		if (len < info.size)
+		{
+			return false;
+		}
+
+		//auto swap = [&arch](uint32_t x) { return (arch->GetEndianness() == LittleEndian)? x : bswap32(x); };
+		switch (info.nativeType)
+		{
+		case PE_IMAGE_REL_THUMB_MOV32:
+		{
+			enum _mov_type : uint16_t
+			{
+				MOVW = 0b100100,
+				MOVT = 0b101100,
+			};
+			#pragma pack(push,1)
+			union _mov
+			{
+				uint32_t word;
+				struct {
+					uint32_t imm4:4;
+					uint32_t bits_hi_4_6:3;
+					uint32_t is_movt_flag:1;
+					uint32_t bits_hi_8_9:2;
+					uint32_t imm1:1;
+					uint32_t bits_hi_11_15:5;
+
+					uint32_t imm8:8;
+					uint32_t rd:4;
+					uint32_t imm3:3;
+					uint32_t bit_lo_15:1;
+				};
+				struct {
+					// MOVW
+					// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+					// 1  1  1  1  0  i  1 0 0 1 0 0 imm4    0  imm3     Rd        imm8
+					// MOVT
+					// 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+					// 1  1  1  1  0  i  1 0 1 1 0 0 imm4    0  imm3     Rd        imm8
+					uint32_t _imm4:4;
+					uint32_t group2_4:6; // MOVW: 0b100100 (0x24) MOVT: 0b101100 (0x2c)
+					uint32_t _imm1:1;
+					uint32_t group2_11:5;
+
+					uint32_t _imm8:8;
+					uint32_t _rd:4;
+					uint32_t _imm3:3;
+					uint32_t group1_15:1;
+				};
+			};
+			struct _target
+			{
+
+				uint16_t imm8:8;
+				uint16_t imm3:3;
+				uint16_t imm1:1;
+				uint16_t imm4:4;
+			};
+			#pragma pack(pop)
+			_mov* movw = (_mov*)dest32;
+			if (movw->is_movt_flag != 0) //movw->group2_4 != MOVW)
+			{
+				LogWarn("Expected MOVW in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+					movw->word, MOVW, address, movw->group2_4, *dest32, movw->is_movt_flag);
+			}
+			_mov* movt = (_mov*)dest32 + 1;
+			if (movt->is_movt_flag != 1) // movt->group2_4 != MOVT)
+			{
+				LogWarn("Expected MOVT in 0x%08" PRIx32 " (0x%" PRIx16 ") at 0x%" PRIx64 " but found 0x%" PRIx32 " (0x%" PRIx32 ") movt_flag: %d",
+					movt->word, MOVT, address + 4, movt->group2_4, *(dest32 + 1), movt->is_movt_flag);
+			}
+
+			_target *targetHiLo = (_target*)&target;
+
+			// This could be done more efficiently with shifts, ands, and ors, but that's the compiler's job
+			movw->imm8 = targetHiLo[0].imm8;
+			movw->imm3 = targetHiLo[0].imm3;
+			movw->imm1 = targetHiLo[0].imm1;
+			movw->imm4 = targetHiLo[0].imm4;
+
+			movt->imm8 = targetHiLo[1].imm8;
+			movt->imm3 = targetHiLo[1].imm3;
+			movt->imm1 = targetHiLo[1].imm1;
+			movt->imm4 = targetHiLo[1].imm4;
+#ifdef DEBUG_COFF
+			DEBUG_COFF(
+				"COFF arm %s: address: 0x%" PRIx64 " %s %s/%s target: 0x%" PRIx64
+				", base: 0x%" PRIx64
+				", addend: %zu",
+				__func__,
+				address,
+				GetRelocationString((PeArmRelocationType) info.nativeType),
+				movw->is_movt_flag ? "MOVT" : "MOVW",
+				movt->is_movt_flag ? "MOVT" : "MOVW",
+				target,
+				info.base, info.addend
+			);
+#endif /* DEBUG_COFF */
+			break;
+		}
+		case PE_IMAGE_REL_THUMB_BRANCH20:
+		case PE_IMAGE_REL_THUMB_BRANCH24:
+		case PE_IMAGE_REL_THUMB_BLX23:
+		{
+			// Adapted from R_ARM_THM_CALL & R_ARM_THM_JUMP24 cases of ArmElfRelocationHandler::ApplyRelocation
+			// TODO: not portable
+			//       ^^^^^^^^^^^^ I believe this is because the bit-field structs will break on big-endian hosts?
+			#pragma pack(push, 1)
+			// Unions cover all of b (Encoding T4), bl (Encoding T1), and blx (Encoding T2)
+			// conditional b (Encoding T3) only uses the low 6 bits of offHi, upper 4 are cond
+			union _thumb32_bl_hw1 {
+				uint16_t word;
+				union {
+					struct {
+						uint16_t offHi:10; // 21-12
+						uint16_t sign:1; // 31-24
+						uint16_t group:5;
+					};
+					struct {
+						uint16_t offHi:6; // 17-12
+						uint16_t cond:4;
+						uint16_t sign:1; // 31-24
+						uint16_t group:5;
+					} b_cond;
+				};
+			};
+
+			union _thumb32_bl_hw2 {
+				uint16_t word;
+				struct {
+					uint16_t offLo:11; //b11-1 10-0
+					uint16_t j2:1; //b12 11
+					uint16_t not_blx:1; //b13 12
+					uint16_t j1:1; //b14 13
+					uint16_t branch_and_link:1; //b15 14 (i2)
+					uint16_t i1:1; //b16 15
+				};
+				struct {
+					uint16_t offLo:11; //b11-1 10-0
+					uint16_t j2:1; //b12 11
+					uint16_t not_conditional:1; //b13 12
+					uint16_t j1:1; //b14 13
+					uint16_t branch_and_link:1; //b15 14 (i2)
+					uint16_t i1:1; //b16 15
+				} b_cond;
+
+			};
+			#pragma pack(pop)
+
+			_thumb32_bl_hw1* bl_hw1 = (_thumb32_bl_hw1*)dest16;
+			_thumb32_bl_hw2* bl_hw2 = (_thumb32_bl_hw2*)(dest16 + 1);
+
+#ifdef DEBUG_COFF
+			uint32_t old_value = *dest32;
+			uint16_t old_value1 = bl_hw1->word;
+			uint16_t old_value2 = bl_hw2->word;
+#endif /* DEBUG_COFF */
+
+			int32_t curTarget = (bl_hw2->offLo << 1) | (bl_hw1->offHi << 12) | (bl_hw1->sign ? (0xffc << 20) : 0);
+			int32_t newTarget = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
+			bl_hw1->sign = newTarget < 0 ? 1 : 0;
+
+			if (!bl_hw2->branch_and_link && !bl_hw2->b_cond.not_conditional)
+				// In practice, this probably makes no difference, but it is correct for conditional b instructions
+				bl_hw1->b_cond.offHi = (newTarget >> 12) & ((1 << 6) - 1);
+			else
+				bl_hw1->offHi = (newTarget >> 12) & ((1 << 10) - 1);
+			bl_hw2->offLo = (newTarget >> 1) & ((1 << 11) - 1);
+
+#ifdef DEBUG_COFF
+			bool is_conditional_branch = !bl_hw2->branch_and_link && !bl_hw2->b_cond.not_conditional;
+			DEBUG_COFF(
+					"COFF thumb2 %s: %sbranch%s, target: 0x%" PRIx64
+					", curTarget: 0x%" PRIx32
+					", newTarget: 0x%" PRIx32
+					", actual new target: 0x%" PRIx32
+					", address: 0x%" PRIx64
+					", base: 0x%" PRIx64
+					", old/new value: 0x%" PRIx32 "/0x%" PRIx32 ":0x%" PRIx16 " 0x%" PRIx16
+					" sizeof(%zu %zu)"
+					,
+					__func__,
+					is_conditional_branch ? "conditional " :
+							bl_hw2->branch_and_link ? "linking " : "",
+					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
+					target, curTarget, newTarget, 
+					(uint32_t) ((uint32_t) address + newTarget),
+					address, info.base, old_value, *dest32, old_value1, old_value2,
+					sizeof(*bl_hw1), sizeof(*bl_hw2)
+			);
+#endif /* DEBUG_COFF */
+
+			break;
+		}
+		case PE_IMAGE_REL_THUMB_UNUSED:
+			break;
+
+		case PE_IMAGE_REL_ARM_ABSOLUTE:
+			break;
+		case PE_IMAGE_REL_ARM_BRANCH11:
+		case PE_IMAGE_REL_ARM_BLX11:
+			// obsolete: only < ARMv7
+			break;
+		case PE_IMAGE_REL_ARM_BRANCH24:
+		case PE_IMAGE_REL_ARM_BLX24:
+		{
+			struct _arm_b_bl_blx {
+				union {
+					uint32_t word;
+					struct {
+						uint32_t imm24:24;
+						uint32_t bit_24_blx_H:1;
+						uint32_t bits_25_27:3;
+						uint32_t cond:4;
+					};
+				};
+			};
+			union _target {
+				int32_t word;
+				struct {
+					uint32_t lo_bit:1;
+					uint32_t H_bit:1;
+					uint32_t imm24:24;
+					uint32_t unused:6;
+				};
+			};
+
+			_arm_b_bl_blx* bl = (_arm_b_bl_blx*)dest;
+			int32_t curTarget = bl->imm24 << 2;
+
+			if (bl->cond == 0xf)
+			{
+				// BLX is unconditional, and incorporates one more bit into the target address,
+				// to allow for 2-byte aligned thumb target offsets.
+				// TODO: determine whether the target address should have its low bit set after relocation
+				curTarget |= bl->bit_24_blx_H << 1;
+			}
+
+			_target newTarget;
+			newTarget.word = (int32_t)((target + (info.implicitAddend ? curTarget : info.addend)) - address);
+			bl->imm24 = newTarget.imm24;
+			if (bl->cond == 0xf)
+			{
+				bl->bit_24_blx_H = newTarget.H_bit;
+			}
+#ifdef DEBUG_COFF
+			bool is_conditional_branch = bl->cond != 0xff;
+			DEBUG_COFF(
+				"COFF arm %s: address: 0x%" PRIx64 " %s %sbranch, target: 0x%" PRIx64
+				", curTarget: 0x%" PRIx32
+				", newTarget: 0x%" PRIx32
+				", actual new target: 0x%" PRIx32
+				", base: 0x%" PRIx64
+				", addend: %zu",
+				__func__,
+				address,
+				GetRelocationString((PeArmRelocationType) info.nativeType),
+				is_conditional_branch ? "conditional " : "",
+				target, curTarget, newTarget.word,
+				(uint32_t) ((uint32_t) address + newTarget.word),
+				info.base, info.addend
+			);
+#endif /* DEBUG_COFF */
+			break;
+		}
+		case PE_IMAGE_REL_ARM_MOV32:
+		{
+			#pragma pack(push,1)
+			union _mov
+			{
+				uint32_t word;
+				struct {
+					// MOVW
+					// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+					// cond        0  0  1  1  0  0  0  0  imm4        Rd          imm12
+					// MOVT
+					// 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9  8  7  6  5  4  3  2  1  0
+					// cond        0  0  1  1  0  1  0  0  imm4        Rd          imm12
+					uint32_t imm12:12;
+					uint32_t rd:4;
+					uint32_t imm4:4;
+					uint32_t bits_20_21:2;
+					uint32_t is_movt_flag:1;
+					uint32_t bit_23:1;
+					uint32_t bits_24_27:4;
+					uint32_t cond:4;
+
+				};
+			};
+			struct _target
+			{
+				uint16_t imm12:12;
+				uint16_t imm4:4;
+			};
+			#pragma pack(pop)
+
+			_mov* mov = (_mov*)dest32;
+			int32_t newTarget = (target + (info.implicitAddend ? (mov->imm4 << 12 | mov->imm12) : info.addend));
+			_target *targetHiLo = (_target*)&newTarget;
+
+			mov->imm12 = targetHiLo[mov->is_movt_flag].imm12;
+			mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
+			break;
+		}
+		case PE_IMAGE_REL_ARM_PAIR:
+			// TODO
+			break;
+		case PE_IMAGE_REL_ARM_SECTION:
+			// dest16[0] = info.sectionIndex + 1;
+			break;
+		case PE_IMAGE_REL_ARM_SECREL:
+		{
+			// auto sections = view->GetSectionsAt(info.target);
+			// if (sections.size() > 0)
+			// {
+			// 	dest32[0] = info.target - sections[0]->GetStart();
+			// }
+			break;
+		}
+		case PE_IMAGE_REL_ARM_ADDR32:
+		case PE_IMAGE_REL_ARM_ADDR32NB:
+		default:
+			return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
+		}
+		return true;
+	}
+
+	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
+	{
+		(void)view;
+		(void)arch;
+		set<uint64_t> relocTypes;
+		for (auto& reloc: result)
+		{
+#ifdef DEBUG_COFF
+			DEBUG_COFF("COFF %s relocation %s at 0x%" PRIx64, __func__, GetRelocationString((PeArmRelocationType)reloc.nativeType), reloc.address);
+#endif
+			switch (reloc.nativeType)
+			{
+			case PE_IMAGE_REL_ARM_BRANCH24:
+			case PE_IMAGE_REL_ARM_BRANCH11:
+			case PE_IMAGE_REL_ARM_BLX24:
+			case PE_IMAGE_REL_ARM_BLX11:
+				reloc.pcRelative = true;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = -8;
+				break;
+			case PE_IMAGE_REL_THUMB_BRANCH20:
+			case PE_IMAGE_REL_THUMB_BRANCH24:
+			case PE_IMAGE_REL_THUMB_BLX23:
+				reloc.pcRelative = true;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = -4;
+				break;
+			case PE_IMAGE_REL_THUMB_MOV32:
+			case PE_IMAGE_REL_ARM_MOV32:
+				reloc.pcRelative = false;
+				reloc.baseRelative = true;
+				reloc.size = 4;
+				break;
+			case PE_IMAGE_REL_ARM_ABSOLUTE:
+				reloc.type = IgnoredRelocation;
+				break;
+			case PE_IMAGE_REL_ARM_ADDR32:
+				reloc.pcRelative = false;
+				reloc.baseRelative = true;
+				reloc.size = 4;
+				reloc.addend = 0;
+				break;
+			case PE_IMAGE_REL_ARM_ADDR32NB:	// TODO: CHECK NB case
+				reloc.pcRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = 0;
+				break;
+			case PE_IMAGE_REL_ARM_REL32:
+				reloc.pcRelative = true;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = -4;
+				break;
+			case PE_IMAGE_REL_ARM_SECTION:
+				// The 16-bit section index of the section that contains the target. This is used to support debugging information.
+				// TODO: is the section index 0-based or 1-based?
+				reloc.baseRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 2;
+				reloc.addend = 0;
+				break;
+			case PE_IMAGE_REL_ARM_SECREL:
+				// The 32-bit offset of the target from the beginning of its section. This is used to support debugging information and static thread local storage.				reloc.baseRelative = false;
+				reloc.baseRelative = false;
+				reloc.size = 4;
+				reloc.addend = 0;
+				break;
+			default:
+				reloc.type = UnhandledRelocation;
+				relocTypes.insert(reloc.nativeType);
+				break;
+			}
+		}
+		for (auto& reloc : relocTypes)
+			LogWarn("Unsupported COFF relocation %s", GetRelocationString((PeArmRelocationType)reloc));
+		return true;
 	}
 };
 
@@ -2412,10 +3019,15 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	conv = new LinuxArmv7SystemCallConvention(thumb2);
 	thumb2->RegisterCallingConvention(conv);
 
+	thumb2->RegisterFunctionRecognizer(new Thumb2ImportedFunctionRecognizer());
+
 	// Register the architectures with the binary format parsers so that they know when to use
 	// these architectures for disassembling an executable file
 	BinaryViewType::RegisterArchitecture("Mach-O", 0xc, endian, armv7);
 	BinaryViewType::RegisterArchitecture("ELF", 0x28, endian, armv7);
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c0, endian, armv7); // ARM
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c2, endian, thumb2); // THUMB
+	BinaryViewType::RegisterArchitecture("COFF", 0x1c4, endian, thumb2); // ARMNT (ARM Thumb-2)
 	BinaryViewType::RegisterArchitecture("PE", 0x1c0, endian, armv7); // ARM
 	BinaryViewType::RegisterArchitecture("PE", 0x1c2, endian, armv7); // THUMB
 	BinaryViewType::RegisterArchitecture("PE", 0x1c4, endian, armv7); // ARMv7
@@ -2424,13 +3036,13 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	armv7->SetBinaryViewTypeConstant("ELF", "R_GLOBAL_DATA", 21);
 	armv7->SetBinaryViewTypeConstant("ELF", "R_JUMP_SLOT", 22);
 
-	if (endian == LittleEndian)
-	{
-		armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
-		armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
-		armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
-		thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
-	}
+	armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
+	armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
+	armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
+	armv7->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
+	thumb2->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
+	thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
+
 	armv7->GetStandalonePlatform()->AddRelatedPlatform(thumb2, thumb2->GetStandalonePlatform());
 	thumb2->GetStandalonePlatform()->AddRelatedPlatform(armv7, armv7->GetStandalonePlatform());
 }
