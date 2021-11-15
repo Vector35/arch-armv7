@@ -2846,14 +2846,13 @@ public:
 			mov->imm4 = targetHiLo[mov->is_movt_flag].imm4;
 			break;
 		}
-		case PE_IMAGE_REL_ARM_PAIR:
-			// TODO
-			break;
 		case PE_IMAGE_REL_ARM_SECTION:
+			// TODO: test this implementation, but for now, just don't warn about it
 			// dest16[0] = info.sectionIndex + 1;
 			break;
 		case PE_IMAGE_REL_ARM_SECREL:
 		{
+			// TODO: test this implementation, but for now, just don't warn about it
 			// auto sections = view->GetSectionsAt(info.target);
 			// if (sections.size() > 0)
 			// {
@@ -2861,6 +2860,7 @@ public:
 			// }
 			break;
 		}
+		case PE_IMAGE_REL_ARM_PAIR:
 		case PE_IMAGE_REL_ARM_ADDR32:
 		case PE_IMAGE_REL_ARM_ADDR32NB:
 		default:
