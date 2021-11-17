@@ -2848,16 +2848,16 @@ public:
 		}
 		case PE_IMAGE_REL_ARM_SECTION:
 			// TODO: test this implementation, but for now, just don't warn about it
-			// dest16[0] = info.sectionIndex + 1;
+			dest16[0] = info.sectionIndex + 1;
 			break;
 		case PE_IMAGE_REL_ARM_SECREL:
 		{
 			// TODO: test this implementation, but for now, just don't warn about it
-			// auto sections = view->GetSectionsAt(info.target);
-			// if (sections.size() > 0)
-			// {
-			// 	dest32[0] = info.target - sections[0]->GetStart();
-			// }
+			auto sections = view->GetSectionsAt(info.target);
+			if (sections.size() > 0)
+			{
+				dest32[0] = info.target - sections[0]->GetStart();
+			}
 			break;
 		}
 		case PE_IMAGE_REL_ARM_PAIR:
@@ -2927,8 +2927,6 @@ public:
 				break;
 			case PE_IMAGE_REL_ARM_SECTION:
 				// The 16-bit section index of the section that contains the target. This is used to support debugging information.
-				// TODO: is the section index 0-based or 1-based?
-				reloc.baseRelative = false;
 				reloc.baseRelative = false;
 				reloc.size = 2;
 				reloc.addend = 0;
