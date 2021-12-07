@@ -2225,7 +2225,7 @@ public:
 				break;
 			}
 			default:
-				break;
+				return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
 		}
 		return false;
 	}
@@ -2275,6 +2275,10 @@ public:
 				break;
 			case R_ARM_REL32:
 				reloc.pcRelative = true;
+				break;
+			case R_ARM_IRELATIVE:
+				reloc.baseRelative = true;
+				reloc.type = ELFJumpSlotRelocationType;
 				break;
 			case R_ARM_SBREL31:
 			case R_ARM_PC24:
@@ -2727,7 +2731,7 @@ public:
 					is_conditional_branch ? "conditional " :
 							bl_hw2->branch_and_link ? "linking " : "",
 					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-					target, curTarget, newTarget, 
+					target, curTarget, newTarget,
 					(uint32_t) ((uint32_t) address + newTarget),
 					address, info.base, old_value, *dest32, old_value1, old_value2,
 					sizeof(*bl_hw1), sizeof(*bl_hw2)
