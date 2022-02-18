@@ -819,9 +819,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						if (op2.reg & 1 << reg)
 						{
 							il.AddInstruction(
-								il.SetRegister(4, 
+								il.SetRegister(4,
 									// writes to PC are deferred to a final Jump
-									(reg != REG_PC) ? reg : LLIL_TEMP(1), 
+									(reg != REG_PC) ? reg : LLIL_TEMP(1),
 									il.Load(4,
 										il.Add(4,
 											il.Register(4, LLIL_TEMP(0)),
@@ -994,9 +994,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		case ARMV7_MCRR2:
 			ConditionExecute(il, instr.cond,
 				il.Intrinsic({ }, ARMV7_INTRIN_COPROC_SENDTWOWORDS,
-					{ 
+					{
 						il.Register(4, op4.reg),
-						il.Register(4, op3.reg), 
+						il.Register(4, op3.reg),
 						il.Const(1, op1.reg),
 						il.Const(1, op2.imm),
 						il.Const(1, op5.reg),
@@ -1059,7 +1059,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(
 							il.Intrinsic(
 								{ RegisterOrFlag::Register(op3.reg) },
-								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								ARMV7_INTRIN_COPROC_GETONEWORD,
 								params
 							)
 						);
@@ -1068,7 +1068,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 						il.AddInstruction(
 							il.Intrinsic(
 								{ RegisterOrFlag::Register(LLIL_TEMP(0)) },
-								ARMV7_INTRIN_COPROC_GETONEWORD, 
+								ARMV7_INTRIN_COPROC_GETONEWORD,
 								params
 							)
 						);
@@ -1088,7 +1088,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.Intrinsic(
 					{ RegisterOrFlag::Register(op4.reg), RegisterOrFlag::Register(op3.reg) },
 					ARMV7_INTRIN_COPROC_GETTWOWORDS,
-					{ 
+					{
 						il.Const(1, op1.reg),
 						il.Const(1, op2.imm),
 						il.Const(1, op5.reg),
@@ -4828,7 +4828,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.And(get_register_size(op2.reg), GetShiftedRegister(il, op2), il.Const(get_register_size(op2.reg), 0xffff))));
 			break;
 		case ARMV7_UDF:
-			ConditionExecute(il, instr.cond, il.Undefined());
+			il.AddInstruction(il.Trap(ReadILOperand(il, op1, addr)));
 			break;
 		case ARMV7_UDIV:
 			if (op3.cls == NONE)
