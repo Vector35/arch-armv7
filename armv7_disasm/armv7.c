@@ -5,42 +5,42 @@
 using namespace armv7;
 #endif
 
-uint32_t armv7_64_bit_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_branch_and_block_data_transfer(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_data_processing_reg_shifted_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_data_processing_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_decompose(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t bigEndian);
-uint32_t armv7_extension_register_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_extra_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_extra_load_store_unprivilaged(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_floating_point_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_halfword_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_load_store_word_and_unsigned_byte(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_msr_imm_and_hints(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_one_register_and_modified_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_parallel_add_sub_reversal(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_parallel_add_sub_signed(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_parallel_add_sub_udiv(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_parallel_add_sub_unsigned(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_saturating_add_sub(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_simd_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_three_register_different(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_three_register_same(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_two_register_and_shift(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_two_register_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_two_register_scalar(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
-typedef uint32_t (*armv7_decompose_instruction)(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address);
+uint32_t armv7_64_bit_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_branch_and_block_data_transfer(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_data_processing_reg_shifted_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_data_processing_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_decompose(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t bigEndian, uint32_t features);
+uint32_t armv7_extension_register_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_extra_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_extra_load_store_unprivilaged(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_floating_point_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_halfword_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_load_store_word_and_unsigned_byte(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_msr_imm_and_hints(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_one_register_and_modified_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_parallel_add_sub_reversal(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_parallel_add_sub_signed(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_parallel_add_sub_udiv(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_parallel_add_sub_unsigned(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_saturating_add_sub(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_simd_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_three_register_different(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_three_register_same(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_two_register_and_shift(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_two_register_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_two_register_scalar(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
+typedef uint32_t (*armv7_decompose_instruction)(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features);
 
 static Register regMap[2] = {REG_D0, REG_Q0};
 
@@ -663,6 +663,7 @@ static const char* bankedRegisterString[] = {
 	"sp_svc",
 	"sp_und",
 	"sp_usr",
+	"INVALID"
 };
 
 static const char* condString[] = {
@@ -995,7 +996,8 @@ uint32_t bswap32(uint32_t x)
 uint32_t armv7_decompose(uint32_t instructionValue,
                          Instruction* restrict instruction,
                          uint32_t address,
-                         uint32_t bigEndian)
+                         uint32_t bigEndian,
+						 uint32_t features)
 {
 	/* A5.1 ARM instruction set encoding */
 	union {
@@ -1036,10 +1038,12 @@ uint32_t armv7_decompose(uint32_t instructionValue,
 			{armv7_unconditional, armv7_unconditional},
 		}
 	};
-	return group[decode.cond == 15][decode.op1][decode.op](decode.value, instruction, address);
+
+	uint32_t result = group[decode.cond == 15][decode.op1][decode.op](decode.value, instruction, address, features);
+	return result == 0 ? result : operation_supported(instruction->operation, features);
 }
 
-uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2 Data-processing and miscellaneous instructions */
 	(void)address;
@@ -1062,46 +1066,46 @@ uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* 
 		if ((decode.op1 & 0x19) == 0x10) //10xx0
 		{
 			if ((decode.op2 & 8) == 0)
-				return armv7_miscellaneous(instructionValue, instruction, address);
+				return armv7_miscellaneous(instructionValue, instruction, address, features);
 			else if ((decode.op2 & 9) == 8)
-				return armv7_halfword_multiply_and_accumulate(instructionValue, instruction, address);
+				return armv7_halfword_multiply_and_accumulate(instructionValue, instruction, address, features);
 		}
 		else // !10xx0
 		{
 			if ((decode.op2 & 1) == 0)
 			{
-				return armv7_data_processing_reg(instructionValue, instruction, address);
+				return armv7_data_processing_reg(instructionValue, instruction, address, features);
 			}
 			else if ((decode.op2 & 9) == 1)
 			{
-				return armv7_data_processing_reg_shifted_reg(instructionValue, instruction, address);
+				return armv7_data_processing_reg_shifted_reg(instructionValue, instruction, address, features);
 			}
 		}
 
 		if ((decode.op1 & 0x10) == 0 && decode.op2 == 9) //0xxxx
-			return armv7_multiply_and_accumulate(instructionValue, instruction, address);
+			return armv7_multiply_and_accumulate(instructionValue, instruction, address, features);
 		else if ((decode.op1 & 0x10) == 0x10 && decode.op2 == 9) //1xxxx
-			return armv7_synchronization_primitives(instructionValue, instruction, address);
+			return armv7_synchronization_primitives(instructionValue, instruction, address, features);
 
 		if ((decode.op1 & 0x12) == 2) //0xx1x
 		{
 			if (decode.op2 == 11)
-				return armv7_extra_load_store_unprivilaged(instructionValue, instruction, address);
+				return armv7_extra_load_store_unprivilaged(instructionValue, instruction, address, features);
 		}
 		else //!0xx1x
 		{
 			if (decode.op2 == 11 || (decode.op2 & 13) == 13)
-				return armv7_extra_load_store(instructionValue, instruction, address);
+				return armv7_extra_load_store(instructionValue, instruction, address, features);
 		}
 
 		if ((decode.op1 & 0x13) == 2 && (decode.op2 & 13) == 13) //0xx10
 		{
-			return armv7_extra_load_store(instructionValue, instruction, address);
+			return armv7_extra_load_store(instructionValue, instruction, address, features);
 		}
 
 		if ((decode.op1 & 0x13) == 3 && (decode.op2 & 13) == 13) //0xx11
 		{
-			return armv7_extra_load_store_unprivilaged(instructionValue, instruction, address);
+			return armv7_extra_load_store_unprivilaged(instructionValue, instruction, address, features);
 		}
 		return 1;
 	}
@@ -1109,7 +1113,7 @@ uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* 
 	{
 		if ((decode.op1 & 0x19) != 0x10)
 		{
-			return armv7_data_processing_imm(instructionValue, instruction, address);
+			return armv7_data_processing_imm(instructionValue, instruction, address, features);
 		}
 		else
 		{
@@ -1163,16 +1167,16 @@ uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* 
 					}
 				case 0x12:
 				case 0x16:
-					return armv7_msr_imm_and_hints(instructionValue, instruction, address);
+					return armv7_msr_imm_and_hints(instructionValue, instruction, address, features);
 				default:
-					return armv7_data_processing_imm(instructionValue, instruction, address);
+					return armv7_data_processing_imm(instructionValue, instruction, address, features);
 			}
 		}
 	}
 	return 1;
 }
 
-uint32_t armv7_data_processing_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_data_processing_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.1 Data-processing (register) */
 	(void)address;
@@ -1312,7 +1316,7 @@ uint32_t armv7_data_processing_reg(uint32_t instructionValue, Instruction* restr
 	return 0;
 }
 
-uint32_t armv7_data_processing_reg_shifted_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_data_processing_reg_shifted_reg(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.2 Data-processing (register-shifted register)*/
 	(void)address;
@@ -1452,7 +1456,7 @@ uint32_t armv7_data_processing_reg_shifted_reg(uint32_t instructionValue, Instru
 	return 0;
 }
 
-uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.3 Data-processing (immediate) */
 	(void)address;
@@ -1534,7 +1538,7 @@ uint32_t armv7_data_processing_imm(uint32_t instructionValue, Instruction* restr
 	return 0;
 }
 
-uint32_t armv7_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.5 Multiply and multiply accumulate */
 	(void)address;
@@ -1615,7 +1619,7 @@ uint32_t armv7_multiply_and_accumulate(uint32_t instructionValue, Instruction* r
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_saturating_add_sub(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_saturating_add_sub(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.6 Saturating addition and subtraction */
 	(void)address;
@@ -1653,7 +1657,7 @@ uint32_t armv7_saturating_add_sub(uint32_t instructionValue, Instruction* restri
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_halfword_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_halfword_multiply_and_accumulate(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.7 Halfword multiply and multiply accumulate */
 	(void)address;
@@ -1816,7 +1820,7 @@ uint32_t armv7_halfword_multiply_and_accumulate(uint32_t instructionValue, Instr
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_extra_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_extra_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.8 Extra load/store instructions */
 	(void)address;
@@ -1925,7 +1929,7 @@ uint32_t armv7_extra_load_store(uint32_t instructionValue, Instruction* restrict
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_extra_load_store_unprivilaged(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_extra_load_store_unprivilaged(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.9 Extra load/store instructions, unprivileged */
 	(void)address;
@@ -1995,7 +1999,7 @@ uint32_t armv7_extra_load_store_unprivilaged(uint32_t instructionValue, Instruct
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.10 Synchronization primitives */
 	(void)address;
@@ -2150,7 +2154,7 @@ uint32_t armv7_synchronization_primitives(uint32_t instructionValue, Instruction
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_msr_imm_and_hints(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_msr_imm_and_hints(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.11 MSR (immediate), and hints */
 	(void)address;
@@ -2236,7 +2240,7 @@ uint32_t armv7_msr_imm_and_hints(uint32_t instructionValue, Instruction* restric
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.2.12 Miscellaneous instructions */
 	(void)address;
@@ -2412,7 +2416,7 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 			instruction->operands[0].reg = (Register)decode.clz.rm;
 			break;
 		case 5:
-			return armv7_saturating_add_sub(instructionValue, instruction, address);
+			return armv7_saturating_add_sub(instructionValue, instruction, address, features);
 		case 6:
 			{
 			instruction->operation = ARMV7_ERET;
@@ -2437,7 +2441,7 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_load_store_word_and_unsigned_byte(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_load_store_word_and_unsigned_byte(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.3 Load/store word and unsigned byte */
 	(void)address;
@@ -2531,7 +2535,7 @@ uint32_t armv7_load_store_word_and_unsigned_byte(uint32_t instructionValue, Inst
 	return 0;
 }
 
-uint32_t armv7_parallel_add_sub_signed(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_parallel_add_sub_signed(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	//A5.4.1 Parallel addition and subtraction, signed
 	(void)address;
@@ -2599,7 +2603,7 @@ uint32_t armv7_parallel_add_sub_signed(uint32_t instructionValue, Instruction* r
 	instruction->operands[2].reg = (Register)decode.rm;
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_parallel_add_sub_unsigned(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_parallel_add_sub_unsigned(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	//A5.4.2 Parallel addition and subtraction, unsigned
 	(void)address;
@@ -2667,7 +2671,7 @@ uint32_t armv7_parallel_add_sub_unsigned(uint32_t instructionValue, Instruction*
 	instruction->operands[2].reg = (Register)decode.rm;
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_parallel_add_sub_reversal(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_parallel_add_sub_reversal(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	//A5.4.3 Packing, unpacking, saturation, and reversal
 	(void)address;
@@ -3002,7 +3006,7 @@ uint32_t armv7_parallel_add_sub_reversal(uint32_t instructionValue, Instruction*
 	}
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_parallel_add_sub_udiv(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_parallel_add_sub_udiv(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A5.4.4 Signed multiply, signed and unsigned divide*/
 	(void)address;
@@ -3158,7 +3162,7 @@ uint32_t armv7_parallel_add_sub_udiv(uint32_t instructionValue, Instruction* res
 	}
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.4 Media instructions */
 	union {
@@ -3206,12 +3210,12 @@ uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restri
 	{
 		case 0:
 			if (decode.com.op1l < 4)
-				return armv7_parallel_add_sub_signed(instructionValue, instruction, address);
-			return armv7_parallel_add_sub_unsigned(instructionValue, instruction, address);
+				return armv7_parallel_add_sub_signed(instructionValue, instruction, address, features);
+			return armv7_parallel_add_sub_unsigned(instructionValue, instruction, address, features);
 		case 1:
-			return armv7_parallel_add_sub_reversal(instructionValue, instruction, address);
+			return armv7_parallel_add_sub_reversal(instructionValue, instruction, address, features);
 		case 2:
-			return armv7_parallel_add_sub_udiv(instructionValue, instruction, address);
+			return armv7_parallel_add_sub_udiv(instructionValue, instruction, address, features);
 	}
 	/* USAD8<c>  <Rd>, <Rn>, <Rm>
 	 * USADA8<c> <Rd>, <Rn>, <Rm>, <Ra>
@@ -3325,7 +3329,7 @@ uint32_t armv7_media_instructions(uint32_t instructionValue, Instruction* restri
 	}
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_branch_and_block_data_transfer(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_branch_and_block_data_transfer(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.5 Branch, branch with link, and block data transfer */
 	(void)address;
@@ -3548,7 +3552,7 @@ uint32_t armv7_branch_and_block_data_transfer(uint32_t instructionValue, Instruc
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.6 Coprocessor instructions, and Supervisor Call */
 	union {
@@ -3720,18 +3724,18 @@ uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionV
 			case 18: case 20: case 22: case 24: case 26: case 28: case 30:
 			case 19: case 21: case 23: case 25: case 27: case 29: case 31:
 				return armv7_extension_register_load_store(
-						instructionValue, instruction, address);
+						instructionValue, instruction, address, features);
 			case 4: case 5:
 				return armv7_64_bit_transfers(
-						instructionValue, instruction, address);
+						instructionValue, instruction, address, features);
 			case 32: case 34: case 36: case 38: case 40: case 42: case 44: case 46:
 			case 33: case 35: case 37: case 39: case 41: case 43: case 45: case 47:
 				if (decode.com.op == 0)
 					return armv7_floating_point_data_processing(
-							instructionValue, instruction, address);
+							instructionValue, instruction, address, features);
 				else
 					return armv7_transfers(
-							instructionValue, instruction, address);
+							instructionValue, instruction, address, features);
 			default:
 				return 1;
 		}
@@ -3834,7 +3838,7 @@ uint32_t armv7_coprocessor_instruction_and_supervisor_call(uint32_t instructionV
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/* A5.7 Unconditional instructions */
 	union {
@@ -3937,7 +3941,7 @@ uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict in
 	 */
 	decode.value = instructionValue;
 	if (decode.com.op1 >> 7 == 0)
-		return armv7_memory_hints_simd_and_misc(instructionValue, instruction, address);
+		return armv7_memory_hints_simd_and_misc(instructionValue, instruction, address, features);
 	else
 	{
 		instruction->cond = (Condition)decode.com.cond;
@@ -4122,7 +4126,7 @@ uint32_t armv7_unconditional(uint32_t instructionValue, Instruction* restrict in
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A5.7.1 Memory hints, Advanced SIMD instructions, and miscellaneous instructions*/
 	(void)address;
@@ -4172,11 +4176,11 @@ uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction
 	instruction->cond = (Condition)COND_NONE;
 	if ((decode.com.op1 >> 5) == 1)
 	{
-		return armv7_simd_data_processing(instructionValue, instruction, address);
+		return armv7_simd_data_processing(instructionValue, instruction, address, features);
 	}
 	else if ((decode.com.op1 & 0x71) == 64)
 	{
-		return armv7_simd_load_store(instructionValue, instruction, address);
+		return armv7_simd_load_store(instructionValue, instruction, address, features);
 	}
 	else
 	{
@@ -4332,7 +4336,7 @@ uint32_t armv7_memory_hints_simd_and_misc(uint32_t instructionValue, Instruction
 }
 
 
-uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4 Advanced SIMD data-processing instructions*/
 	union {
@@ -4388,21 +4392,21 @@ uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* rest
 	} decode;
 	decode.value = instructionValue;
 	if (decode.com.a >> 4 == 0)
-		return armv7_three_register_same(instructionValue, instruction, address);
+		return armv7_three_register_same(instructionValue, instruction, address, features);
 
 	uint32_t a = decode.com.a & 7;
 	if ((decode.com.c & 9) == 1 && a == 0)
-		return armv7_one_register_and_modified_imm(instructionValue, instruction, address);
+		return armv7_one_register_and_modified_imm(instructionValue, instruction, address, features);
 
 	if ((decode.com.c & 9) == 9 || (a > 0 && (decode.com.c & 1) == 1))
-		return armv7_two_register_and_shift(instructionValue, instruction, address);
+		return armv7_two_register_and_shift(instructionValue, instruction, address, features);
 
 	if (a <= 5)
 	{
 		if ((decode.com.c & 5) == 0)
-			return armv7_three_register_different(instructionValue, instruction, address);
+			return armv7_three_register_different(instructionValue, instruction, address, features);
 		if ((decode.com.c & 5) == 4)
-			return armv7_two_register_scalar(instructionValue, instruction, address);
+			return armv7_two_register_scalar(instructionValue, instruction, address, features);
 	}
 
 	if (decode.com.u == 0)
@@ -4427,7 +4431,7 @@ uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* rest
 	{
 		if ((decode.com.c & 1) != 0)
 			return 1;
-		return armv7_two_register_misc(instructionValue, instruction, address);
+		return armv7_two_register_misc(instructionValue, instruction, address, features);
 	}
 	else if (decode.com.b <= 11)
 	{
@@ -4480,7 +4484,7 @@ uint32_t armv7_simd_data_processing(uint32_t instructionValue, Instruction* rest
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_three_register_same(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_three_register_same(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.1 Three registers of the same length*/
 	(void)address;
@@ -4744,7 +4748,7 @@ uint32_t armv7_three_register_same(uint32_t instructionValue, Instruction* restr
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_three_register_different(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_three_register_different(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.2 Three registers of different lengths*/
 	(void)address;
@@ -4985,7 +4989,7 @@ uint32_t armv7_three_register_different(uint32_t instructionValue, Instruction* 
 
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_two_register_scalar(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_two_register_scalar(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.3 Two registers and a scalar*/
 	(void)address;
@@ -5217,7 +5221,7 @@ uint32_t armv7_two_register_scalar(uint32_t instructionValue, Instruction* restr
 	}
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_two_register_and_shift(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_two_register_and_shift(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.4 Two registers and a shift amount*/
 	(void)address;
@@ -5624,7 +5628,7 @@ uint32_t armv7_two_register_and_shift(uint32_t instructionValue, Instruction* re
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_two_register_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_two_register_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.5 Two registers, miscellaneous*/
 	(void)address;
@@ -6104,7 +6108,7 @@ uint32_t armv7_two_register_misc(uint32_t instructionValue, Instruction* restric
 	}
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_one_register_and_modified_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_one_register_and_modified_imm(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.4.6 One register and a modified immediate value*/
 	(void)address;
@@ -6214,7 +6218,7 @@ uint32_t armv7_one_register_and_modified_imm(uint32_t instructionValue, Instruct
 		return 1;
 	return instruction->operation == ARMV7_UNDEFINED;
 }
-uint32_t armv7_floating_point_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_floating_point_data_processing(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.5 Floating-point data-processing instructions*/
 	(void)address;
@@ -6997,7 +7001,7 @@ static uint32_t reg_start_and_size_to_list(uint32_t start, uint32_t size)
 	//return ROTL32((((uint32_t)-1) >> (32-size)), start);
 }
 
-uint32_t armv7_extension_register_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_extension_register_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.6 Extension register load/store instructions*/
 	union {
@@ -7247,7 +7251,7 @@ uint32_t armv7_extension_register_load_store(uint32_t instructionValue, Instruct
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_simd_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_simd_load_store(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.7 Advanced SIMD element or structure load/store instructions*/
 	(void)address;
@@ -7839,7 +7843,7 @@ uint32_t armv7_simd_load_store(uint32_t instructionValue, Instruction* restrict 
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.8 - 8, 16, and 32-bit transfer between ARM core and extension registers*/
 	(void)address;
@@ -8039,7 +8043,7 @@ uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instru
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
-uint32_t armv7_64_bit_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address)
+uint32_t armv7_64_bit_transfers(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
 {
 	/*A7.9 64-bit transfers between ARM core and extension registers*/
 	(void)address;
@@ -8100,6 +8104,252 @@ uint32_t armv7_64_bit_transfers(uint32_t instructionValue, Instruction* restrict
 	return instruction->operation == ARMV7_UNDEFINED;
 }
 
+uint32_t operation_supported(Operation operation, uint32_t features) {
+	/* First, check if an op is excluded by subset */
+	/* [todo] */
+
+	/* Otherwise, check whether op is included in the featuresets enabled */
+	switch (operation) {
+		/* Base (ARMv4T) instructions */
+		case ARMV7_UNDEFINED:
+		case ARMV7_UNPREDICTABLE:
+		case ARMV7_ADC:
+		case ARMV7_ADCS:
+		case ARMV7_ADD:
+		case ARMV7_ADDS:
+		case ARMV7_ADDW:
+		case ARMV7_ADR:
+		case ARMV7_AND:
+		case ARMV7_ANDS:
+		case ARMV7_ASR:
+		case ARMV7_ASRS:
+		case ARMV7_B:
+		case ARMV7_BIC:
+		case ARMV7_BICS:
+		case ARMV7_BL:
+		case ARMV7_BX:
+		case ARMV7_CDP:
+		case ARMV7_CMN:
+		case ARMV7_CMP:
+		case ARMV7_EOR:
+		case ARMV7_EORS:
+		case ARMV7_HINT:
+		case ARMV7_LDC:
+		case ARMV7_LDM:
+		case ARMV7_LDMDA:
+		case ARMV7_LDMDB:
+		case ARMV7_LDMIA:
+		case ARMV7_LDMIB:
+		case ARMV7_LDR:
+		case ARMV7_LDRB:
+		case ARMV7_LDRH:
+		case ARMV7_LDRSB:
+		case ARMV7_LDRSH:
+		case ARMV7_LSL:
+		case ARMV7_LSLS:
+		case ARMV7_LSR:
+		case ARMV7_LSRS:
+		case ARMV7_MOV:
+		case ARMV7_MOVS:
+		case ARMV7_MRS:
+		case ARMV7_MSR:
+		case ARMV7_MUL:
+		case ARMV7_MULS:
+		case ARMV7_MVN:
+		case ARMV7_MVNS:
+		case ARMV7_NOP:
+		case ARMV7_ORR:
+		case ARMV7_ORRS:
+		case ARMV7_POP:
+		case ARMV7_PUSH:
+		case ARMV7_ROR:
+		case ARMV7_RORS:
+		case ARMV7_RRX:
+		case ARMV7_RSB:
+		case ARMV7_RSBS:
+		case ARMV7_SBC:
+		case ARMV7_SBCS:
+		case ARMV7_SMLAL:
+		case ARMV7_SMULL:
+		case ARMV7_STM:
+		case ARMV7_STMDA:
+		case ARMV7_STMDB:
+		case ARMV7_STMIA:
+		case ARMV7_STMIB:
+		case ARMV7_STR:
+		case ARMV7_STRB:
+		case ARMV7_STRH:
+		case ARMV7_SUB:
+		case ARMV7_SUBS:
+		case ARMV7_SVC:
+		case ARMV7_SWP:
+		case ARMV7_SWPB:
+		case ARMV7_TEQ:
+		case ARMV7_TST:
+		case ARMV7_UDF:
+		case ARMV7_UMLAL:
+		case ARMV7_UMULL:
+			return 0;
+
+		/* ARMv5 */
+		case ARMV7_BKPT:
+		case ARMV7_CLZ:
+		case ARMV7_CDP2:
+		case ARMV7_LDC2:
+		case ARMV7_MCR2:
+		case ARMV7_MRC2:
+		/* ARMv5T */
+		case ARMV7_BLX:
+		/* ARMv5E */
+		case ARMV7_LDRD:
+		case ARMV7_MCRR:
+		case ARMV7_MRRC:
+		case ARMV7_PLD:
+		/* ARMv5ExP */
+		case ARMV7_QADD:
+		case ARMV7_QDADD:
+		case ARMV7_QDSUB:
+		case ARMV7_QSUB:
+		case ARMV7_SMLALBB:
+		case ARMV7_SMLALBT:
+		case ARMV7_SMLALTB:
+		case ARMV7_SMLALTT:
+		case ARMV7_SMLAWB:
+		case ARMV7_SMLAWT:
+		case ARMV7_SMLABB:
+		case ARMV7_SMLABT:
+		case ARMV7_SMLATB:
+		case ARMV7_SMLATT:
+		case ARMV7_STC2:
+			return (features & FEAT_SUBSET_ARMv5T) > 0 ? 0 : 1;
+
+		/* ARMv6 */
+		case ARMV7_CPS:
+		case ARMV7_LDREX:
+		case ARMV7_PKHBT:
+		case ARMV7_PKHTB:
+		case ARMV7_QADD8:
+		case ARMV7_QADD16:
+		case ARMV7_QASX:
+		case ARMV7_QSAX:
+		case ARMV7_QSUB8:
+		case ARMV7_QSUB16:
+		case ARMV7_REV:
+		case ARMV7_REV16:
+		case ARMV7_REVSH:
+		case ARMV7_SADD8:
+		case ARMV7_SADD16:
+		case ARMV7_SASX:
+		case ARMV7_SEL:
+		case ARMV7_SETEND:
+		case ARMV7_SHADD8:
+		case ARMV7_SHADD16:
+		case ARMV7_SHASX:
+		case ARMV7_SHSUB8:
+		case ARMV7_SHSUB16:
+		case ARMV7_SMLAD:
+		case ARMV7_SMLADX:
+		case ARMV7_SMLALD:
+		case ARMV7_SMLALDX:
+		case ARMV7_SMLSD:
+		case ARMV7_SMLSDX:
+		case ARMV7_SMLSLD:
+		case ARMV7_SMLSLDX:
+		case ARMV7_SMMLA:
+		case ARMV7_SMMLAR:
+		case ARMV7_SMMLS:
+		case ARMV7_SMMLSR:
+		case ARMV7_SMMUL:
+		case ARMV7_SMMULR:
+		case ARMV7_SMUAD:
+		case ARMV7_SMUADX:
+		case ARMV7_SMUSD:
+		case ARMV7_SMUSDX:
+		case ARMV7_SSAT:
+		case ARMV7_SSAT16:
+		case ARMV7_SSAX:
+		case ARMV7_SSUB8:
+		case ARMV7_SSUB16:
+		case ARMV7_STREX:
+		case ARMV7_SXTAB:
+		case ARMV7_SXTAB16:
+		case ARMV7_SXTAH:
+		case ARMV7_SXTB:
+		case ARMV7_SXTH:
+		case ARMV7_SXTB16:
+		case ARMV7_UADD8:
+		case ARMV7_UADD16:
+		case ARMV7_UASX:
+		case ARMV7_UHADD8:
+		case ARMV7_UHADD16:
+		case ARMV7_UHASX:
+		case ARMV7_UHSAX:
+		case ARMV7_UHSUB8:
+		case ARMV7_UHSUB16:
+		case ARMV7_UMAAL:
+		case ARMV7_UQADD8:
+		case ARMV7_UQADD16:
+		case ARMV7_UQASX:
+		case ARMV7_UQSAX:
+		case ARMV7_UQSUB8:
+		case ARMV7_UQSUB16:
+		case ARMV7_USAD8:
+		case ARMV7_USADA8:
+		case ARMV7_USAT:
+		case ARMV7_USAT16:
+		case ARMV7_USAX:
+		case ARMV7_USUB8:
+		case ARMV7_USUB16:
+		case ARMV7_UXTAB:
+		case ARMV7_UXTAB16:
+		case ARMV7_UXTAH:
+		case ARMV7_UXTB:
+		case ARMV7_UXTH:
+		case ARMV7_UXTB16:
+		/* ARMv6M */
+		case ARMV7_DMB:
+		case ARMV7_DSB:
+		case ARMV7_ISB:
+		/* ARMv6K */
+		case ARMV7_CLREX:
+		case ARMV7_LDREXB:
+		case ARMV7_LDREXH:
+		case ARMV7_LDREXD:
+		case ARMV7_MCRR2:
+		case ARMV7_SEV:
+		case ARMV7_STREXB:
+		case ARMV7_STREXD:
+		case ARMV7_STREXH:
+			return (features & FEAT_SUBSET_ARMv6) > 0 ? 0 : 1;
+		/* ARMv6T2 */
+		case ARMV7_BFC:
+		case ARMV7_BFI:
+		case ARMV7_CBZ:
+		case ARMV7_CBNZ:
+		case ARMV7_LDRHT:
+		case ARMV7_LDRSBT:
+		case ARMV7_LDRSHT:
+		case ARMV7_LDRT:
+		case ARMV7_MLS:
+		case ARMV7_MOVT:
+		case ARMV7_RBIT:
+		case ARMV7_RFE:
+		case ARMV7_SBFX:
+		case ARMV7_SRS:
+		case ARMV7_STRHT:
+		case ARMV7_TBB:
+		case ARMV7_TBH:
+		case ARMV7_UBFX:
+		case ARMV7_WFE:
+		case ARMV7_WFI:
+		case ARMV7_YIELD:
+			return (features & FEAT_SUBSET_ARMv6T2) > 0 ? 0 : 1;
+
+		default:
+			return 1;
+	}
+}
+
 const char* get_operation(Operation operation)
 {
 	if (operation > ARMV7_UNDEFINED && operation < ARMV7_END_INSTRUCTION)
@@ -8123,7 +8373,7 @@ const char* get_register_name(Register reg)
 
 const char* get_banked_register_name(BankedRegister regb)
 {
-	if (regb >= REGB_ELR_HYP && regb < REGB_INVALID)
+	if (regb >= REGB_ELR_HYP && regb <= REGB_INVALID)
 		return bankedRegisterString[regb];
 	return NULL;
 }

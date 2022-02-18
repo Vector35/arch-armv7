@@ -26,6 +26,23 @@
 namespace armv7 {
 #endif
 
+enum Features {
+	FEAT_SUBSET_ARMv4T       = 0x1,
+	FEAT_SUBSET_ARMv5T       = 0x1,
+    FEAT_SUBSET_ARMv6        = 0x2,
+    FEAT_SUBSET_ARMv7        = 0x4,
+    FEAT_SUBSET_ARMv7_R      = 0x8,
+    FEAT_SUBSET_ARMv6T2      = 0x10,
+    FEAT_SUBSET_ThumbEE      = 0x20,
+    FEAT_SECURITY_EXTENSIONS = 0x40,
+    FEAT_MP                  = 0x80, /* eg: PLDW */
+    FEAT_ADVSIMD             = 0x100, /* vst, vld, etc. */
+    FEAT_VFPv2               = 0x200,
+    FEAT_VFPv3               = 0x400,
+	_FEAT_END,
+	FEAT_ALL				 = ((_FEAT_END - 1) << 1) - 1,
+};
+
 enum Operation {
 	ARMV7_UNDEFINED,
 	ARMV7_UNPREDICTABLE,
@@ -894,6 +911,7 @@ typedef union _ieee754_double {
 }ieee754_double;
 
 #ifndef __cplusplus
+	typedef enum Subset Subset;
 	typedef enum OperandClass OperandClass;
 	typedef enum Operation Operation;
 	typedef enum Shift Shift;
@@ -909,6 +927,7 @@ typedef union _ieee754_double {
 	typedef enum DsbOption DsbOption;
 	typedef struct InstructionOperand InstructionOperand;
 	typedef struct Instruction Instruction;
+	typedef enum uint32_t features;
 #endif
 
 #ifdef __cplusplus
@@ -918,12 +937,15 @@ typedef union _ieee754_double {
 	        uint32_t instructionValue,
 	        Instruction* restrict instruction,
 	        uint32_t address,
-	        uint32_t littleEndian);
+	        uint32_t littleEndian,
+			uint32_t features);
 
 	uint32_t armv7_disassemble(
 			Instruction* restrict instruction,
 			char* outBuffer,
 			uint32_t outBufferSize);
+
+	uint32_t operation_supported(Operation operation, uint32_t features);
 
 	//Helpers for disassembling the instruction operands to strings
 	const char* get_operation(Operation operation);

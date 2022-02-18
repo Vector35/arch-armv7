@@ -8,6 +8,7 @@ class ArmCommonArchitecture: public BinaryNinja::Architecture
 protected:
 	BNEndianness m_endian;
 	BinaryNinja::Ref<BinaryNinja::Architecture> m_armArch, m_thumbArch;
+	uint32_t m_features;
 
 	virtual std::string GetAssemblerTriple() = 0;
 

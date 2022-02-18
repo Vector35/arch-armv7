@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <exception>
+#include <uitypes.h>
 
 #include "binaryninjaapi.h"
 #include "lowlevelilinstruction.h"
@@ -29,6 +30,10 @@ using namespace std;
 #define COALESCE_MAX_INSTRS 100
 
 #define HANDLE_CASE(orig, opposite) case orig: case opposite: return (candidate == orig) || (candidate == opposite)
+
+static const char* settingAllowedFeaturesOnly = "arch.armv7.allowedFeaturesOnly";
+static const char* settingFeaturesAllowed = "arch.armv7.featuresAllowed";
+
 
 static bool IsRelatedCondition(Condition orig, Condition candidate)
 {
@@ -671,12 +676,12 @@ protected:
 		return "armv7-none-none";
 	}
 
-	virtual bool Disassemble(const uint8_t* data, uint64_t addr, size_t maxLen, Instruction& result)
+	virtual bool Disassemble(const uint8_t* data, uint64_t addr, size_t maxLen, Instruction& result, uint32_t features)
 	{
 		(void)addr;
 		(void)maxLen;
 		memset(&result, 0, sizeof(result));
-		if (armv7_decompose(*(uint32_t*)data, &result, (uint32_t)addr, (uint32_t)(m_endian == BigEndian)) != 0)
+		if (armv7_decompose(*(uint32_t*)data, &result, (uint32_t)addr, (uint32_t)(m_endian == BigEndian), features) != 0)
 			return false;
 		return true;
 	}
@@ -922,7 +927,7 @@ protected:
 			size_t consumed = disassembled * 4;
 			auto& newInstr = coalesced[disassembled];
 
-			if (!Disassemble(data + consumed, addr + consumed, len - consumed, newInstr))
+			if (!Disassemble(data + consumed, addr + consumed, len - consumed, newInstr, m_features))
 				break;
 			if (UNCONDITIONAL(newInstr.cond))
 				break;
@@ -1083,7 +1088,7 @@ public:
 			return false;
 
 		Instruction instr;
-		if (!Disassemble(data, addr, maxLen, instr))
+		if (!Disassemble(data, addr, maxLen, instr, m_features))
 			return false;
 
 		SetInstructionInfoForInstruction(addr, instr, result);
@@ -1118,7 +1123,7 @@ public:
 		bool first = true;
 		char tmpOperand[256];
 
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 		len = 4;
 		memset(padding, 0x20, sizeof(padding));
@@ -1465,7 +1470,7 @@ public:
 	virtual bool IsNeverBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 
 		return (instr.operation == ARMV7_B && CONDITIONAL(instr.cond));
@@ -1474,7 +1479,7 @@ public:
 	virtual bool IsAlwaysBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 
 		return (instr.operation == ARMV7_B && CONDITIONAL(instr.cond));
@@ -1483,7 +1488,7 @@ public:
 	virtual bool IsInvertBranchPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 
 		return (instr.operation == ARMV7_B && CONDITIONAL(instr.cond));
@@ -1541,7 +1546,7 @@ public:
 	virtual bool IsSkipAndReturnZeroPatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 
 		return (instr.operation == ARMV7_BL) || (instr.operation == ARMV7_BLX);
@@ -1550,7 +1555,7 @@ public:
 	virtual bool IsSkipAndReturnValuePatchAvailable(const uint8_t* data, uint64_t addr, size_t len) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 			return false;
 
 		return (instr.operation == ARMV7_BL) || (instr.operation == ARMV7_BLX);
@@ -1572,7 +1577,7 @@ public:
 	virtual bool GetInstructionLowLevelIL(const uint8_t* data, uint64_t addr, size_t& len, LowLevelILFunction& il) override
 	{
 		Instruction instr;
-		if (!Disassemble(data, addr, len, instr))
+		if (!Disassemble(data, addr, len, instr, m_features))
 		{
 			il.AddInstruction(il.Undefined());
 			return false;
@@ -1588,6 +1593,26 @@ public:
 
 ArmCommonArchitecture::ArmCommonArchitecture(const char* name, BNEndianness endian): Architecture(name), m_endian(endian)
 {
+	m_features = armv7::FEAT_ALL;
+
+	SettingsRef settings = BinaryNinja::Settings::Instance();
+	auto allowed = settings->Get<bool>(settingAllowedFeaturesOnly);
+	assert(m_features == 0x7FF);
+
+	if (allowed)
+	{
+		auto features = (settings->Get<std::vector<std::string>>(settingFeaturesAllowed));
+		std::set featureSet(features.begin(), features.end());
+
+		m_features = armv7::FEAT_SUBSET_ARMv4T;
+
+		if (featureSet.count("ARMv5T") > 0)
+			m_features |= armv7::Features::FEAT_SUBSET_ARMv5T;
+		if (featureSet.count("ARMv6") > 0)
+			m_features |= armv7::Features::FEAT_SUBSET_ARMv6;
+		if (featureSet.count("ARMv6T2") > 0)
+			m_features |= armv7::Features::FEAT_SUBSET_ARMv6T2;
+	}
 }
 
 void ArmCommonArchitecture::SetArmAndThumbArchitectures(Architecture* arm, Architecture* thumb)
@@ -2987,6 +3012,29 @@ public:
 };
 
 
+static void RegisterArmSettings()
+{
+	SettingsRef settings = BinaryNinja::Settings::Instance();
+
+	settings->RegisterGroup("arch", "Architecture");
+	settings->RegisterSetting(settingAllowedFeaturesOnly,
+		R"({
+			"title": "Restrict analysis to \"Allowed subarchitecture features\"",
+			"type": "boolean",
+            "default": false,
+			"description" : "Only include instructions in analysis if they belong to allowed subarchitecture features."
+		})");
+	settings->RegisterSetting(settingFeaturesAllowed,
+		R"({
+			"title" : "Allowed subarchitecture features",
+			"type": "array",
+			"elementType": "string",
+			"enum" : ["ARMv5T", "ARMv6", "ARMv7", "ARMv7_R", "ARMv6T2", "ThumbEE", "TrustZone", "ARMv7_MP", "AdvancedSimd", "VFPv2", "VFPv3"],
+			"default" : ["ARMv5T", "ARMv6", "ARMv7", "ARMv7_R", "ARMv6T2", "ThumbEE", "TrustZone", "ARMv7_MP", "AdvancedSimd", "VFPv2", "VFPv3"],
+			"description" : "Only analyze instructions from these ARM feature sets (in addition to ARMv4T)."
+		})");
+}
+
 static void RegisterArmArchitecture(const char* armName, const char* thumbName, BNEndianness endian)
 {
 	ArmCommonArchitecture* armv7 = new Armv7Architecture(armName, endian);
@@ -3058,6 +3106,7 @@ extern "C"
 	BINARYNINJAPLUGIN bool CorePluginInit()
 #endif
 	{
+		RegisterArmSettings();
 		RegisterArmArchitecture("armv7", "thumb2", LittleEndian);
 		RegisterArmArchitecture("armv7eb", "thumb2eb", BigEndian);
 		return true;

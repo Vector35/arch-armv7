@@ -21,7 +21,7 @@ int main(int ac, char **av)
 	Instruction instr;
 	memset(&instr, 0, sizeof(instr));
 
-	rc = armv7_decompose(insword, &instr, address, endian);
+	rc = armv7_decompose(insword, &instr, address, endian, FEAT_ALL);
 	if(rc) {
 		printf("ERROR: armv7_decompose() returned %d\n", rc);
 		return rc;

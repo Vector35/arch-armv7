@@ -50,8 +50,26 @@ protected:
 			}
 		}
 
-		req->arch = ARCH_ARMv7;
-		req->instrSet = INSTRSET_THUMB2;
+		uint32_t arch = ARCH_ARMv4T;
+		if ((m_features & (FEAT_SUBSET_ARMv7 | FEAT_MP)) > 0)
+			arch = ARCH_ARMv7_WITH_MP;
+		else if ((m_features & FEAT_SUBSET_ARMv7_R) > 0)
+			arch = ARCH_ARMv7_R;
+		else if ((m_features & FEAT_SUBSET_ARMv7) > 0)
+			arch = ARCH_ARMv7;
+		else if ((m_features & FEAT_SUBSET_ARMv6T2) > 0)
+			arch = ARCH_ARMv6T2;
+		else if ((m_features & FEAT_SUBSET_ARMv5T) > 0)
+			arch = ARCH_ARMv5T;
+
+		uint32_t thumbSet = INSTRSET_THUMB;
+		if ((m_features & FEAT_SUBSET_ThumbEE) > 0)
+			thumbSet = INSTRSET_THUMBEE;
+		else if ((m_features & FEAT_SUBSET_ARMv7) > 0 || (m_features & FEAT_SUBSET_ARMv7_R) > 0)
+			thumbSet = INSTRSET_THUMB2;
+
+		req->arch = arch;
+		req->instrSet = thumbSet;
 		req->inIfThen = inIfThen;
 		req->inIfThenLast = inIfThenLast;
 		req->carry_in = 0;
