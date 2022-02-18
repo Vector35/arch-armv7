@@ -800,6 +800,9 @@ protected:
 			if (instr.operands[0].cls == IMM && instr.operands[0].imm == 0)
 				result.AddBranch(SystemCall);
 			break;
+		case ARMV7_UDF:
+			result.AddBranch(ExceptionBranch);
+			break;
 		default:
 			break;
 		}
