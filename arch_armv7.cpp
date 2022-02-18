@@ -1583,9 +1583,50 @@ public:
 
 		if (!UNCONDITIONAL(instr.cond))
 			return GetCoalescedLowLevelIL(data, addr, len, il, instr);
+		else
+		{
+			if ((instr.operation == ARMV7_MOV) && (instr.operands[0].cls == REG) && (instr.operands[0].reg == REG_LR) && (instr.operands[1].cls == REG) && (instr.operands[1].reg == REG_PC))
+			{
+				Instruction branchInstr;
+				if (Disassemble(data + 4, addr + 4, len - 4, branchInstr) && UNCONDITIONAL(branchInstr.cond) && (branchInstr.operands[0].cls == REG) && (branchInstr.operands[0].reg == REG_PC))
+				{
+					switch (branchInstr.operation)
+					{
+					case ARMV7_ADC:
+					case ARMV7_ADD:
+					case ARMV7_AND:
+					case ARMV7_ASR:
+					case ARMV7_BIC:
+					case ARMV7_EOR:
+					case ARMV7_LDR:
+					case ARMV7_LSL:
+					case ARMV7_LSR:
+					case ARMV7_MOV:
+					case ARMV7_MVN:
+					case ARMV7_ORR:
+					case ARMV7_ROR:
+					case ARMV7_RRX:
+					case ARMV7_RSB:
+					case ARMV7_RSC:
+					case ARMV7_SUB:
+					case ARMV7_SBC:
+					{
+						len = 8;
+						il.SetCurrentAddress(this, addr + 4);
+						GetLowLevelILForArmInstruction(this, addr + 4, il, branchInstr, GetAddressSize());
+						auto tgtInstr = il.GetInstruction(il.GetInstructionCount() - 1);
+						il.ReplaceExpr(tgtInstr.exprIndex, il.Call(tgtInstr.GetDestExpr<LLIL_JUMP>().exprIndex));
+						return true;
+					}
+					default:
+						break;
+					};
+				}
+			}
 
-		len = 4;
-		return GetLowLevelILForArmInstruction(this, addr, il, instr, GetAddressSize());
+			len = 4;
+			return GetLowLevelILForArmInstruction(this, addr, il, instr, GetAddressSize());
+		}
 	}
 };
 
