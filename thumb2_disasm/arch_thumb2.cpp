@@ -51,11 +51,11 @@ protected:
 		}
 
 		uint32_t arch = ARCH_ARMv4T;
-		if ((m_features & (FEAT_SUBSET_ARMv7 | FEAT_MP)) > 0)
+		if (m_features & (FEAT_SUBSET_ARMv7 | FEAT_MP))
 			arch = ARCH_ARMv7_WITH_MP;
-		else if ((m_features & FEAT_SUBSET_ARMv7_R) > 0)
+		else if (m_features & FEAT_SUBSET_ARMv7_R)
 			arch = ARCH_ARMv7_R;
-		else if ((m_features & FEAT_SUBSET_ARMv7) > 0)
+		else if (m_features & FEAT_SUBSET_ARMv7)
 			arch = ARCH_ARMv7;
 		else if ((m_features & FEAT_SUBSET_ARMv6T2) > 0)
 			arch = ARCH_ARMv6T2;

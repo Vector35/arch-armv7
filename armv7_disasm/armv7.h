@@ -27,7 +27,7 @@ namespace armv7 {
 #endif
 
 enum Features {
-	FEAT_SUBSET_ARMv4T       = 0x1,
+	FEAT_SUBSET_ARMv4T       = 0x0,
 	FEAT_SUBSET_ARMv5T       = 0x1,
     FEAT_SUBSET_ARMv6        = 0x2,
     FEAT_SUBSET_ARMv7        = 0x4,
@@ -39,8 +39,8 @@ enum Features {
     FEAT_ADVSIMD             = 0x100, /* vst, vld, etc. */
     FEAT_VFPv2               = 0x200,
     FEAT_VFPv3               = 0x400,
-	_FEAT_END,
-	FEAT_ALL				 = ((_FEAT_END - 1) << 1) - 1,
+	FEAT_END,
+	FEAT_ALL				 = ((FEAT_END - 1) << 1) - 1,
 };
 
 enum Operation {

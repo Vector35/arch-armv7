@@ -1040,7 +1040,7 @@ uint32_t armv7_decompose(uint32_t instructionValue,
 	};
 
 	uint32_t result = group[decode.cond == 15][decode.op1][decode.op](decode.value, instruction, address, features);
-	return result == 0 ? result : operation_supported(instruction->operation, features);
+	return result == 0 ? operation_supported(instruction->operation, features) : result;
 }
 
 uint32_t armv7_data_processing_and_misc(uint32_t instructionValue, Instruction* restrict instruction, uint32_t address, uint32_t features)
