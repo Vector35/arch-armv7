@@ -1601,6 +1601,7 @@ ArmCommonArchitecture::ArmCommonArchitecture(const char* name, BNEndianness endi
 
 	if (allowed)
 	{
+		LogInfo("Setting allowed architecture features.\n");
 		auto features = (settings->Get<std::vector<std::string>>(settingFeaturesAllowed));
 		std::set featureSet(features.begin(), features.end());
 
@@ -1612,6 +1613,8 @@ ArmCommonArchitecture::ArmCommonArchitecture(const char* name, BNEndianness endi
 			m_features |= armv7::Features::FEAT_SUBSET_ARMv6;
 		if (featureSet.count("ARMv6T2") > 0)
 			m_features |= armv7::Features::FEAT_SUBSET_ARMv6T2;
+
+		LogInfo("Features: %d\n", m_features);
 	}
 }
 

@@ -99,7 +99,10 @@ public:
 
 	virtual size_t GetMaxInstructionLength() const override
 	{
-		return 18; // IT blocks can have up to four following associated instructions
+		if (m_features & FEAT_SUBSET_ARMv6T2)
+			return 18; // IT blocks can have up to four following associated instructions
+		else
+			return 4;
 	}
 
 	virtual size_t GetInstructionAlignment() const override
