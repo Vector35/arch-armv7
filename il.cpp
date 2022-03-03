@@ -4828,7 +4828,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				il.And(get_register_size(op2.reg), GetShiftedRegister(il, op2), il.Const(get_register_size(op2.reg), 0xffff))));
 			break;
 		case ARMV7_UDF:
-			il.AddInstruction(il.Trap(ReadILOperand(il, op1, addr)));
+			il.AddInstruction(il.Trap(op1.imm));
 			break;
 		case ARMV7_UDIV:
 			if (op3.cls == NONE)
