@@ -693,8 +693,13 @@ protected:
 			break;
 		case ARMV7_BLX:
 			result.archTransitionByTargetAddr = true;
-			if (UNCONDITIONAL(instr.cond) && (instr.operands[0].cls == LABEL))
-				result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
+			if (UNCONDITIONAL(instr.cond))
+			{
+				if (instr.operands[0].cls == LABEL)
+					result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
+				else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
+					result.AddBranch(FunctionReturn);
+			}
 			break;
 		case ARMV7_BX:
 			if (UNCONDITIONAL(instr.cond))

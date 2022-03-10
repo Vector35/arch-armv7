@@ -732,7 +732,10 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 			ConditionExecute(il, instr.cond, il.Jump(ReadILOperand(il, op1, addr, true)));
 			break;
 		case ARMV7_BLX:
-			ConditionExecute(il, instr.cond, il.Call(ReadILOperand(il, op1, addr, true)));
+			if (UNCONDITIONAL(instr.cond) && (op1.cls == REG) && (op1.reg == REG_LR))
+				il.AddInstruction(il.Jump(ReadILOperand(il, op1, addr, true)));
+			else
+		 		ConditionExecute(il, instr.cond, il.Call(ReadILOperand(il, op1, addr, true)));
 			break;
 		case ARMV7_BIC:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
