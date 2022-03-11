@@ -725,11 +725,13 @@ protected:
 			}
 			break;
 		case ARMV7_POP:
-			//if this is an unconditional pop with PC in the register list treat as a return
-			if (UNCONDITIONAL(instr.cond) &&
-				instr.operands[0].cls == REG_LIST &&
-				((instr.operands[0].reg & REG_LIST_PC) == REG_LIST_PC))
+			//if pop with PC in the register list treat as a return
+			if (instr.operands[0].cls == REG_LIST && ((instr.operands[0].reg & REG_LIST_PC) == REG_LIST_PC))
+			{
 				result.AddBranch(FunctionReturn);
+				if (!UNCONDITIONAL(instr.cond))
+					result.AddBranch(FalseBranch, addr + 4, this);
+			}
 			break;
 		case ARMV7_LDM:
 		case ARMV7_LDMDA:
