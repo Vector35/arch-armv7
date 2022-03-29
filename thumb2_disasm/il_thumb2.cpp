@@ -733,9 +733,8 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case ARMV7_LDMIA:
 	case ARMV7_LDMDB:
 	{
+		bool decBeforeMode = instr->mnem == ARMV7_LDMDB;
 		bool is16BitForm = (instr->instrSize == 16);
-		int32_t txCnt = (instr->mnem == ARMV7_LDMDB) ? 1 : 0;
-		int32_t stride = (instr->mnem == ARMV7_LDMDB) ? -4 : 4;
 		uint32_t baseReg = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
 		uint32_t regs = instr->fields[instr->format->operands[1].field0];
 		uint32_t lrpcBits = (1 << armv7::REG_LR) | (1 << armv7::REG_PC);
@@ -749,7 +748,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		}
 		else // is16BitForm
 		{
-			if (instr->mnem == ARMV7_LDMDB)
+			if (decBeforeMode)
 				valid = false;
 			else if (!HasWriteback(instr, 0) && !(regs & (1 << baseReg)))
 				valid = false;
@@ -761,22 +760,41 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			break;
 		}
 
-		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
-
 		int32_t regLimit = is16BitForm ? 7 : 15;
+		int32_t regCnt = 0;
+		bool baseIsNotFirst = true;
+		for (int32_t i = 0; i <= regLimit; i++)
+		{
+			if ((regs >> i) & 1)
+			{
+				if (!regCnt && (i == baseReg))
+					baseIsNotFirst = false;
+				regCnt++;
+			}
+		}
+
+		if (decBeforeMode)
+			il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(4, il.Register(4, baseReg), il.Const(4, regCnt * -4))));
+		else
+			il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
+
 		for (int32_t i = 0; i <= regLimit; i++)
 		{
 			if ((regs >> i) & 1)
 			{
 				il.AddInstruction(il.SetRegister(4, GetRegisterByIndex(i),
-					il.Load(4, il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, txCnt * stride)))));
-				txCnt++;
+					il.Load(4, il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, i * 4)))));
 			}
 		}
 
-		if (HasWriteback(instr, 0))
-			il.AddInstruction(il.SetRegister(4, baseReg,
-				il.Add(4, ReadRegister(il, instr, LLIL_TEMP(0)), il.Const(4, txCnt * stride))));
+		if (HasWriteback(instr, 0) && baseIsNotFirst)
+		{
+			if (decBeforeMode)
+				il.AddInstruction(il.SetRegister(4, baseReg, il.Register(4, LLIL_TEMP(0))));
+			else
+				il.AddInstruction(il.SetRegister(4, baseReg,
+					il.Add(4, ReadRegister(il, instr, baseReg), il.Const(4, regCnt * 4))));
+		}
 
 		if (regs & (1 << armv7::REG_PC))
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
@@ -991,9 +1009,8 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case ARMV7_STMIA:
 	case ARMV7_STMDB:
 	{
+		bool decBeforeMode = instr->mnem == ARMV7_STMDB;
 		bool is16BitForm = (instr->instrSize == 16);
-		int32_t txCnt = (instr->mnem == ARMV7_LDMDB) ? 1 : 0;
-		int32_t stride = (instr->mnem == ARMV7_LDMDB) ? -4 : 4;
 		uint32_t baseReg = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
 		uint32_t regs = instr->fields[instr->format->operands[1].field0];
 		bool valid = true;
@@ -1006,7 +1023,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		}
 		else // is16BitForm
 		{
-			if ((instr->mnem == ARMV7_LDMDB) || !HasWriteback(instr, 0))
+			if (decBeforeMode || !HasWriteback(instr, 0))
 				valid = false;
 			// TODO technically not allowed...perhaps add a tag for indication of cases like this
 			// else if ((regs & (1 << baseReg)) && (((1 << baseReg) - 1) & regs))
@@ -1020,20 +1037,41 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		}
 
 		int32_t regLimit = is16BitForm ? 7 : 15;
+		int32_t regCnt = 0;
+		bool baseIsNotFirst = true;
+		for (int32_t i = 0; i <= regLimit; i++)
+		{
+			if ((regs >> i) & 1)
+			{
+				if (!regCnt && (i == baseReg))
+					baseIsNotFirst = false;
+				regCnt++;
+			}
+		}
+
+		if (decBeforeMode)
+			il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(4, il.Register(4, baseReg), il.Const(4, regCnt * -4))));
+		else
+			il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
+
 		for (int32_t i = 0; i <= regLimit; i++)
 		{
 			if ((regs >> i) & 1)
 			{
 				il.AddInstruction(il.Store(4,
-					il.Add(4, il.Register(4, baseReg), il.Const(4, txCnt * stride)),
+					il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, i * 4)),
 						il.Register(4, GetRegisterByIndex(i))));
-				txCnt++;
 			}
 		}
 
-		if (HasWriteback(instr, 0))
-			il.AddInstruction(il.SetRegister(4, baseReg,
-				il.Add(4, ReadRegister(il, instr, baseReg), il.Const(4, txCnt * stride))));
+		if (HasWriteback(instr, 0) && baseIsNotFirst)
+		{
+			if (decBeforeMode)
+				il.AddInstruction(il.SetRegister(4, baseReg, il.Register(4, LLIL_TEMP(0))));
+			else
+				il.AddInstruction(il.SetRegister(4, baseReg,
+					il.Add(4, ReadRegister(il, instr, baseReg), il.Const(4, regCnt * 4))));
+		}
 
 		if (regs & (1 << armv7::REG_PC))
 			il.AddInstruction(il.Jump(ReadRegister(il, instr, armv7::REG_PC, 4)));
