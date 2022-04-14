@@ -1597,7 +1597,8 @@ public:
 			if ((instr.operation == ARMV7_MOV) && (instr.operands[0].cls == REG) && (instr.operands[0].reg == REG_LR) && (instr.operands[1].cls == REG) && (instr.operands[1].reg == REG_PC))
 			{
 				Instruction branchInstr;
-				if (Disassemble(data + 4, addr + 4, len - 4, branchInstr) && UNCONDITIONAL(branchInstr.cond) && (branchInstr.operands[0].cls == REG) && (branchInstr.operands[0].reg == REG_PC))
+				if (Disassemble(data + 4, addr + 4, len - 4, branchInstr) && UNCONDITIONAL(branchInstr.cond) &&
+				 (((branchInstr.operands[0].cls == REG) && (branchInstr.operands[0].reg == REG_PC)) || branchInstr.operation == ARMV7_BX))
 				{
 					switch (branchInstr.operation)
 					{
@@ -1619,6 +1620,7 @@ public:
 					case ARMV7_RSC:
 					case ARMV7_SUB:
 					case ARMV7_SBC:
+					case ARMV7_BX:
 					{
 						len = 8;
 						il.SetCurrentAddress(this, addr + 4);
@@ -2819,7 +2821,7 @@ public:
 					is_conditional_branch ? "conditional " :
 							bl_hw2->branch_and_link ? "linking " : "",
 					(bl_hw2->branch_and_link && !bl_hw2->not_blx) ? " and exchange" : "",
-					target, curTarget, newTarget, 
+					target, curTarget, newTarget,
 					(uint32_t) ((uint32_t) address + newTarget),
 					address, info.base, old_value, *dest32, old_value1, old_value2,
 					sizeof(*bl_hw1), sizeof(*bl_hw2)
