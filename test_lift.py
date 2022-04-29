@@ -2,6 +2,14 @@
 
 test_cases = \
 [
+    # ror r0, r1
+    (b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    # ror r0, 7
+    (b'\xe0\x03\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
+    # rors r0, r1
+    (b'\x70\x01\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    # rors r0, 7
+    (b'\xe0\x03\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
     # vadd.f32 s0, s1, s2
     (b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vsub.f32 s0, s1, s2
