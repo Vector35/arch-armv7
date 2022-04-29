@@ -1806,6 +1806,7 @@ size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, s
 					il.GetExprForRegisterOrConstant(operands[0], size),
 					il.Sub(size, il.GetExprForRegisterOrConstant(operands[1], size), il.Const(size, 1)));
 		}
+		break;
 	case LLIL_LSL:
 		switch (flag)
 		{
