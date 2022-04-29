@@ -1698,6 +1698,7 @@ string ArmCommonArchitecture::GetFlagWriteTypeName(uint32_t flags)
 	{
 		case IL_FLAGWRITE_ALL: return "*";
 		case IL_FLAGWRITE_NZ: return "nz";
+		case IL_FLAGWRITE_CNZ: return "cnz";
 		default:
 			return "";
 	}
@@ -1728,6 +1729,8 @@ vector<uint32_t> ArmCommonArchitecture::GetFlagsWrittenByFlagWriteType(uint32_t 
 		return vector<uint32_t> { IL_FLAG_N, IL_FLAG_Z, IL_FLAG_C, IL_FLAG_V };
 	case IL_FLAGWRITE_NZ:
 		return vector<uint32_t> { IL_FLAG_N, IL_FLAG_Z };
+	case IL_FLAGWRITE_CNZ:
+		return vector<uint32_t> { IL_FLAG_C, IL_FLAG_N, IL_FLAG_Z };
 	default:
 		return vector<uint32_t> {};
 	}
@@ -1885,7 +1888,8 @@ vector<uint32_t> ArmCommonArchitecture::GetAllFlagWriteTypes()
 {
 	return vector<uint32_t>{
 		IL_FLAGWRITE_ALL,
-		IL_FLAGWRITE_NZ
+		IL_FLAGWRITE_NZ,
+		IL_FLAGWRITE_CNZ
 	};
 }
 
