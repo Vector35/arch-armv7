@@ -1062,12 +1062,12 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		else
 			il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Register(4, baseReg)));
 
-		for (int32_t i = 0; i <= regLimit; i++)
+		for (int32_t i = 0, slot = 0; i <= regLimit; i++)
 		{
 			if ((regs >> i) & 1)
 			{
 				il.AddInstruction(il.Store(4,
-					il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, i * 4)),
+					il.Add(4, il.Register(4, LLIL_TEMP(0)), il.Const(4, 4 * slot++)),
 						il.Register(4, GetRegisterByIndex(i))));
 			}
 		}
