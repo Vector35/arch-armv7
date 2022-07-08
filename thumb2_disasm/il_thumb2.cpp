@@ -8,6 +8,9 @@
 using namespace BinaryNinja;
 using namespace armv7;
 
+// align 32-bit number to 4
+#define ALIGN4(a) ((a) & 0xFFFFFFFC)
+
 bool GetLowLevelILForNEONInstruction(Architecture* arch, LowLevelILFunction& il, decomp_result* instr, bool ifThenBlock);
 
 static uint32_t GetRegisterByIndex(uint32_t i, const char* prefix = "")
@@ -321,8 +324,8 @@ static ExprId GetMemoryAddress(LowLevelILFunction& il, decomp_result* instr, siz
 		return il.ConstPointer(4, instr->pc);
 	case OPERAND_FORMAT_LABEL:
 		if (instr->fields[FIELD_add])
-			return il.ConstPointer(4, (instr->pc + instr->fields[FIELD_imm32]) & (~(size - 1)));
-		return il.ConstPointer(4, (instr->pc - instr->fields[FIELD_imm32]) & (~(size - 1)));
+			return il.ConstPointer(4, ALIGN4(instr->pc) + instr->fields[FIELD_imm32]);
+		return il.ConstPointer(4, ALIGN4(instr->pc) - instr->fields[FIELD_imm32]);
 	default:
 		return il.Unimplemented();
 	}
