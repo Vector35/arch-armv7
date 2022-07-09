@@ -15,7 +15,7 @@ Binary Ninja API source tree.
 
 Run `cmake`. This can be done either from a separate build directory or from the source
 directory. If your app is installed in a non-default location, set BN_INSTALL_DIR in your
-cmake invocation, like `cmake -DBN_INSTALL_DIR=/Applications/Binary\ Ninja\ DEV.app/'.
+cmake invocation, like `cmake -DBN_INSTALL_DIR=/Applications/Binary\ Ninja\ DEV.app/'`.
 Once that is complete, run `make` in the build directory to compile the plugin.
 
 The plugin can be found in the root of the build directory as `libarch_armv7.so`,
