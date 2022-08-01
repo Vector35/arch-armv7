@@ -1204,6 +1204,22 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_SMULL:
 		il.AddInstruction(WriteSplitOperands(il, instr, 1, 0, il.MultDoublePrecSigned(8, ReadILOperand(il, instr, 2), ReadILOperand(il, instr, 3))));
 		break;
+	case armv7::ARMV7_SMULBB:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, il.LowPart(2, ReadILOperand(il, instr, 1)),
+			il.LowPart(2, ReadILOperand(il, instr, 2)), IL_FLAGWRITE_NONE)));
+		break;
+	case armv7::ARMV7_SMULBT:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, il.LowPart(2, ReadILOperand(il, instr, 1)),
+			il.LowPart(2, il.LogicalShiftRight(4, ReadILOperand(il, instr, 2), il.Const(1, 16))), IL_FLAGWRITE_NONE)));
+		break;
+	case armv7::ARMV7_SMULTB:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, il.LowPart(2, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1), il.Const(1, 16))),
+			il.LowPart(2, ReadILOperand(il, instr, 2)), IL_FLAGWRITE_NONE)));
+		break;
+	case armv7::ARMV7_SMULTT:
+		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, il.LowPart(2, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1), il.Const(1, 16))),
+			il.LowPart(2, il.LogicalShiftRight(4, ReadILOperand(il, instr, 2), il.Const(1, 16))), IL_FLAGWRITE_NONE)));
+		break;
 	case armv7::ARMV7_UXTAB:
 		il.AddInstruction(WriteArithOperand(il, instr,
 			il.Add(4,
