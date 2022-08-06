@@ -1833,7 +1833,7 @@ size_t ArmCommonArchitecture::GetFlagWriteLowLevelIL(BNLowLevelILOperation op, s
 
 string ArmCommonArchitecture::GetRegisterName(uint32_t reg)
 {
-	if (reg >= REG_R0 && reg <= REG_Q15)
+	if (reg >= REG_R0 && reg < REG_INVALID)
 	{
 		return get_register_name((enum Register)reg);
 	}
@@ -1872,6 +1872,22 @@ vector<uint32_t> ArmCommonArchitecture::GetAllRegisters()
 		REG_D24,  REG_D25,  REG_D26,  REG_D27,  REG_D28,  REG_D29,  REG_D30,  REG_D31,
 		REG_Q0,   REG_Q1,   REG_Q2,   REG_Q3,   REG_Q4,   REG_Q5,   REG_Q6,   REG_Q7,
 		REG_Q8,   REG_Q9,   REG_Q10,  REG_Q11,  REG_Q12,  REG_Q13,  REG_Q14,  REG_Q15,
+
+		/* special registers */
+		REGS_APSR, REGS_APSR_G, REGS_APSR_NZCVQ, REGS_APSR_NZCVQG,
+		REGS_CPSR, REGS_CPSR_C, REGS_CPSR_X, REGS_CPSR_XC,
+		REGS_CPSR_S, REGS_CPSR_SC, REGS_CPSR_SX, REGS_CPSR_SXC,
+		REGS_CPSR_F, REGS_CPSR_FC, REGS_CPSR_FX, REGS_CPSR_FXC,
+		REGS_CPSR_FS, REGS_CPSR_FSC, REGS_CPSR_FSX, REGS_CPSR_FSXC,
+		REGS_SPSR, REGS_SPSR_C, REGS_SPSR_X, REGS_SPSR_XC,
+		REGS_SPSR_S, REGS_SPSR_SC, REGS_SPSR_SX, REGS_SPSR_SXC,
+		REGS_SPSR_F, REGS_SPSR_FC, REGS_SPSR_FX, REGS_SPSR_FXC,
+		REGS_SPSR_FS, REGS_SPSR_FSC, REGS_SPSR_FSX, REGS_SPSR_FSXC,
+		REGS_APSR_NZCV, REGS_FPSID, REGS_FPSCR, REGS_MVFR2,
+		REGS_MVFR1, REGS_MVFR0, REGS_FPEXC, REGS_FPINST,
+		REGS_FPINST2, REGS_MSP, REGS_PSP, REGS_PRIMASK,
+		REGS_BASEPRI, REGS_FAULTMASK, REGS_CONTROL,
+
 		/* fake registers */
 		FAKEREG_SYSCALL_INFO
 	};
@@ -1997,6 +2013,58 @@ BNRegisterInfo ArmCommonArchitecture::GetRegisterInfo(uint32_t reg)
 		case REG_Q14:
 		case REG_Q15:
 			return RegisterInfo(reg, 0, 16);
+		case REGS_APSR:
+		case REGS_APSR_G:
+		case REGS_APSR_NZCVQ:
+		case REGS_APSR_NZCVQG:
+		case REGS_CPSR:
+		case REGS_CPSR_C:
+		case REGS_CPSR_X:
+		case REGS_CPSR_XC:
+		case REGS_CPSR_S:
+		case REGS_CPSR_SC:
+		case REGS_CPSR_SX:
+		case REGS_CPSR_SXC:
+		case REGS_CPSR_F:
+		case REGS_CPSR_FC:
+		case REGS_CPSR_FX:
+		case REGS_CPSR_FXC:
+		case REGS_CPSR_FS:
+		case REGS_CPSR_FSC:
+		case REGS_CPSR_FSX:
+		case REGS_CPSR_FSXC:
+		case REGS_SPSR:
+		case REGS_SPSR_C:
+		case REGS_SPSR_X:
+		case REGS_SPSR_XC:
+		case REGS_SPSR_S:
+		case REGS_SPSR_SC:
+		case REGS_SPSR_SX:
+		case REGS_SPSR_SXC:
+		case REGS_SPSR_F:
+		case REGS_SPSR_FC:
+		case REGS_SPSR_FX:
+		case REGS_SPSR_FXC:
+		case REGS_SPSR_FS:
+		case REGS_SPSR_FSC:
+		case REGS_SPSR_FSX:
+		case REGS_SPSR_FSXC:
+		case REGS_APSR_NZCV:
+		case REGS_FPSID:
+		case REGS_FPSCR:
+		case REGS_MVFR2:
+		case REGS_MVFR1:
+		case REGS_MVFR0:
+		case REGS_FPEXC:
+		case REGS_FPINST:
+		case REGS_FPINST2:
+		case REGS_MSP:
+		case REGS_PSP:
+		case REGS_PRIMASK:
+		case REGS_BASEPRI:
+		case REGS_FAULTMASK:
+		case REGS_CONTROL:
+			return RegisterInfo(reg, 0, 4);
 		case FAKEREG_SYSCALL_INFO:
 			return RegisterInfo(reg, 0, 4);
 	}

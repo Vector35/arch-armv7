@@ -37,6 +37,47 @@ static ExprId ReadRegister(LowLevelILFunction& il, decomp_result* instr, uint32_
 	return il.Register(size, GetRegisterByIndex(reg, prefix));
 }
 
+static int GetSpecialRegister(LowLevelILFunction& il, decomp_result* instr, size_t operand)
+{
+	uint32_t mask = instr->fields[FIELD_mask] & 0xF;
+
+	if(IS_FIELD_PRESENT(instr, FIELD_write_spsr)) {
+		if(instr->fields[FIELD_write_spsr])
+			return REGS_SPSR + mask;
+		else
+			return REGS_CPSR + mask;
+	}
+
+	uint32_t tmp = (instr->fields[FIELD_write_nzcvq] << 1) | instr->fields[FIELD_write_g];
+	uint8_t sysm = instr->fields[FIELD_SYSm];
+	switch (sysm >> 3) {
+		case 0:
+			switch(tmp) {
+				case 1: return REGS_APSR_G;
+				case 2:	return REGS_APSR_NZCVQ;
+				case 3: return REGS_APSR_NZCVQG;
+			}
+			break;
+		case 1:
+			switch (sysm & 7) {
+				case 0: return REGS_MSP;
+				case 1: return REGS_PSP;
+			}
+			break;
+		case 2:
+			switch (sysm & 7) {
+				case 0: return REGS_PRIMASK;
+				case 1:
+				case 2: return REGS_BASEPRI;
+				case 3: return REGS_FAULTMASK;
+				case 4: return REGS_CONTROL;
+			}
+			break;
+	}
+
+	return REG_INVALID;
+}
+
 static ExprId ReadILOperand(LowLevelILFunction& il, decomp_result* instr, size_t operand, size_t size = 4)
 {
 	uint32_t value;
@@ -931,6 +972,24 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteILOperand(il, instr, 0, il.Or(4,
 			il.ShiftLeft(4, il.Const(2, instr->fields[instr->format->operands[1].field0]), il.Const(1, 16)),
 			il.And(4, il.Const(4, 0x0000ffff), ReadILOperand(il, instr, 0)))));
+		break;
+	case ARMV7_MSR:
+		{
+			int dest_reg = GetSpecialRegister(il, instr, 0);
+			int intrinsic_id = ARMV7_INTRIN_MSR;
+
+			/* certain MSR scenarios earn a specialized intrinsic */
+			if(dest_reg == REGS_BASEPRI)
+				intrinsic_id = ARM_M_INTRIN_SET_BASEPRI;
+
+			il.AddInstruction(
+				il.Intrinsic(
+					{RegisterOrFlag::Register(dest_reg)}, /* outputs */
+					intrinsic_id,
+					{ReadILOperand(il, instr, 1)} /* inputs */
+				)
+			);
+		}
 		break;
 	case armv7::ARMV7_MUL:
 		il.AddInstruction(WriteArithOperand(il, instr, il.Mult(4, ReadArithOperand(il, instr, 0),

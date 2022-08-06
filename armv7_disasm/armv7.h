@@ -517,8 +517,9 @@ enum RegisterList {
 	REG_LIST_PC = 0x8000,
 };
 
-enum Register {
-	REG_R0,
+enum Register
+{
+	REG_R0 = 0,
 	REG_R1,
 	REG_R2,
 	REG_R3,
@@ -614,9 +615,8 @@ enum Register {
 	REG_Q13,
 	REG_Q14,
 	REG_Q15,
-};
 
-enum BankedRegister {
+	/* banked registers */
 	REGB_ELR_HYP,
 	REGB_LR_ABT,
 	REGB_LR_FIQ,
@@ -650,10 +650,8 @@ enum BankedRegister {
 	REGB_SP_SVC,
 	REGB_SP_UND,
 	REGB_SP_USR,
-	REGB_INVALID,
-};
 
-enum SpecRegister {
+	/* special registers */
 	REGS_APSR,
 	REGS_APSR_G,
 	REGS_APSR_NZCVQ,
@@ -699,7 +697,18 @@ enum SpecRegister {
 	REGS_FPEXC, // 8
 	REGS_FPINST, // 9
 	REGS_FPINST2, //10
-	REGS_END
+	REGS_MSP,
+	REGS_PSP,
+
+	// these are M-profile only (special)
+	// but are here in ARM common (general)
+	// TODO: implement "microarchitecture support"
+	REGS_PRIMASK,
+	REGS_BASEPRI,
+	REGS_FAULTMASK,
+	REGS_CONTROL,
+
+	REG_INVALID,
 };
 
 enum CoprocRegisterC {
@@ -844,8 +853,8 @@ struct InstructionOperand {
 	} flags;
 	union {
 		enum Register reg;
-		enum BankedRegister regb;
-		enum SpecRegister regs;
+		enum Register regb; /* banked reg */
+		enum Register regs; /* special reg */
 		enum CoprocRegisterP regp;
 		enum CoprocRegisterC regc;
 		enum DsbOption dsbOpt;
@@ -930,10 +939,10 @@ typedef union _ieee754_double {
 	char* get_full_operation(char* outBuffer, size_t outBufferSize, Instruction* restrict instruction);
 	const char* get_vector_data_type(DataType dataType);
 	const char* get_register_name(Register reg);
-	const char* get_banked_register_name(BankedRegister regb);
+	const char* get_banked_register_name(Register regb);
+	const char* get_spec_register_name(Register regs);
 	const char* get_coproc_register_c_name(CoprocRegisterC regc);
 	const char* get_coproc_register_p_name(CoprocRegisterP regp);
-	const char* get_spec_register_name(SpecRegister regs);
 	const char* get_iflag(Iflags iflag);
 	const char* get_endian(EndianSpec spec);
 	const char* get_dsb_option(DsbOption opt);

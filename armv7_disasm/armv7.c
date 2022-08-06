@@ -589,47 +589,8 @@ static const char* registerString[] = {
 	"q13",
 	"q14",
 	"q15",
-};
 
-static const char* coprocRegisterCString[] = {
-	"c0",
-	"c1",
-	"c2",
-	"c3",
-	"c4",
-	"c5",
-	"c6",
-	"c7",
-	"c8",
-	"c9",
-	"c10",
-	"c11",
-	"c12",
-	"c13",
-	"c14",
-	"c15",
-};
-
-static const char* coprocRegisterString[] = {
-	"p0",
-	"p1",
-	"p2",
-	"p3",
-	"p4",
-	"p5",
-	"p6",
-	"p7",
-	"p8",
-	"p9",
-	"p10",
-	"p11",
-	"p12",
-	"p13",
-	"p14",
-	"p15",
-};
-
-static const char* bankedRegisterString[] = {
+	/* banked regs */
 	"elr_hyp",
 	"lr_abt",
 	"lr_fiq",
@@ -663,28 +624,8 @@ static const char* bankedRegisterString[] = {
 	"sp_svc",
 	"sp_und",
 	"sp_usr",
-};
 
-static const char* condString[] = {
-	"eq",
-	"ne",
-	"hs",
-	"lo",
-	"mi",
-	"pl",
-	"vs",
-	"vc",
-	"hi",
-	"ls",
-	"ge",
-	"lt",
-	"gt",
-	"le",
-	"", //COND_NONE
-	"", //COND_NONE2
-};
-
-static const char* specRegisterString[] = {
+	/* special regs */
 	"apsr",
 	"apsr_g",
 	"apsr_nzcvq",
@@ -730,6 +671,72 @@ static const char* specRegisterString[] = {
 	"fpexc", // 8
 	"fpinst", // 9
 	"fpinst2", //10
+	"msp",
+	"psp",
+	"primask",
+	"basepri",
+	"faultmask",
+	"control",
+
+	/* invalid */
+	""
+};
+
+static const char* coprocRegisterCString[] = {
+	"c0",
+	"c1",
+	"c2",
+	"c3",
+	"c4",
+	"c5",
+	"c6",
+	"c7",
+	"c8",
+	"c9",
+	"c10",
+	"c11",
+	"c12",
+	"c13",
+	"c14",
+	"c15",
+};
+
+static const char* coprocRegisterString[] = {
+	"p0",
+	"p1",
+	"p2",
+	"p3",
+	"p4",
+	"p5",
+	"p6",
+	"p7",
+	"p8",
+	"p9",
+	"p10",
+	"p11",
+	"p12",
+	"p13",
+	"p14",
+	"p15",
+};
+
+static const char* condString[] = {
+	"eq",
+	"ne",
+	"hs",
+	"lo",
+	"mi",
+	"pl",
+	"vs",
+	"vc",
+	"hi",
+	"ls",
+	"ge",
+	"lt",
+	"gt",
+	"le",
+	"", //COND_NONE
+	"", //COND_NONE2
 };
 
 static const char* iflagStrings[] = {
@@ -2288,25 +2295,25 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 			if (decode.b)
 			{
 				uint32_t sysm = decode.msr.m << 4 | decode.msr.m1;
-				static BankedRegister banked[2][32] = {
+				static Register banked[2][32] = {
 				{
 					REGB_R8_USR,    REGB_R9_USR,   REGB_R10_USR,   REGB_R11_USR,
-					REGB_R12_USR,   REGB_SP_USR,   REGB_LR_USR,    REGB_INVALID,
+					REGB_R12_USR,   REGB_SP_USR,   REGB_LR_USR,    REG_INVALID,
 					REGB_R8_FIQ,    REGB_R9_FIQ,   REGB_R10_FIQ,   REGB_R11_FIQ,
-					REGB_R12_FIQ,   REGB_SP_FIQ,   REGB_LR_FIQ,    REGB_INVALID,
+					REGB_R12_FIQ,   REGB_SP_FIQ,   REGB_LR_FIQ,    REG_INVALID,
 					REGB_LR_IRQ,    REGB_SP_IRQ,   REGB_LR_SVC,    REGB_SP_SVC,
 					REGB_LR_ABT,    REGB_SP_ABT,   REGB_LR_UND,    REGB_SP_UND,
-					REGB_INVALID,   REGB_INVALID,  REGB_INVALID,   REGB_INVALID,
+					REG_INVALID,    REG_INVALID,   REG_INVALID,    REG_INVALID,
 					REGB_LR_MON,    REGB_SP_MON,   REGB_ELR_HYP,   REGB_SP_HYP
 				},{
-					REGB_INVALID,   REGB_INVALID,  REGB_INVALID,   REGB_INVALID,
-					REGB_INVALID,   REGB_INVALID,  REGB_INVALID,   REGB_INVALID,
-					REGB_INVALID,   REGB_INVALID,  REGB_INVALID,   REGB_INVALID,
-					REGB_INVALID,   REGB_INVALID,  REGB_SPSR_FIQ,  REGB_INVALID,
-					REGB_SPSR_IRQ,  REGB_INVALID,  REGB_SPSR_SVC,  REGB_INVALID,
-					REGB_SPSR_ABT,  REGB_INVALID,  REGB_SPSR_UND,  REGB_INVALID,
-					REGB_INVALID,   REGB_INVALID,  REGB_INVALID,   REGB_INVALID,
-					REGB_SPSR_MON,  REGB_INVALID,  REGB_SPSR_HYP,  REGB_INVALID
+					REG_INVALID,    REG_INVALID,   REG_INVALID,    REG_INVALID,
+					REG_INVALID,    REG_INVALID,   REG_INVALID,    REG_INVALID,
+					REG_INVALID,    REG_INVALID,   REG_INVALID,    REG_INVALID,
+					REG_INVALID,    REG_INVALID,   REGB_SPSR_FIQ,  REG_INVALID,
+					REGB_SPSR_IRQ,  REG_INVALID,   REGB_SPSR_SVC,  REG_INVALID,
+					REGB_SPSR_ABT,  REG_INVALID,   REGB_SPSR_UND,  REG_INVALID,
+					REG_INVALID,    REG_INVALID,   REG_INVALID,    REG_INVALID,
+					REGB_SPSR_MON,  REG_INVALID,   REGB_SPSR_HYP,  REG_INVALID
 				}
 				};
 				if ((decode.op & 1) == 0)
@@ -2317,7 +2324,7 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 					instruction->operands[0].reg = (Register)decode.msr.rd;
 					instruction->operands[1].cls = REG_SPEC;
 					instruction->operands[1].regb = banked[decode.msr.r][sysm];
-					return instruction->operands[1].regb == REGB_INVALID;
+					return instruction->operands[1].regb == REG_INVALID;
 				}
 				else
 				{
@@ -2327,7 +2334,7 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 					instruction->operands[0].regb = banked[decode.msr.r][sysm];
 					instruction->operands[1].cls = REG;
 					instruction->operands[1].reg = (Register)decode.msr.rn;
-					return instruction->operands[0].regb == REGB_INVALID;
+					return instruction->operands[0].regb == REG_INVALID;
 				}
 			}
 			else
@@ -2351,13 +2358,13 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 						instruction->cond = (Condition)decode.cond;
 						instruction->operands[0].cls = REG_SPEC;
 						if ((decode.op1 & 3) == 0)
-							instruction->operands[0].regs = (SpecRegister)(REGS_APSR + (decode.msr.m1 >> 2));
+							instruction->operands[0].regs = (Register)(REGS_APSR + (decode.msr.m1 >> 2));
 						else
 						{
 							if (decode.msr.r == 1)
-								instruction->operands[0].regs = (SpecRegister)(REGS_SPSR + decode.msr.m1);
+								instruction->operands[0].regs = (Register)(REGS_SPSR + decode.msr.m1);
 							else
-								instruction->operands[0].regs = (SpecRegister)(REGS_CPSR + decode.msr.m1);
+								instruction->operands[0].regs = (Register)(REGS_CPSR + decode.msr.m1);
 						}
 						instruction->operands[1].cls = REG;
 						instruction->operands[1].reg = (Register)decode.msr.rn;
@@ -2367,13 +2374,13 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 						instruction->cond = (Condition)decode.cond;
 						instruction->operands[0].cls = REG_SPEC;
 						if (decode.msr.m1 == 8 || decode.msr.m1 == 4 || decode.msr.m1 == 12)
-							instruction->operands[0].regs = (SpecRegister)(REGS_APSR + (decode.msr.m1 & 3));
+							instruction->operands[0].regs = (Register)(REGS_APSR + (decode.msr.m1 & 3));
 						else
 						{
 							if (decode.msr.r == 1)
-								instruction->operands[0].regs = (SpecRegister)(REGS_SPSR + decode.msr.m1);
+								instruction->operands[0].regs = (Register)(REGS_SPSR + decode.msr.m1);
 							else
-								instruction->operands[0].regs = (SpecRegister)(REGS_CPSR + decode.msr.m1);
+								instruction->operands[0].regs = (Register)(REGS_CPSR + decode.msr.m1);
 						}
 						instruction->operands[1].cls = REG;
 						instruction->operands[1].reg = (Register)decode.msr.rn;
@@ -7912,29 +7919,29 @@ uint32_t armv7_transfers(uint32_t instructionValue, Instruction* restrict instru
 		}
 		else if (decode.com.a == 7)
 		{
-			static SpecRegister regs[16] = {
+			static Register regs[16] = {
 				REGS_FPSID, // 0
 				REGS_FPSCR, // 1
-				REGS_END,
-				REGS_END,
-				REGS_END,
+				REG_INVALID,
+				REG_INVALID,
+				REG_INVALID,
 				REGS_MVFR2,
 				REGS_MVFR1, // 6
 				REGS_MVFR0, // 7
 				REGS_FPEXC, // 8
 				REGS_FPINST, // 9
 				REGS_FPINST2, //10
-				REGS_END,
-				REGS_END,
-				REGS_END,
-				REGS_END,
-				REGS_END,
+				REG_INVALID,
+				REG_INVALID,
+				REG_INVALID,
+				REG_INVALID,
+				REG_INVALID,
 			};
 			static Operation operation[2] = {ARMV7_VMSR, ARMV7_VMRS};
 			instruction->operation = operation[decode.com.l];
 			instruction->operands[decode.com.l].cls = REG_SPEC;
 			instruction->operands[decode.com.l].regs = regs[decode.vmsr.reg];
-			if (instruction->operands[decode.com.l].regs == REGS_END)
+			if (instruction->operands[decode.com.l].regs == REG_INVALID)
 
 				return 1;
 			if (instruction->operands[decode.com.l].regs == REGS_FPSCR && decode.vmsr.rt == 15)
@@ -8116,36 +8123,36 @@ const char* get_vector_data_type(DataType dataType)
 
 const char* get_register_name(Register reg)
 {
-	if (reg >= REG_R0 && reg <= REG_Q15)
+	if (reg >= REG_R0 && reg < REG_INVALID)
 		return registerString[reg];
 	return NULL;
 }
 
-const char* get_banked_register_name(BankedRegister regb)
+const char* get_banked_register_name(Register regb)
 {
-	if (regb >= REGB_ELR_HYP && regb < REGB_INVALID)
-		return bankedRegisterString[regb];
+	if (regb >= REGB_ELR_HYP && regb <= REGB_SP_USR)
+		return registerString[regb - REGB_ELR_HYP];
+	return NULL;
+}
+
+const char* get_spec_register_name(Register regs)
+{
+	if (regs >= REGS_APSR && regs <= REGS_CONTROL)
+		return registerString[regs - REGS_APSR];
 	return NULL;
 }
 
 const char* get_coproc_register_c_name(CoprocRegisterC regc)
 {
 	if (regc >= REG_C0 && regc < REG_CEND)
-		return coprocRegisterCString[regc];
+		return coprocRegisterCString[regc - REG_C0];
 	return NULL;
 }
 
 const char* get_coproc_register_p_name(CoprocRegisterP regp)
 {
 	if (regp >= REG_P0 && regp < REG_PEND)
-		return coprocRegisterString[regp];
-	return NULL;
-}
-
-const char* get_spec_register_name(SpecRegister regs)
-{
-	if (regs >= REGS_APSR && regs < REGS_END)
-		return specRegisterString[regs];
+		return coprocRegisterString[regp - REG_P0];
 	return NULL;
 }
 

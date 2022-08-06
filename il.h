@@ -41,6 +41,7 @@ enum Armv7Intrinsic : uint32_t
 	ARMV7_INTRIN_SEV,
 	ARMV7_INTRIN_WFE,
 	ARMV7_INTRIN_WFI,
+	ARM_M_INTRIN_SET_BASEPRI,
 	// Following names are from Table D17-2 of ARM DDI 0406C.d, changed  from
 	// CamelCase to UPPERCASE with underscores preserved and ARMV7_INTRIN_ prefixed.
 	ARMV7_INTRIN_COPROC_GETONEWORD, // MRC, MRC2
@@ -54,7 +55,7 @@ enum Armv7Intrinsic : uint32_t
 
 enum ArmFakeRegister: uint32_t
 {
-	FAKEREG_SYSCALL_INFO = armv7::REG_Q15+1
+	FAKEREG_SYSCALL_INFO = armv7::REG_INVALID+1
 };
 
 bool GetLowLevelILForArmInstruction(BinaryNinja::Architecture* arch, uint64_t addr,

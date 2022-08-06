@@ -3,8 +3,6 @@
 // b armv7_decompose
 // b armv7_disassemble
 //
-// gcc -ofast test.c armv7.c -o test
-// time ./test speed
 
 #include <stdio.h>
 #include <stdio.h>

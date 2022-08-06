@@ -1371,6 +1371,8 @@ public:
 			return "__wfe";
 		case ARMV7_INTRIN_WFI:
 			return "__wfi";
+		case ARM_M_INTRIN_SET_BASEPRI:
+			return "__set_BASEPRI";
 		default:
 			return "";
 		}
