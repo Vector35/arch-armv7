@@ -3,37 +3,43 @@
 test_cases = \
 [
     # ror r0, r1
-    (b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    ('linux-armv7', b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
     # ror r0, 7
-    (b'\xe0\x03\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
+    ('linux-armv7', b'\xe0\x03\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
     # rors r0, r1
-    (b'\x70\x01\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    ('linux-armv7', b'\x70\x01\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
     # rors r0, 7
-    (b'\xe0\x03\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
+    ('linux-armv7', b'\xe0\x03\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
     # vadd.f32 s0, s1, s2
-    (b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('linux-armv7', b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vsub.f32 s0, s1, s2
-    (b'\xc1\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FSUB.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('linux-armv7', b'\xc1\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FSUB.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vmul.f32 s0, s1, s2
-    (b'\x81\x0a\x20\xee', 'LLIL_SET_REG.d(s0,LLIL_FMUL.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('linux-armv7', b'\x81\x0a\x20\xee', 'LLIL_SET_REG.d(s0,LLIL_FMUL.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vdiv.f32 s0, s1, s2
-    (b'\x81\x0a\x80\xee', 'LLIL_SET_REG.d(s0,LLIL_FDIV.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('linux-armv7', b'\x81\x0a\x80\xee', 'LLIL_SET_REG.d(s0,LLIL_FDIV.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # svc #0
     # svc #1
     # svc #2
     # svc #3
-    (b'\x00\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x0)); LLIL_SYSCALL()'),
-    (b'\x01\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x1)); LLIL_SYSCALL()'),
-    (b'\x02\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x2)); LLIL_SYSCALL()'),
-    (b'\x03\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x3)); LLIL_SYSCALL()'),
+    ('linux-armv7', b'\x00\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x0)); LLIL_SYSCALL()'),
+    ('linux-armv7', b'\x01\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x1)); LLIL_SYSCALL()'),
+    ('linux-armv7', b'\x02\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x2)); LLIL_SYSCALL()'),
+    ('linux-armv7', b'\x03\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x3)); LLIL_SYSCALL()'),
     # svcle #0xDEAD
-    (b'\xAD\xDE\x00\xdf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SLE,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
+    ('linux-armv7', b'\xAD\xDE\x00\xdf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SLE,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
     # svcgt #0xdead
-    (b'\xad\xde\x00\xcf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SGT,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
+    ('linux-armv7', b'\xad\xde\x00\xcf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SGT,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
     # mov r0, r1
-    (b'\x01\x00\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_REG.d(r1))'),
+    ('linux-armv7', b'\x01\x00\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_REG.d(r1))'),
     # nop
-    (b'\x00\xf0\x20\xe3', 'LLIL_NOP()')
+    ('linux-armv7', b'\x00\xf0\x20\xe3', 'LLIL_NOP()'),
+    # mov r2, r0
+    ('linux-thumb2', b'\x02\x46', 'LLIL_SET_REG.d(r2,LLIL_REG.d(r0))'),
+    # cmp r1, r2
+    ('linux-thumb2', b'\x91\x42', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_REG.d(r2))'),
+    # cmp r1, r2, lsl #7
+    ('linux-thumb2', b'\xb1\xeb\xc2\x1f', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_LSL.d(LLIL_REG.d(r2),LLIL_CONST.d(0x7)))'),
 ]
 
 import re
@@ -63,11 +69,13 @@ def il2str(il):
         return str(il)
 
 # TODO: make this less hacky
-def instr_to_il(data):
+def instr_to_il(data, platform):
     RETURN = b'\x0e\xf0\xa0\xe1' # mov pc, lr
+    if platform == 'linux-thumb2':
+        RETURN = b'\xf7\x46'
     RETURN_LIFTED = 'LLIL_JUMP(LLIL_REG.d(lr))'
 
-    platform = binaryninja.Platform['linux-armv7']
+    platform = binaryninja.Platform[platform]
     # make a pretend function that returns
     bv = binaryview.BinaryView.new(data + RETURN)
     bv.add_function(0, plat=platform)
@@ -107,8 +115,8 @@ def il_str_to_tree(ilstr):
     return result
 
 def test_all():
-    for (test_i, (data, expected)) in enumerate(test_cases):
-        actual = instr_to_il(data)
+    for (test_i, (platform, data, expected)) in enumerate(test_cases):
+        actual = instr_to_il(data, platform)
         if actual != expected:
             print('MISMATCH AT TEST %d!' % test_i)
             print('\t   input: %s' % data.hex())

@@ -692,10 +692,10 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	}
 	case armv7::ARMV7_CMP:
-		il.AddInstruction(il.Sub(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_ALL));
+		il.AddInstruction(il.Sub(4, ReadILOperand(il, instr, 0), ReadArithOperand(il, instr, 1), IL_FLAGWRITE_ALL));
 		break;
 	case armv7::ARMV7_CMN:
-		il.AddInstruction(il.Add(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_ALL));
+		il.AddInstruction(il.Add(4, ReadILOperand(il, instr, 0), ReadArithOperand(il, instr, 1), IL_FLAGWRITE_ALL));
 		break;
 	case armv7::ARMV7_DBG:
 		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_DBG, {il.Const(1, instr->fields[FIELD_option])}));
@@ -1000,10 +1000,10 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_NZ)));
 		break;
 	case armv7::ARMV7_MVN:
-		il.AddInstruction(WriteILOperand(il, instr, 0, il.Not(4, ReadILOperand(il, instr, 1))));
+		il.AddInstruction(WriteILOperand(il, instr, 0, il.Not(4, ReadArithOperand(il, instr, 1))));
 		break;
 	case armv7::ARMV7_MVNS:
-		il.AddInstruction(WriteILOperand(il, instr, 0, il.Not(4, ReadILOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
+		il.AddInstruction(WriteILOperand(il, instr, 0, il.Not(4, ReadArithOperand(il, instr, 1), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
 	case armv7::ARMV7_NOP:
 		il.AddInstruction(il.Nop());
@@ -1244,10 +1244,10 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 			il.ZeroExtend(4, il.Load(2, GetMemoryAddress(il, instr, 0, 4, false)))))));
 		break;
 	case armv7::ARMV7_TEQ:
-		il.AddInstruction(il.Xor(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_CNZ));
+		il.AddInstruction(il.Xor(4, ReadILOperand(il, instr, 0), ReadArithOperand(il, instr, 1), IL_FLAGWRITE_CNZ));
 		break;
 	case armv7::ARMV7_TST:
-		il.AddInstruction(il.And(4, ReadILOperand(il, instr, 0), ReadILOperand(il, instr, 1), IL_FLAGWRITE_CNZ));
+		il.AddInstruction(il.And(4, ReadILOperand(il, instr, 0), ReadArithOperand(il, instr, 1), IL_FLAGWRITE_CNZ));
 		break;
 	case armv7::ARMV7_UBFX:
 		il.AddInstruction(WriteILOperand(il, instr, 0, il.And(4, il.LogicalShiftRight(4, ReadILOperand(il, instr, 1),
