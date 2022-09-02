@@ -2322,7 +2322,7 @@ uint32_t armv7_miscellaneous(uint32_t instructionValue, Instruction* restrict in
 					instruction->cond = (Condition)decode.cond;
 					instruction->operands[0].cls = REG;
 					instruction->operands[0].reg = (Register)decode.msr.rd;
-					instruction->operands[1].cls = REG_SPEC;
+					instruction->operands[1].cls = REG_BANKED;
 					instruction->operands[1].regb = banked[decode.msr.r][sysm];
 					return instruction->operands[1].regb == REG_INVALID;
 				}
@@ -8131,14 +8131,14 @@ const char* get_register_name(Register reg)
 const char* get_banked_register_name(Register regb)
 {
 	if (regb >= REGB_ELR_HYP && regb <= REGB_SP_USR)
-		return registerString[regb - REGB_ELR_HYP];
+		return registerString[regb];
 	return NULL;
 }
 
 const char* get_spec_register_name(Register regs)
 {
 	if (regs >= REGS_APSR && regs <= REGS_CONTROL)
-		return registerString[regs - REGS_APSR];
+		return registerString[regs];
 	return NULL;
 }
 
