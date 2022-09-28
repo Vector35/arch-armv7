@@ -3163,10 +3163,6 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	BinaryViewType::RegisterArchitecture("PE", 0x1c2, endian, armv7); // THUMB
 	BinaryViewType::RegisterArchitecture("PE", 0x1c4, endian, armv7); // ARMv7
 
-	armv7->SetBinaryViewTypeConstant("ELF", "R_COPY", 20);
-	armv7->SetBinaryViewTypeConstant("ELF", "R_GLOBAL_DATA", 21);
-	armv7->SetBinaryViewTypeConstant("ELF", "R_JUMP_SLOT", 22);
-
 	armv7->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
 	armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
 	armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
