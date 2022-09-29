@@ -50,6 +50,10 @@ test_cases = \
     ('linux-armv7', b'\x11\x0e\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x101010101010101))'),
     # vmov.i8 q8, #1
     ('linux-armv7', b'\x51\x0e\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x101010101010101),LLIL_LSL.o(LLIL_CONST.q(0x101010101010101),LLIL_CONST.q(0x40))))'),
+    # vstr s0, [r3, #0x8]
+    ('linux-armv7', b'\x02\x0a\x83\xed', 'LLIL_STORE.d(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.d(s0))'),
+    # vstr d16, [r3, #0x8]
+    ('linux-armv7', b'\x02\x0b\xc3\xed', 'LLIL_STORE.q(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.q(d16))'),
     # mov r2, r0
     ('linux-thumb2', b'\x02\x46', 'LLIL_SET_REG.d(r2,LLIL_REG.d(r0))'),
     # cmp r1, r2

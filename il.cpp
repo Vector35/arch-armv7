@@ -4932,7 +4932,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					{
 						(void) addrSize;
 						(void) instr;
-						Store(il, get_register_size(op2.reg), op1, op2, addr);
+						Store(il, get_register_size(op1.reg), op1, op2, addr);
 					});
 			break;
 		case ARMV7_VSUB:
