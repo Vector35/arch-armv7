@@ -34,6 +34,22 @@ test_cases = \
     ('linux-armv7', b'\x01\x00\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_REG.d(r1))'),
     # nop
     ('linux-armv7', b'\x00\xf0\x20\xe3', 'LLIL_NOP()'),
+    # vmov.i32 d16, #0
+    ('linux-armv7', b'\x10\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
+    # vmov.i32 q8, #0
+    ('linux-armv7', b'\x50\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x0),LLIL_LSL.o(LLIL_CONST.q(0x0),LLIL_CONST.q(0x40))))'),
+    # vmov.i32 d16, #1
+    ('linux-armv7', b'\x11\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x100000001))'),
+    # vmov.i32 q8, #1
+    ('linux-armv7', b'\x51\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x100000001),LLIL_LSL.o(LLIL_CONST.q(0x100000001),LLIL_CONST.q(0x40))))'),
+    # vmov.i16 d16, #0
+    ('linux-armv7', b'\x10\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
+    # vmov.i16 d16, #1
+    ('linux-armv7', b'\x11\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x1000100010001))'),
+    # vmov.i8 d16, #1
+    ('linux-armv7', b'\x11\x0e\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x101010101010101))'),
+    # vmov.i8 q8, #1
+    ('linux-armv7', b'\x51\x0e\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x101010101010101),LLIL_LSL.o(LLIL_CONST.q(0x101010101010101),LLIL_CONST.q(0x40))))'),
     # mov r2, r0
     ('linux-thumb2', b'\x02\x46', 'LLIL_SET_REG.d(r2,LLIL_REG.d(r0))'),
     # cmp r1, r2

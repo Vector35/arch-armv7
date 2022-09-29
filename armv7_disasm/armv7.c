@@ -839,12 +839,12 @@ uint32_t simdExpandImm(uint32_t op, uint32_t cmode, uint64_t imm8, uint64_t* res
 			 break;
 		case 4:
 			 testImm = 0;
-			 *result = imm8;
+			 *result = (imm8 << 48) | (imm8 << 32) | (imm8 << 16) | imm8;
 			 *dt = DT_I16;
 			 break;
 		case 5:
 			 testImm = 1;
-			 *result = (imm8 << 8);
+			 *result = (imm8 << 56) | (imm8 << 40) | (imm8 << 24) | (imm8 << 8);
 			 *dt = DT_I16;
 			 break;
 		case 6:
@@ -862,7 +862,8 @@ uint32_t simdExpandImm(uint32_t op, uint32_t cmode, uint64_t imm8, uint64_t* res
 				if (op == 0)
 				{
 					*dt = DT_I8;
-					*result = imm8;
+					*result = (imm8 << 56) | (imm8 << 48) | (imm8 << 40) | (imm8 << 32) |
+						(imm8 << 24) | (imm8 << 16) | (imm8 << 8) | imm8;
 				}
 				else
 				{

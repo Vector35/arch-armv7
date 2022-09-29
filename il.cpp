@@ -4894,6 +4894,20 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				ConditionExecute(il, instr.cond,
 					SetRegisterOrBranch(il, op1.reg,
 						ReadILOperand(il, op2, addr), flagOperation[instr.setsFlags]));
+			} else if (op1.cls == REG && (op2.cls == IMM || op2.cls == IMM64) && op3.cls == NONE) {
+			/* VMOV(immediate) */
+				if (get_register_size(op1.reg) == 16)
+				{
+					ConditionExecute(il, instr.cond,
+						SetRegisterOrBranch(il, op1.reg,
+							il.Or(16, il.Const(8, op2.imm64), il.ShiftLeft(16, il.Const(8, op2.imm64), il.Const(8, 64))),
+								flagOperation[instr.setsFlags]));
+				} else
+				{
+					ConditionExecute(il, instr.cond,
+						SetRegisterOrBranch(il, op1.reg,
+							il.Const(get_register_size(op1.reg), op2.imm64), flagOperation[instr.setsFlags]));
+				}
 			} else
 			{
 				ConditionExecute(il, instr.cond, il.Unimplemented());
