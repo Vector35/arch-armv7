@@ -3,6 +3,8 @@
 #include "binaryninjaapi.h"
 #include "armv7.h"
 
+#define BINARYNINJA_MANUAL_RELOCATION ((uint64_t)-2)
+
 class ArmCommonArchitecture: public BinaryNinja::Architecture
 {
 protected:
