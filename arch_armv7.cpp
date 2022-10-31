@@ -2567,6 +2567,18 @@ public:
 class ArmMachORelocationHandler: public RelocationHandler
 {
 public:
+	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc,
+		uint8_t* dest, size_t len) override
+	{
+		auto info = reloc->GetInfo();
+		if (info.nativeType == BINARYNINJA_MANUAL_RELOCATION)
+		{  // Magic number defined in MachOView.cpp for tagged pointers
+			*(uint32_t*)dest = (uint32_t)info.target;
+		}
+
+		return true;
+	}
+
 	virtual bool GetRelocationInfo(Ref<BinaryView> view, Ref<Architecture> arch, vector<BNRelocationInfo>& result) override
 	{
 		(void)view;
@@ -3167,8 +3179,10 @@ static void RegisterArmArchitecture(const char* armName, const char* thumbName, 
 	armv7->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
 	armv7->RegisterRelocationHandler("PE", new ArmPERelocationHandler());
 	armv7->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
-	thumb2->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
+
 	thumb2->RegisterRelocationHandler("ELF", new ArmElfRelocationHandler());
+	thumb2->RegisterRelocationHandler("Mach-O", new ArmMachORelocationHandler());
+	thumb2->RegisterRelocationHandler("COFF", new ArmCOFFRelocationHandler());
 
 	armv7->GetStandalonePlatform()->AddRelatedPlatform(thumb2, thumb2->GetStandalonePlatform());
 	thumb2->GetStandalonePlatform()->AddRelatedPlatform(armv7, armv7->GetStandalonePlatform());
