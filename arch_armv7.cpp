@@ -683,138 +683,6 @@ protected:
 
 	void SetInstructionInfoForInstruction(uint64_t addr, const Instruction& instr, InstructionInfo& result)
 	{
-		result.length = 4;
-
-		switch (instr.operation)
-		{
-		case ARMV7_BL:
-			if (UNCONDITIONAL(instr.cond) && (instr.operands[0].cls == LABEL))
-				result.AddBranch(CallDestination, instr.operands[0].imm, this);
-			break;
-		case ARMV7_BLX:
-			result.archTransitionByTargetAddr = true;
-			if (UNCONDITIONAL(instr.cond))
-			{
-				if (instr.operands[0].cls == LABEL)
-					result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
-				else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
-					result.AddBranch(FunctionReturn);
-			}
-			break;
-		case ARMV7_BX:
-			if (UNCONDITIONAL(instr.cond))
-			{
-				if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
-					result.AddBranch(FunctionReturn);
-				else
-				{
-					result.AddBranch(UnresolvedBranch);
-					result.archTransitionByTargetAddr = true;
-				}
-			}
-			else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
-				result.AddBranch(FalseBranch, addr + 4, this);
-			break;
-		case ARMV7_B:
-			if (UNCONDITIONAL(instr.cond))
-				result.AddBranch(UnconditionalBranch, instr.operands[0].imm, this);
-			else
-			{
-				result.AddBranch(TrueBranch, instr.operands[0].imm, this);
-				result.AddBranch(FalseBranch, addr + 4, this);
-			}
-			break;
-		case ARMV7_POP:
-			//if pop with PC in the register list treat as a return
-			if (instr.operands[0].cls == REG_LIST && ((instr.operands[0].reg & REG_LIST_PC) == REG_LIST_PC))
-			{
-				result.AddBranch(FunctionReturn);
-				if (!UNCONDITIONAL(instr.cond))
-					result.AddBranch(FalseBranch, addr + 4, this);
-			}
-			break;
-		case ARMV7_LDM:
-		case ARMV7_LDMDA:
-		case ARMV7_LDMDB:
-		case ARMV7_LDMIA: // defaults to ARMV7_LDM
-		case ARMV7_LDMIB:
-			//if this is an unconditional load multiple with PC in the register list treat as a return
-			if (UNCONDITIONAL(instr.cond))
-			{
-				if (instr.operands[1].cls == REG_LIST && ((RegisterList)instr.operands[1].reg == REG_LIST_PC))
-				{
-					result.archTransitionByTargetAddr = true;
-					result.AddBranch(UnresolvedBranch);
-				}
-				else if (instr.operands[1].cls == REG_LIST && ((instr.operands[1].reg & REG_LIST_PC) == REG_LIST_PC))
-					result.AddBranch(FunctionReturn);
-			}
-			break;
-		case ARMV7_ADC:
-		case ARMV7_ADD:
-		case ARMV7_AND:
-		case ARMV7_ASR:
-		case ARMV7_BIC:
-		case ARMV7_EOR:
-		case ARMV7_LDR:
-		case ARMV7_LSL:
-		case ARMV7_LSR:
-		case ARMV7_MOV:
-		case ARMV7_MVN:
-		case ARMV7_ORR:
-		case ARMV7_ROR:
-		case ARMV7_RRX:
-		case ARMV7_RSB:
-		case ARMV7_RSC:
-		case ARMV7_SUB:
-		case ARMV7_SBC:
-			if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_PC)
-			{
-				result.archTransitionByTargetAddr = true;
-				result.AddBranch(UnresolvedBranch);
-				if (!UNCONDITIONAL(instr.cond))
-					result.AddBranch(FalseBranch, addr + 4, this);
-			}
-			break;
-		case ARMV7_MOVW:
-		case ARMV7_MOVT:
-		case ARMV7_LDRT:
-		case ARMV7_LDRH:
-		case ARMV7_LDRHT:
-		case ARMV7_LDRB:
-		case ARMV7_LDRBT:
-		case ARMV7_LDRSH:
-		case ARMV7_LDRSHT:
-		case ARMV7_LDRSB:
-		case ARMV7_LDRSBT:
-		case ARMV7_LDRD:
-		case ARMV7_ADR:
-		case ARMV7_UBFX:
-		case ARMV7_UXTAB:
-		case ARMV7_UXTB:
-		case ARMV7_UXTH:
-		case ARMV7_MUL:
-		case ARMV7_SDIV:
-		case ARMV7_UDIV:
-		case ARMV7_SBFX:
-		case ARMV7_SXTB:
-		case ARMV7_SXTH:
-		case ARMV7_BFC:
-		case ARMV7_BFI:
-		case ARMV7_CLZ:
-			if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_PC)
-				result.AddBranch(UnresolvedBranch);
-			break;
-		case ARMV7_SVC:
-			if (instr.operands[0].cls == IMM && instr.operands[0].imm == 0)
-				result.AddBranch(SystemCall);
-			break;
-		case ARMV7_UDF:
-			result.AddBranch(ExceptionBranch);
-			break;
-		default:
-			break;
-		}
 	}
 
 	uint32_t tokenize_shift(const InstructionOperand& op, vector<InstructionTextToken>& result)
@@ -1086,6 +954,11 @@ public:
 
 	virtual size_t GetMaxInstructionLength() const override
 	{
+		return 8;
+	}
+
+	virtual size_t GetOpcodeDisplayLength() const override
+	{
 		return 4;
 	}
 
@@ -1098,7 +971,177 @@ public:
 		if (!Disassemble(data, addr, maxLen, instr))
 			return false;
 
-		SetInstructionInfoForInstruction(addr, instr, result);
+		result.length = 4;
+
+		switch (instr.operation)
+		{
+		case ARMV7_BL:
+			if (UNCONDITIONAL(instr.cond) && (instr.operands[0].cls == LABEL))
+				result.AddBranch(CallDestination, instr.operands[0].imm, this);
+			break;
+		case ARMV7_BLX:
+			result.archTransitionByTargetAddr = true;
+			if (UNCONDITIONAL(instr.cond))
+			{
+				if (instr.operands[0].cls == LABEL)
+					result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
+				else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
+					result.AddBranch(FunctionReturn);
+			}
+			break;
+		case ARMV7_BX:
+			if (UNCONDITIONAL(instr.cond))
+			{
+				if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
+					result.AddBranch(FunctionReturn);
+				else
+				{
+					result.AddBranch(UnresolvedBranch);
+					result.archTransitionByTargetAddr = true;
+				}
+			}
+			else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
+				result.AddBranch(FalseBranch, addr + 4, this);
+			break;
+		case ARMV7_B:
+			if (UNCONDITIONAL(instr.cond))
+				result.AddBranch(UnconditionalBranch, instr.operands[0].imm, this);
+			else
+			{
+				result.AddBranch(TrueBranch, instr.operands[0].imm, this);
+				result.AddBranch(FalseBranch, addr + 4, this);
+			}
+			break;
+		case ARMV7_POP:
+			//if pop with PC in the register list treat as a return
+			if (instr.operands[0].cls == REG_LIST && ((instr.operands[0].reg & REG_LIST_PC) == REG_LIST_PC))
+			{
+				result.AddBranch(FunctionReturn);
+				if (!UNCONDITIONAL(instr.cond))
+					result.AddBranch(FalseBranch, addr + 4, this);
+			}
+			break;
+		case ARMV7_LDM:
+		case ARMV7_LDMDA:
+		case ARMV7_LDMDB:
+		case ARMV7_LDMIA: // defaults to ARMV7_LDM
+		case ARMV7_LDMIB:
+			//if this is an unconditional load multiple with PC in the register list treat as a return
+			if (UNCONDITIONAL(instr.cond))
+			{
+				if (instr.operands[1].cls == REG_LIST && ((RegisterList)instr.operands[1].reg == REG_LIST_PC))
+				{
+					result.archTransitionByTargetAddr = true;
+					result.AddBranch(UnresolvedBranch);
+				}
+				else if (instr.operands[1].cls == REG_LIST && ((instr.operands[1].reg & REG_LIST_PC) == REG_LIST_PC))
+					result.AddBranch(FunctionReturn);
+			}
+			break;
+		case ARMV7_MOV:
+			if (UNCONDITIONAL(instr.cond) && instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR && instr.operands[1].cls == REG && instr.operands[1].reg == REG_PC)
+			{
+				Instruction next;
+				if (Disassemble(data + 4, addr + 4, maxLen - 4, next) && UNCONDITIONAL(next.cond) && next.operands[0].cls == REG && next.operands[0].reg == REG_PC)
+				{
+					// keep in sync with the lifting to not report two-instruction sequences that can be interpreted as a call
+					// as a block-ending unresolved branch
+					switch (next.operation)
+					{
+					case ARMV7_ADC:
+					case ARMV7_ADD:
+					case ARMV7_AND:
+					case ARMV7_ASR:
+					case ARMV7_BIC:
+					case ARMV7_EOR:
+					case ARMV7_LDR:
+					case ARMV7_LSL:
+					case ARMV7_LSR:
+					case ARMV7_MOV:
+					case ARMV7_MVN:
+					case ARMV7_ORR:
+					case ARMV7_ROR:
+					case ARMV7_RRX:
+					case ARMV7_RSB:
+					case ARMV7_RSC:
+					case ARMV7_SUB:
+					case ARMV7_SBC:
+					case ARMV7_BX:
+					{
+						result.length = 8;
+						return true;
+					}
+					default:
+						break;
+					};
+				}
+			}
+			// fallthrough
+		case ARMV7_ADC:
+		case ARMV7_ADD:
+		case ARMV7_AND:
+		case ARMV7_ASR:
+		case ARMV7_BIC:
+		case ARMV7_EOR:
+		case ARMV7_LDR:
+		case ARMV7_LSL:
+		case ARMV7_LSR:
+		case ARMV7_MVN:
+		case ARMV7_ORR:
+		case ARMV7_ROR:
+		case ARMV7_RRX:
+		case ARMV7_RSB:
+		case ARMV7_RSC:
+		case ARMV7_SUB:
+		case ARMV7_SBC:
+			if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_PC)
+			{
+				result.archTransitionByTargetAddr = true;
+				result.AddBranch(UnresolvedBranch);
+				if (!UNCONDITIONAL(instr.cond))
+					result.AddBranch(FalseBranch, addr + 4, this);
+			}
+			break;
+		case ARMV7_MOVW:
+		case ARMV7_MOVT:
+		case ARMV7_LDRT:
+		case ARMV7_LDRH:
+		case ARMV7_LDRHT:
+		case ARMV7_LDRB:
+		case ARMV7_LDRBT:
+		case ARMV7_LDRSH:
+		case ARMV7_LDRSHT:
+		case ARMV7_LDRSB:
+		case ARMV7_LDRSBT:
+		case ARMV7_LDRD:
+		case ARMV7_ADR:
+		case ARMV7_UBFX:
+		case ARMV7_UXTAB:
+		case ARMV7_UXTB:
+		case ARMV7_UXTH:
+		case ARMV7_MUL:
+		case ARMV7_SDIV:
+		case ARMV7_UDIV:
+		case ARMV7_SBFX:
+		case ARMV7_SXTB:
+		case ARMV7_SXTH:
+		case ARMV7_BFC:
+		case ARMV7_BFI:
+		case ARMV7_CLZ:
+			if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_PC)
+				result.AddBranch(UnresolvedBranch);
+			break;
+		case ARMV7_SVC:
+			if (instr.operands[0].cls == IMM && instr.operands[0].imm == 0)
+				result.AddBranch(SystemCall);
+			break;
+		case ARMV7_UDF:
+			result.AddBranch(ExceptionBranch);
+			break;
+		default:
+			break;
+		}
+
 		return true;
 	}
 
