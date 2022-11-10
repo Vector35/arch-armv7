@@ -8207,7 +8207,7 @@ uint32_t get_register_names(Register reg, const char** regNames, OperandClass cl
 	return 0;
 }
 
-uint32_t get_register_list(InstructionOperand* op, char* out, OperandClass cls)
+uint32_t get_register_list(InstructionOperand* op, char* out, size_t outLength, OperandClass cls)
 {
 	const char* regbuf[32] = {0};
 	get_register_names(op->reg, regbuf, cls);
@@ -8215,22 +8215,23 @@ uint32_t get_register_list(InstructionOperand* op, char* out, OperandClass cls)
 	if (out == NULL)
 		return 1;
 
+	char* end = out + outLength;
 	out[0] = '\0';
-	for (uint32_t i = 0; i < 32; i++)
+	for (uint32_t i = 0; i < 32 && out < end; i++)
 	{
 		if (regbuf[i] != 0)
 		{
 			if (first == 0)
-				out += sprintf(out, ", ");
+				out += snprintf(out, end - out, ", ");
 
 			first = 0;
-			out += sprintf(out, "%s", regbuf[i]);
+			out += snprintf(out, end - out, "%s", regbuf[i]);
 			if (op->flags.hasElements == 1)
 			{
 				if (op->flags.emptyElement == 1)
-					out += sprintf(out, "[]");
+					out += snprintf(out, end - out, "[]");
 				else
-					out += sprintf(out, "[%d]", op->imm);
+					out += snprintf(out, end - out, "[%d]", op->imm);
 			}
 		}
 	}
@@ -8275,12 +8276,13 @@ uint32_t armv7_disassemble(
 	memset(operands, 0, sizeof(operands));
 
 	char* start = (char*)&operands;
+	char* end = start + sizeof(operands);
 
-	for (uint32_t i = 0; i < MAX_OPERANDS && instruction->operands[i].cls != NONE; i++)
+	for (uint32_t i = 0; i < MAX_OPERANDS && instruction->operands[i].cls != NONE && start < end; i++)
 	{
 		InstructionOperand* op = &instruction->operands[i];
 		if (i != 0)
-			start += sprintf(start, ", ");
+			start += snprintf(start, end - start, ", ");
 		switch (op->cls)
 		{
 		case REG:
@@ -8291,17 +8293,17 @@ uint32_t armv7_disassemble(
 				if (op->flags.hasElements == 1)
 				{
 					if (op->flags.emptyElement == 1)
-						start += sprintf(start, "%s[]", get_register_name(op->reg));
+						start += snprintf(start, end - start, "%s[]", get_register_name(op->reg));
 					else
-						start += sprintf(start, "%s[%d]", get_register_name(op->reg), op->imm);
+						start += snprintf(start, end - start, "%s[%d]", get_register_name(op->reg), op->imm);
 				}
 				else if (op->shift == SHIFT_NONE)
 				{
-					start += sprintf(start, "%s%s", get_register_name(op->reg), wb[op->flags.wb]);
+					start += snprintf(start, end - start, "%s%s", get_register_name(op->reg), wb[op->flags.wb]);
 				}
 				else if (op->flags.offsetRegUsed == 1)
 				{   //shifted by register
-					start += sprintf(start, "%s, %s %s",
+					start += snprintf(start, end - start, "%s, %s %s",
 								get_register_name(op->reg),
 								get_shift(op->shift),
 								get_register_name(op->offset));
@@ -8309,72 +8311,72 @@ uint32_t armv7_disassemble(
 				else
 				{   //shifted by immediate
 					if (op->shift == SHIFT_RRX)
-						start += sprintf(start, "%s, %s",
+						start += snprintf(start, end - start, "%s, %s",
 									get_register_name(op->reg),
 									get_shift(op->shift));
 					else if (op->imm != 0)
-						start += sprintf(start, "%s, %s #%#x",
+						start += snprintf(start, end - start, "%s, %s #%#x",
 									get_register_name(op->reg),
 									get_shift(op->shift),
 									op->imm);
 					else
-						start += sprintf(start, "%s", get_register_name(op->reg));
+						start += snprintf(start, end - start, "%s", get_register_name(op->reg));
 				}
 				break;
 			case REG_LIST:
 			case REG_LIST_SINGLE:
 			case REG_LIST_DOUBLE:
-				get_register_list(op, tmpOperand, op->cls);
-				start += sprintf(start, "{%s}%s", tmpOperand, crt[op->flags.wb]);
+				get_register_list(op, tmpOperand, sizeof(tmpOperand), op->cls);
+				start += snprintf(start, end - start, "{%s}%s", tmpOperand, crt[op->flags.wb]);
 				break;
 			case REG_SPEC:
-				start += sprintf(start, "%s", get_spec_register_name(op->regs));
+				start += snprintf(start, end - start, "%s", get_spec_register_name(op->regs));
 				break;
 			case REG_BANKED:
-				start += sprintf(start, "%s", get_banked_register_name(op->regb));
+				start += snprintf(start, end - start, "%s", get_banked_register_name(op->regb));
 				break;
 			case REG_COPROCP:
-				start += sprintf(start, "%s", get_coproc_register_p_name(op->regp));
+				start += snprintf(start, end - start, "%s", get_coproc_register_p_name(op->regp));
 				break;
 			case REG_COPROCC:
-				start += sprintf(start, "%s", get_coproc_register_c_name(op->regc));
+				start += snprintf(start, end - start, "%s", get_coproc_register_c_name(op->regc));
 				break;
 			case IFLAGS:
-				start += sprintf(start, "%s", get_iflag(op->iflag));
+				start += snprintf(start, end - start, "%s", get_iflag(op->iflag));
 				break;
 			case ENDIAN_SPEC:
-				start += sprintf(start, "%s", get_endian(op->endian));
+				start += snprintf(start, end - start, "%s", get_endian(op->endian));
 				break;
 			case DSB_OPTION:
-				start += sprintf(start, "%s", get_dsb_option(op->dsbOpt));
+				start += snprintf(start, end - start, "%s", get_dsb_option(op->dsbOpt));
 				break;
 			case IMM:
-				start += sprintf(start, "#%#x", op->imm);
+				start += snprintf(start, end - start, "#%#x", op->imm);
 				break;
 			case LABEL:
-				start += sprintf(start, "%#x", op->imm);
+				start += snprintf(start, end - start, "%#x", op->imm);
 				break;
 			case IMM64:
-				start += sprintf(start, "#%#" PRIx64, op->imm64);
+				start += snprintf(start, end - start, "#%#" PRIx64, op->imm64);
 				break;
 			case FIMM32:
-				start += sprintf(start, "#%f", op->immf);
+				start += snprintf(start, end - start, "#%f", op->immf);
 				break;
 			case FIMM64:
-				start += sprintf(start, "#%e", op->immd);
+				start += snprintf(start, end - start, "#%e", op->immd);
 				break;
 			case MEM_ALIGNED:
 				if (op->imm != 0)
-					sprintf(tmpOperand, ":%#x", op->imm);
+					snprintf(tmpOperand, sizeof(tmpOperand), ":%#x", op->imm);
 				else
 					tmpOperand[0] = 0;
-				start += sprintf(start, "[%s%s]%s",
+				start += snprintf(start, end - start, "[%s%s]%s",
 						get_register_name(op->reg),
 						tmpOperand,
 						wb[op->flags.wb]);
 				break;
 			case MEM_OPTION:
-				start += sprintf(start, "[%s], {%#x}",
+				start += snprintf(start, end - start, "[%s], {%#x}",
 						get_register_name(op->reg),
 						op->imm);
 				break;
@@ -8382,25 +8384,25 @@ uint32_t armv7_disassemble(
 				if (op->flags.offsetRegUsed == 1)
 				{
 					if (op->imm == 0)
-						sprintf(tmpOperand, "%s", get_register_name(op->offset));
+						snprintf(tmpOperand, sizeof(tmpOperand), "%s", get_register_name(op->offset));
 					else if (op->shift == SHIFT_RRX)
-						sprintf(tmpOperand,"%s, %s",
+						snprintf(tmpOperand, sizeof(tmpOperand), "%s, %s",
 							get_register_name(op->offset),
 							get_shift(op->shift));
 					else
-						sprintf(tmpOperand, "%s, %s #%#x",
+						snprintf(tmpOperand, sizeof(tmpOperand), "%s, %s #%#x",
 							get_register_name(op->offset),
 							get_shift(op->shift),
 							op->imm);
 
-					start += sprintf(start, "[%s, %s%s]!",
+					start += snprintf(start, end - start, "[%s, %s%s]!",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							tmpOperand);
 				}
 				else
 				{
-					start += sprintf(start, "[%s, #%s%#x]!",
+					start += snprintf(start, end - start, "[%s, #%s%#x]!",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							op->imm);
@@ -8410,21 +8412,21 @@ uint32_t armv7_disassemble(
 				if (op->flags.offsetRegUsed == 1)
 				{
 					if (op->imm == 0)
-						sprintf(tmpOperand, "%s", get_register_name(op->offset));
+						snprintf(tmpOperand, sizeof(tmpOperand), "%s", get_register_name(op->offset));
 					else
 						if (op->shift == SHIFT_RRX)
-							sprintf(tmpOperand, "%s, %s", get_register_name(op->offset), get_shift(op->shift));
+							snprintf(tmpOperand, sizeof(tmpOperand), "%s, %s", get_register_name(op->offset), get_shift(op->shift));
 						else
-							sprintf(tmpOperand, "%s, %s #%#x", get_register_name(op->offset), get_shift(op->shift), op->imm);
+							snprintf(tmpOperand, sizeof(tmpOperand), "%s, %s #%#x", get_register_name(op->offset), get_shift(op->shift), op->imm);
 
-					start += sprintf(start, "[%s], %s%s",
+					start += snprintf(start, end - start, "[%s], %s%s",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							tmpOperand);
 				}
 				else
 				{
-					start += sprintf(start, "[%s], #%s%#x",
+					start += snprintf(start, end - start, "[%s], #%s%#x",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							op->imm);
@@ -8435,7 +8437,7 @@ uint32_t armv7_disassemble(
 				{
 					if (op->flags.offsetRegUsed == 1)
 					{
-						start += sprintf(start, "[%s, %s%s]",
+						start += snprintf(start, end - start, "[%s, %s%s]",
 								get_register_name(op->reg),
 								neg[op->flags.add == 1],
 								get_register_name(op->offset));
@@ -8443,22 +8445,22 @@ uint32_t armv7_disassemble(
 					else
 					{
 						if (op->imm != 0)
-							start += sprintf(start, "[%s, #%s%#x]",
+							start += snprintf(start, end - start, "[%s, #%s%#x]",
 									get_register_name(op->reg),
 									neg[op->flags.add == 1],
 									op->imm);
 						else
-							start += sprintf(start, "[%s]", get_register_name(op->reg));
+							start += snprintf(start, end - start, "[%s]", get_register_name(op->reg));
 					}
 				}
 				else if (op->shift == SHIFT_RRX)
-					start += sprintf(start, "[%s, %s%s, %s]",
+					start += snprintf(start, end - start, "[%s, %s%s, %s]",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							get_register_name(op->offset),
 							get_shift(op->shift));
 				else
-					start += sprintf(start, "[%s, %s%s, %s #%#x]",
+					start += snprintf(start, end - start, "[%s, %s%s, %s #%#x]",
 							get_register_name(op->reg),
 							neg[op->flags.add == 1],
 							get_register_name(op->offset),

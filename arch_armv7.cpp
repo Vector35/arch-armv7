@@ -1177,7 +1177,7 @@ public:
 					if (instr.operands[i].flags.hasElements == 1)
 					{
 						result.emplace_back(TextToken, "[");
-						sprintf(tmpOperand, "%d", instr.operands[i].imm);
+						snprintf(tmpOperand, sizeof(tmpOperand), "%d", instr.operands[i].imm);
 						result.emplace_back(IntegerToken, tmpOperand, instr.operands[i].imm);
 						result.emplace_back(TextToken, "]");
 					}
@@ -1255,7 +1255,7 @@ public:
 				if (instr.operands[i].imm != 0)
 				{
 					result.emplace_back(TextToken, ":0x");
-					sprintf(tmpOperand, ":%#x", instr.operands[i].imm);
+					snprintf(tmpOperand, sizeof(tmpOperand), ":%#x", instr.operands[i].imm);
 					result.emplace_back(IntegerToken, tmpOperand, instr.operands[i].imm);
 				}
 				result.emplace_back(EndMemoryOperandToken, "]");
@@ -1687,7 +1687,7 @@ string ArmCommonArchitecture::GetFlagName(uint32_t flag)
 	case IL_FLAG_Q:
 		return "q";
 	default:
-		sprintf(result, "flag%" PRIu32, flag);
+		snprintf(result, sizeof(result), "flag%" PRIu32, flag);
 		return result;
 	}
 }

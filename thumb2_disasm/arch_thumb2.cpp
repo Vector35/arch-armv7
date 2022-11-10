@@ -351,9 +351,9 @@ public:
 					result.emplace_back(TextToken, "#");
 
 					if (value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 
@@ -374,9 +374,9 @@ public:
 
 				value = decomp.fields[operand.field1];
 				if (value < 10)
-					sprintf(offset, "-%d", value);
+					snprintf(offset, sizeof(offset), "-%d", value);
 				else
-					sprintf(offset, "-0x%x", value);
+					snprintf(offset, sizeof(offset), "-0x%x", value);
 				result.emplace_back(IntegerToken, offset, -(int64_t)value);
 				result.emplace_back(EndMemoryOperandToken, "]");
 				break;
@@ -405,7 +405,7 @@ public:
 					else
 						fmt = (value < 10) ? "-%d":"-0x%x";
 
-					sprintf(offset, fmt, value);
+					snprintf(offset, sizeof(offset), fmt, value);
 					result.emplace_back(IntegerToken, offset, -(int64_t)value);
 				}
 
@@ -427,9 +427,9 @@ public:
 					result.emplace_back(OperandSeparatorToken, ", ");
 					result.emplace_back(TextToken, "#");
 					if (value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 				result.emplace_back(EndMemoryOperandToken, "]");
@@ -451,12 +451,16 @@ public:
 					result.emplace_back(OperandSeparatorToken, ", ");
 					result.emplace_back(TextToken, "#");
 					if(decomp.fields[FIELD_add]) {
-						if(value < 10) sprintf(offset, "%d", value);
-						else sprintf(offset, "0x%x", value);
+						if (value < 10)
+							snprintf(offset, sizeof(offset), "%d", value);
+						else
+							snprintf(offset, sizeof(offset), "0x%x", value);
 						result.emplace_back(IntegerToken, offset, value);
 					} else {
-						if(value < 10) sprintf(offset, "-%d", value);
-						else sprintf(offset, "-0x%x", value);
+						if (value < 10)
+							snprintf(offset, sizeof(offset), "-%d", value);
+						else
+							snprintf(offset, sizeof(offset), "-0x%x", value);
 						result.emplace_back(IntegerToken, offset, -(int64_t)value);
 					}
 				}
@@ -505,20 +509,20 @@ public:
 				if(shift_n != 0) {
 					result.emplace_back(OperandSeparatorToken, ", ");
 					if(shift_t == SRType_LSL) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "lsl #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_LSR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "lsr #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_ASR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "asr #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_RRX) {
 						if(shift_n != 1) {
-							sprintf(offset, "%d", shift_n);
+							snprintf(offset, sizeof(offset), "%d", shift_n);
 							result.emplace_back(TextToken, "rrx #");
 							result.emplace_back(IntegerToken, offset, shift_n);
 						}
@@ -526,7 +530,7 @@ public:
 							result.emplace_back(TextToken, "rrx");
 						}
 					} else if(shift_t == SRType_ROR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "ror #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else {
@@ -543,7 +547,7 @@ public:
 					if(i>0)
 						result.emplace_back(OperandSeparatorToken, ", ");
 					result.emplace_back(TextToken, "ror #");
-					sprintf(buf, "%d", value);
+					snprintf(buf, sizeof(buf), "%d", value);
 					result.emplace_back(IntegerToken, buf, 1);
 				}
 
@@ -581,9 +585,9 @@ public:
 					result.emplace_back(TextToken, ", #");
 
 					if (value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 				result.emplace_back(EndMemoryOperandToken, "]");
@@ -599,9 +603,9 @@ public:
 				if (value != 0) {
 					result.emplace_back(TextToken, ", #");
 					if (value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 				result.emplace_back(EndMemoryOperandToken, "]");
@@ -628,9 +632,9 @@ public:
 						result.emplace_back(TextToken, operand.prefix);
 
 					if(imm64 < 10)
-						sprintf(offset, "%" PRIu64, imm64);
+						snprintf(offset, sizeof(offset), "%" PRIu64, imm64);
 					else
-						sprintf(offset, "0x%" PRIx64, imm64);
+						snprintf(offset, sizeof(offset), "0x%" PRIx64, imm64);
 					result.emplace_back(IntegerToken, offset, imm64);
 				}
 				/* could be closing '}' for stuff like coprocessor {<option>} in ldc */
@@ -651,9 +655,9 @@ public:
 				if (decomp.mnem == armv7::ARMV7_B || decomp.mnem == armv7::ARMV7_BL) {
 					value += 4 + (uint32_t)addr;
 					if(value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(PossibleAddressToken, offset, value);
 				} else if (decomp.mnem == armv7::ARMV7_BX || decomp.mnem == armv7::ARMV7_BLX) {
 					if (addr & 2)
@@ -661,22 +665,22 @@ public:
 					else
 						value += 4 + (uint32_t)addr;
 					if(value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(PossibleAddressToken, offset, value);
 				} else if (decomp.mnem == armv7::ARMV7_CBZ || decomp.mnem == armv7::ARMV7_CBNZ) {
 					value += (uint32_t)addr;
 					if(value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(PossibleAddressToken, offset, value);
 				} else {
 					if(value < 10)
-						sprintf(offset, "%d", value);
+						snprintf(offset, sizeof(offset), "%d", value);
 					else
-						sprintf(offset, "0x%x", value);
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 
@@ -693,8 +697,10 @@ public:
 						result.emplace_back(OperandSeparatorToken, ", ");
 					if (operand.prefix[0] != 0)
 						result.emplace_back(TextToken, operand.prefix);
-					if(value < 10) sprintf(offset, "%d", value);
-					else sprintf(offset, "0x%x", value);
+					if (value < 10)
+						snprintf(offset, sizeof(offset), "%d", value);
+					else
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				}
 				break;
@@ -707,12 +713,16 @@ public:
 
 				value = decomp.fields[operand.field0];
 				if(decomp.fields[FIELD_add]) {
-					if(value < 10) sprintf(offset, "%d", value);
-					else sprintf(offset, "0x%x", value);
+					if (value < 10)
+						snprintf(offset, sizeof(offset), "%d", value);
+					else
+						snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 				} else {
-					if(value < 10) sprintf(offset, "-%d", value);
-					else sprintf(offset, "-0x%x", value);
+					if (value < 10)
+						snprintf(offset, sizeof(offset), "-%d", value);
+					else
+						snprintf(offset, sizeof(offset), "-0x%x", value);
 					result.emplace_back(IntegerToken, offset, -(int64_t)value);
 				}
 				break;
@@ -725,12 +735,16 @@ public:
 					if (operand.prefix[0] != 0)
 						result.emplace_back(TextToken, operand.prefix);
 					if(decomp.fields[FIELD_add]) {
-						if(value < 10) sprintf(offset, "%d", value);
-						else sprintf(offset, "0x%x", value);
+						if (value < 10)
+							snprintf(offset, sizeof(offset), "%d", value);
+						else
+							snprintf(offset, sizeof(offset), "0x%x", value);
 						result.emplace_back(IntegerToken, offset, value);
 					} else {
-						if(value < 10) sprintf(offset, "-%d", value);
-						else sprintf(offset, "-0x%x", value);
+						if (value < 10)
+							snprintf(offset, sizeof(offset), "-%d", value);
+						else
+							snprintf(offset, sizeof(offset), "-0x%x", value);
 						result.emplace_back(IntegerToken, offset, -(int64_t)value);
 					}
 				}
@@ -758,7 +772,7 @@ public:
 				if(operand.prefix[0] == 'q')
 					value >>= 1;
 				/* prefix should be 'd', 'q', or 'v' */
-				sprintf(regname, "%s%d", operand.prefix, value);
+				snprintf(regname, sizeof(regname), "%s%d", operand.prefix, value);
 				if (i > 0)
 					result.emplace_back(OperandSeparatorToken, ", ");
 				result.emplace_back(RegisterToken, regname);
@@ -769,7 +783,7 @@ public:
 				if(operand.prefix[0] == 'q')
 					value >>= 1;
 				/* prefix should be 'd', 'q', or 'v' */
-				sprintf(regname, "%s%d[%d]", operand.prefix, value, decomp.fields[operand.field1]);
+				snprintf(regname, sizeof(regname), "%s%d[%d]", operand.prefix, value, decomp.fields[operand.field1]);
 				if (i > 0)
 					result.emplace_back(OperandSeparatorToken, ", ");
 				result.emplace_back(RegisterToken, regname);
@@ -778,31 +792,31 @@ public:
 			case OPERAND_FORMAT_FPSCR:
 				switch(decomp.fields[FIELD_FPSCR]) {
 					case 0:
-						sprintf(regname, "fpsid");
+						snprintf(regname, sizeof(regname), "fpsid");
 						break;
 					case 1:
-						sprintf(regname, "fpscr");
+						snprintf(regname, sizeof(regname), "fpscr");
 						break;
 					case 5:
-						sprintf(regname, "mvfr2");
+						snprintf(regname, sizeof(regname), "mvfr2");
 						break;
 					case 6:
-						sprintf(regname, "mvfr1");
+						snprintf(regname, sizeof(regname), "mvfr1");
 						break;
 					case 7:
-						sprintf(regname, "mvfr0");
+						snprintf(regname, sizeof(regname), "mvfr0");
 						break;
 					case 8:
-						sprintf(regname, "fpexc");
+						snprintf(regname, sizeof(regname), "fpexc");
 						break;
 					case 9:
-						sprintf(regname, "fpinst");
+						snprintf(regname, sizeof(regname), "fpinst");
 						break;
 					case 10:
-						sprintf(regname, "fpinst2");
+						snprintf(regname, sizeof(regname), "fpinst2");
 						break;
 					default:
-						sprintf(regname, "error");
+						snprintf(regname, sizeof(regname), "error");
 						break;
 				}
 
@@ -830,7 +844,7 @@ public:
 
 			case OPERAND_FORMAT_COPROC: /* coproc eg: "p12" */
 				value = decomp.fields[operand.field0];
-				sprintf(buf, "p%d", value);
+				snprintf(buf, sizeof(buf), "p%d", value);
 				if (i > 0)
 					result.emplace_back(OperandSeparatorToken, ", ");
 				result.emplace_back(TextToken, buf);
@@ -838,7 +852,7 @@ public:
 
 			case OPERAND_FORMAT_COPROC_REG: /* coproc register fields eg: "c4" */
 				value = decomp.fields[operand.field0];
-				sprintf(buf, "c%d", value);
+				snprintf(buf, sizeof(buf), "c%d", value);
 				if (i > 0)
 					result.emplace_back(OperandSeparatorToken, ", ");
 				result.emplace_back(TextToken, buf);
@@ -852,7 +866,7 @@ public:
 				if(decomp.group == INSN_GROUP_NEON) {
 					unsigned int n = decomp.fields[FIELD_n];
 
-					sprintf(regname, "d%d", n);
+					snprintf(regname, sizeof(regname), "d%d", n);
 					result.emplace_back(RegisterToken, regname);
 
 					if(IS_FIELD_PRESENT(&decomp, FIELD_length)) {
@@ -864,7 +878,7 @@ public:
 
 						for(int i=1; i<length; ++i) {
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "d%d", (n+i*inc)%32);
+							snprintf(regname, sizeof(regname), "d%d", (n + i * inc) % 32);
 							result.emplace_back(RegisterToken, regname);
 						}
 					}
@@ -891,11 +905,11 @@ public:
 
 						int length = decomp.fields[FIELD_length];
 
-						sprintf(regname, "d%d[%d]", d, index);
+						snprintf(regname, sizeof(regname), "d%d[%d]", d, index);
 						result.emplace_back(RegisterToken, regname);
 						for(int i=1; i<length; ++i) {
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "d%d[%d]", (d+i*inc)%32, index);
+							snprintf(regname, sizeof(regname), "d%d[%d]", (d + i * inc) % 32, index);
 							result.emplace_back(RegisterToken, regname);
 						}
 					}
@@ -923,7 +937,7 @@ public:
 					}
 					unsigned int d = decomp.fields[FIELD_d];
 
-					sprintf(regname, "%c%d%s", leader, d, operand.suffix);
+					snprintf(regname, sizeof(regname), "%c%d%s", leader, d, operand.suffix);
 					result.emplace_back(RegisterToken, regname);
 
 					if(IS_FIELD_PRESENT(&decomp, FIELD_regs)) {
@@ -937,7 +951,7 @@ public:
 							if (d+(i*inc) >= 32 && leader == 's') break;
 							if (i >= 16 && leader == 'd') break;
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "%c%d%s", leader, (d+i*inc)%32, operand.suffix);
+							snprintf(regname, sizeof(regname), "%c%d%s", leader, (d + i * inc) % 32, operand.suffix);
 							result.emplace_back(RegisterToken, regname);
 						}
 					}
@@ -950,17 +964,17 @@ public:
 
 						if(d2>=0) {
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "d%d%s", decomp.fields[FIELD_d2] % 32, operand.suffix);
+							snprintf(regname, sizeof(regname), "d%d%s", decomp.fields[FIELD_d2] % 32, operand.suffix);
 							result.emplace_back(RegisterToken, regname);
 						}
 						if(d3>=0) {
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "d%d%s", decomp.fields[FIELD_d3] % 32, operand.suffix);
+							snprintf(regname, sizeof(regname), "d%d%s", decomp.fields[FIELD_d3] % 32, operand.suffix);
 							result.emplace_back(RegisterToken, regname);
 						}
 						if(d4>=0) {
 							result.emplace_back(OperandSeparatorToken, ", ");
-							sprintf(regname, "d%d%s", decomp.fields[FIELD_d4] % 32, operand.suffix);
+							snprintf(regname, sizeof(regname), "d%d%s", decomp.fields[FIELD_d4] % 32, operand.suffix);
 							result.emplace_back(RegisterToken, regname);
 						}
 					}
@@ -1011,7 +1025,7 @@ public:
 				result.emplace_back(RegisterToken, regname);
 				if(value != 1) {
 					result.emplace_back(TextToken, ":");
-					sprintf(offset, "0x%x", value);
+					snprintf(offset, sizeof(offset), "0x%x", value);
 					result.emplace_back(IntegerToken, offset, value);
 
 				}
@@ -1035,20 +1049,20 @@ public:
 					if (i > 0)
 						result.emplace_back(OperandSeparatorToken, ", ");
 					if(shift_t == SRType_LSL) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "lsl #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_LSR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "lsr #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_ASR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "asr #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else if(shift_t == SRType_RRX) {
 						if(shift_n != 1) {
-							sprintf(offset, "%d", shift_n);
+							snprintf(offset, sizeof(offset), "%d", shift_n);
 							result.emplace_back(TextToken, "rrx #");
 							result.emplace_back(IntegerToken, offset, shift_n);
 						}
@@ -1056,7 +1070,7 @@ public:
 							result.emplace_back(TextToken, "rrx");
 						}
 					} else if(shift_t == SRType_ROR) {
-						sprintf(offset, "%d", shift_n);
+						snprintf(offset, sizeof(offset), "%d", shift_n);
 						result.emplace_back(TextToken, "ror #");
 						result.emplace_back(IntegerToken, offset, shift_n);
 					} else {
@@ -1105,7 +1119,7 @@ public:
 					if(do_lookup)
 						result.emplace_back(TextToken, lookup[opt]);
 					else {
-						sprintf(buf, "#0x%x", opt);
+						snprintf(buf, sizeof(buf), "#0x%x", opt);
 						result.emplace_back(TextToken, buf);
 					}
 				}
@@ -1135,12 +1149,16 @@ public:
 				result.emplace_back(TextToken, "#");
 
 				if (add) {
-					if (imm32 < 10) sprintf(offset, "%d", imm32);
-					else sprintf(offset, "0x%x", imm32);
+					if (imm32 < 10)
+						snprintf(offset, sizeof(offset), "%d", imm32);
+					else
+						snprintf(offset, sizeof(offset), "0x%x", imm32);
 					result.emplace_back(IntegerToken, offset, imm32);
 				} else {
-					if (imm32 < 10) sprintf(offset, "-%d", imm32);
-					else sprintf(offset, "-0x%x", imm32);
+					if (imm32 < 10)
+						snprintf(offset, sizeof(offset), "-%d", imm32);
+					else
+						snprintf(offset, sizeof(offset), "-0x%x", imm32);
 					result.emplace_back(IntegerToken, offset, -(int64_t)imm32);
 				}
 
@@ -1155,7 +1173,7 @@ public:
 				if(reg == 15)
 					result.emplace_back(RegisterToken, "apsr_nzcv");
 				else {
-					sprintf(regname, "R%d", reg);
+					snprintf(regname, sizeof(regname), "R%d", reg);
 					result.emplace_back(RegisterToken, regname);
 				}
 				break;
@@ -1180,13 +1198,13 @@ public:
 						/* is it SPSR write? */
 						if(decomp.fields[FIELD_write_spsr]) {
 							if(mask)
-								sprintf(buf, "spsr_%s%s%s%s", f, s, x, c);
+								snprintf(buf, sizeof(buf), "spsr_%s%s%s%s", f, s, x, c);
 							else
 								strcpy(buf, "spsr");
 						}
 						else {
 							if(mask)
-								sprintf(buf, "cpsr_%s%s%s%s", f, s, x, c);
+								snprintf(buf, sizeof(buf), "cpsr_%s%s%s%s", f, s, x, c);
 							else
 								strcpy(buf, "cpsr");
 						}
