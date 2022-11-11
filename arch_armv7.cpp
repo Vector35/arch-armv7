@@ -803,7 +803,11 @@ protected:
 		case ARMV7_BFI:
 		case ARMV7_CLZ:
 			if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_PC)
+			{
 				result.AddBranch(UnresolvedBranch);
+				if (!UNCONDITIONAL(instr.cond))
+					result.AddBranch(FalseBranch, addr + 4, this);
+			}
 			break;
 		case ARMV7_SVC:
 			if (instr.operands[0].cls == IMM && instr.operands[0].imm == 0)
