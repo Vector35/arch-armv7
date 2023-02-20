@@ -285,8 +285,10 @@ std::string get_thumb_operation_name(struct decomp_result* result)
 			if(value != COND_AL)
 				contents += get_thumb_condition_name(value);
 		}
+#ifdef DEBUG_DISASM
 		else
 			cout << "ERROR: invalid condition code index" << value << endl;
+#endif
 	}
 
 	if(format->operationFlags & INSTR_FORMAT_FLAG_NEON_SIZE) {
