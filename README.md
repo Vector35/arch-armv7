@@ -1,6 +1,9 @@
 # arch-armv7
 This is the ARMv7 plugin that ships with Binary Ninja.
 
+## Issues
+Issues for this repository have been disabled. Please file an issue for this repository at https://github.com/Vector35/binaryninja-api/issues. All previously existing issues for this repository have been transferred there as well. 
+
 ## Contributing
 
 If you're interested in contributing when you submit your first PR, you'll receive a notice from [CLA Assistant](https://cla-assistant.io/) that allows you to sign our [Contribution License Agreement](https://binary.ninja/cla.pdf) online. 
