@@ -1628,10 +1628,17 @@ public:
 					{
 						len = 8;
 						il.SetCurrentAddress(this, addr + 4);
+						size_t nextInstr = il.GetInstructionCount();
 						GetLowLevelILForArmInstruction(this, addr + 4, il, branchInstr, GetAddressSize());
-						auto tgtInstr = il.GetInstruction(il.GetInstructionCount() - 1);
-						il.ReplaceExpr(tgtInstr.exprIndex, il.Call(tgtInstr.GetDestExpr<LLIL_JUMP>().exprIndex));
-						return true;
+						for (; nextInstr < il.GetInstructionCount(); nextInstr++)
+						{
+							if (auto tgtInstr = il.GetInstruction(nextInstr); tgtInstr.operation == LLIL_JUMP)
+							{
+								il.ReplaceExpr(tgtInstr.exprIndex, il.Call(tgtInstr.GetDestExpr<LLIL_JUMP>().exprIndex));
+								return true;
+							}
+						}
+						break;
 					}
 					default:
 						break;
