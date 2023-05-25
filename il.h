@@ -64,4 +64,4 @@ bool GetLowLevelILForThumbInstruction(BinaryNinja::Architecture* arch,
     BinaryNinja::LowLevelILFunction& il, decomp_result *instr, bool ifThenBlock = false);
 void SetupThumbConditionalInstructionIL(BinaryNinja::LowLevelILFunction& il, BinaryNinja::LowLevelILLabel& trueLabel,
     BinaryNinja::LowLevelILLabel& falseLabel, uint32_t cond);
-BinaryNinja::ExprId GetCondition(BinaryNinja::LowLevelILFunction& il, armv7::Condition cond);
+BinaryNinja::ExprId GetCondition(BinaryNinja::LowLevelILFunction& il, uint32_t cond);

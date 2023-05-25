@@ -373,7 +373,7 @@ static ExprId GetMemoryAddress(LowLevelILFunction& il, decomp_result* instr, siz
 }
 
 
-static ExprId GetCondition(LowLevelILFunction& il, uint32_t cond)
+ExprId GetCondition(LowLevelILFunction& il, uint32_t cond)
 {
 	switch(cond)
 	{
