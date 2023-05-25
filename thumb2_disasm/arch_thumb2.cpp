@@ -1473,82 +1473,74 @@ public:
 			uint32_t offset = decomp.instrSize / 8;
 			uint32_t mask = decomp.fields[FIELD_mask];
 			uint32_t cond = decomp.fields[FIELD_firstcond];
-			size_t instrCount;
-			bool hasElse;
 
-			// Calculate number of instructions and if any "else" instructions are present
-			if (decomp.fields[FIELD_mask] & 1) {
+			// Calculate number of instructions
+			size_t instrCount;
+			if (decomp.fields[FIELD_mask] & 1)
 				instrCount = 4;
-				hasElse = decomp.fields[FIELD_mask] != ((cond & 1) ? 0b1111 : 0);
-			}
-			else if (decomp.fields[FIELD_mask] & 2) {
+			else if (decomp.fields[FIELD_mask] & 2)
 				instrCount = 3;
-				hasElse = decomp.fields[FIELD_mask] != ((cond & 1) ? 0b1110 : 0);
-			}
-			else if (decomp.fields[FIELD_mask] & 4) {
+			else if (decomp.fields[FIELD_mask] & 4)
 				instrCount = 2;
-				hasElse = decomp.fields[FIELD_mask] != ((cond & 1) ? 0b1100 : 0);
+			else
+				instrCount = 1;
+
+			// decompose all instructions in the if-then block
+			vector<uint32_t> addrsTrue, addrsFalse;
+			vector<decomp_result> decompsTrue, decompsFalse;
+
+			for (size_t i = 0; i < instrCount; i++)
+			{
+				bool isTrue = (i == 0) || (((mask >> (4 - i)) & 1) == (cond & 1));
+
+				populateDecomposeRequest(&request, data+offset, len-offset, addr+offset,
+					IFTHEN_YES, ((i + 1) >= instrCount) ? IFTHENLAST_YES : IFTHENLAST_NO);
+
+				if (thumb_decompose(&request, &decomp) != STATUS_OK)
+					return false;
+				if ((offset + (decomp.instrSize / 8)) > len)
+					return false;
+				if ((decomp.status & STATUS_UNDEFINED) || (!decomp.format))
+					return false;
+
+				if (isTrue) {
+					addrsTrue.push_back(request.addr);
+					decompsTrue.push_back(decomp);
+				}
+				else {
+					addrsFalse.push_back(request.addr);
+					decompsFalse.push_back(decomp);
+				}
+
+				offset += decomp.instrSize / 8;
+			}
+
+			// generate IL
+			LowLevelILLabel labelTrue, labelFalse, labelDone;
+
+			il.AddInstruction(il.If(GetCondition(il, cond), labelTrue, labelFalse));
+
+			// generate IL for "true" if-else members
+			il.MarkLabel(labelTrue);
+
+			for (size_t i = 0; i < decompsTrue.size(); i++)
+			{
+				il.SetCurrentAddress(this, addrsTrue[i]);
+				GetLowLevelILForThumbInstruction(this, il, &(decompsTrue[i]), true);
+			}
+
+			if (decompsFalse.empty()) {
+				il.MarkLabel(labelFalse);
 			}
 			else {
-				instrCount = 1;
-				hasElse = false;
-			}
+				il.AddInstruction(il.Goto(labelDone));
+				il.MarkLabel(labelFalse);
 
-			if (hasElse)
-			{
-				return false;
-
-				for (size_t i = 0; i < instrCount; i++)
+				// generate IL for "false" if-else members
+				for (int i = 0; i < decompsFalse.size(); i++)
 				{
-					populateDecomposeRequest(&request, data+offset, len-offset, addr+offset,
-						IFTHEN_YES, ((i + 1) >= instrCount) ? IFTHENLAST_YES : IFTHENLAST_NO);
-
-					if (thumb_decompose(&request, &decomp) != STATUS_OK)
-						return false;
-					if ((offset + (decomp.instrSize / 8)) > len)
-						return false;
-					if ((decomp.status & STATUS_UNDEFINED) || (!decomp.format))
-						return false;
-					offset += decomp.instrSize / 8;
-
-					il.SetCurrentAddress(this, request.addr);
-
-					LowLevelILLabel exec, done;
-					if ((i == 0) || (((mask >> (4 - i)) & 1) == (cond & 1)))
-						SetupThumbConditionalInstructionIL(il, exec, done, cond);
-					else
-						SetupThumbConditionalInstructionIL(il, exec, done, cond ^ 1);
-
-					il.MarkLabel(exec);
-					GetLowLevelILForThumbInstruction(this, il, &decomp, true);
-					il.AddInstruction(il.Goto(done));
-					il.MarkLabel(done);
-				}
-			}
-			else
-			{
-				LowLevelILLabel labelExec, labelDone;
-
-				il.AddInstruction(il.If(GetCondition(il, cond), labelExec, labelDone));
-
-				il.MarkLabel(labelExec);
-
-				for (size_t i = 0; i < instrCount; i++)
-				{
-					populateDecomposeRequest(&request, data+offset, len-offset, addr+offset,
-						IFTHEN_YES, ((i + 1) >= instrCount) ? IFTHENLAST_YES : IFTHENLAST_NO);
-
-					if (thumb_decompose(&request, &decomp) != STATUS_OK)
-						return false;
-					if ((offset + (decomp.instrSize / 8)) > len)
-						return false;
-					if ((decomp.status & STATUS_UNDEFINED) || (!decomp.format))
-						return false;
-					offset += decomp.instrSize / 8;
-
-					il.SetCurrentAddress(this, request.addr);
-
-					GetLowLevelILForThumbInstruction(this, il, &decomp, true);
+					il.SetCurrentAddress(this, addrsFalse[i]);
+					GetLowLevelILForThumbInstruction(this, il, &(decompsFalse[i]), true);
 				}
 
 				il.MarkLabel(labelDone);
