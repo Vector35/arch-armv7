@@ -4550,6 +4550,11 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 							il.Const(get_register_size(op1.reg), (get_register_size(op1.reg)*8)-16))));
 			break;
 			*/
+        	case ARMV7_TEQ:  // copied from V7 CMP and Thumb2, probably wrong
+			ConditionExecute(il, instr.cond, il.Xor(get_register_size(op1.reg),
+				ReadRegisterOrPointer(il, op1, addr),
+				ReadILOperand(il, op2, addr), IL_FLAGWRITE_CNZ));
+			break;			
 		case ARMV7_TST:
 			ConditionExecute(il, instr.cond, il.And(get_register_size(op1.reg),
 				ReadRegisterOrPointer(il, op1, addr),
