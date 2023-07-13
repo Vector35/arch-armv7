@@ -5,8 +5,9 @@ test_cases_arm = [
 	(b'\xe4\x7a\x9f\xed', 'LLIL_SET_REG(s14,LLIL_LOAD(LLIL_ADD(LLIL_CONST_PTR(4104),LLIL_CONST(912))))'), # vldr s14, [pc, #0x390]
 	(b'\x00\x7a\xcd\xed', 'LLIL_STORE(LLIL_REG(sp),LLIL_REG(s15))'), # vstr s15, [sp]
 	(b'\x90\x2a\x17\xee', 'LLIL_SET_REG(r2,LLIL_REG(s15))'), # vmov r2, s15
-	# r0 = (r1 & 0b11111111111111111111111111100011) | (r1 & 0b11100)
-	(b'\x11\x01\xc4\xe7', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_AND(LLIL_REG(r1),LLIL_CONST(28))))'), # bfi r0, r1, #2, #3
+	# encoding A1 of BFI
+	# r0 = (r1 & 0b11111111111111111111111111100011) | ((r1 & 0b111) << 2)
+	(b'\x11\x01\xc4\xe7', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_LSL(LLIL_AND(LLIL_REG(r1),LLIL_CONST(7)),LLIL_CONST(2))))'), # bfi r0, r1, #2, #3
 	# temp0 = r2*r3; r0=tmp0&0xFFFFFFFF; r1=tmp0>>32 ... LOGICAL shift since mul is unsigned
 	(b'\x92\x03\x81\xe0', 'LLIL_SET_REG(temp0,LLIL_MUL(LLIL_REG(r2),LLIL_REG(r3))); LLIL_SET_REG(r0,LLIL_LOW_PART(LLIL_REG(temp0))); LLIL_SET_REG(r1,LLIL_LSR(LLIL_REG(temp0),LLIL_CONST(32)))'), # umull r0, r1, r2, r3
 	# same, but ARITHMETIC shift since mul is signed
@@ -57,8 +58,8 @@ test_cases_thumb2 = [
 	(b'\x92\xfb\xf3\xf1', 'LLIL_SET_REG(r1,LLIL_DIVS(LLIL_REG(r2),LLIL_REG(r3)))'), # sdiv r1, r2, r3
 	# same as arm
 	(b'\xb2\xfb\xf3\xf1', 'LLIL_SET_REG(r1,LLIL_DIVU(LLIL_REG(r2),LLIL_REG(r3)))'), # udiv r1, r2, r3
-	# this should lift the same as its arm encoding
-	(b'\x61\xf3\x84\x00', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_AND(LLIL_REG(r1),LLIL_CONST(28))))'), # bfi r0, r1, #2, #3
+	# encoding T1 of BFI should lift the same as encoding A1
+	(b'\x61\xf3\x84\x00', 'LLIL_SET_REG(r0,LLIL_OR(LLIL_AND(LLIL_REG(r0),LLIL_CONST(4294967267)),LLIL_LSL(LLIL_AND(LLIL_REG(r1),LLIL_CONST(7)),LLIL_CONST(2))))'), # bfi r0, r1, #2, #3
 	(b'\xb1\xfa\x81\xf0', 'LLIL_SET_REG(temp0,LLIL_CONST(0)); LLIL_SET_REG(temp1,LLIL_REG(r1)); LLIL_GOTO(3); LLIL_IF(LLIL_CMP_NE(LLIL_REG(temp1),LLIL_CONST(0)),4,7); LLIL_SET_REG(temp1,LLIL_LSR(LLIL_REG(temp1),LLIL_CONST(1))); LLIL_SET_REG(temp0,LLIL_ADD(LLIL_REG(temp0),LLIL_CONST(1))); LLIL_GOTO(3); LLIL_SET_REG(r0,LLIL_SUB(LLIL_CONST(32),LLIL_REG(temp0)))'), # 'clz r0, r1'
 	(b'\x00\xbf', ''), # nop, gets optmized from function
 ]
