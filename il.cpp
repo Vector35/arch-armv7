@@ -4523,11 +4523,26 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				});
 			break;
 		case ARMV7_SXTH:
-			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
-				il.ArithShiftRight(get_register_size(op1.reg),
-					il.ShiftLeft(get_register_size(op1.reg), ReadRegisterOrPointer(il, op2, addr), il.Const(get_register_size(op1.reg), get_register_size(op1.reg)-16)),
-					il.Const(get_register_size(op1.reg), (get_register_size(op1.reg)*8)-16))));
+		{
+			ExprId source = il.Register(4, op2.reg);
+
+			if (op2.shift == SHIFT_ROR and op2.imm)
+				source = il.RotateRight(4, source, il.Const(1, op2.imm));
+
+			ConditionExecute(il, instr.cond,
+				il.SetRegister(4,
+					op1.reg,
+					il.SignExtend(4,
+						il.LowPart(2,
+							source
+						)
+					)
+				)
+			);
+
 			break;
+		}
+
 		/*case ARMV7_SXTW:
 			ConditionExecute(il, instr.cond, SetRegisterOrBranch(il, op1.reg,
 						il.ArithShiftRight(get_register_size(op1.reg),

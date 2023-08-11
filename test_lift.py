@@ -2,6 +2,15 @@
 
 test_cases = \
 [
+    # sxth    r0, r1, ror  #0
+    ('linux-armv7', b'\x71\x00\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_REG.d(r1))))'),
+    # sxth    r0, r1, ror  #0x8
+    ('linux-armv7', b'\x71\x04\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x8)))))'),
+    # sxth    r0, r1, ror  #0x10
+    ('linux-armv7', b'\x71\x08\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x10)))))'),
+    # sxth    r0, r1, ror  #0x18
+    ('linux-armv7', b'\x71\x0c\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x18)))))'),
+
     # ror r0, r1
     ('linux-armv7', b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
     # ror r0, 7
