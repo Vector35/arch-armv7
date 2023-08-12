@@ -4526,7 +4526,7 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 		{
 			ExprId source = il.Register(4, op2.reg);
 
-			if (op2.shift == SHIFT_ROR and op2.imm)
+			if (op2.shift == SHIFT_ROR && op2.imm)
 				source = il.RotateRight(4, source, il.Const(1, op2.imm));
 
 			ConditionExecute(il, instr.cond,
