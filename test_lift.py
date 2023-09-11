@@ -2,6 +2,15 @@
 
 test_cases = \
 [
+    # teq r0, #0
+    ('linux-armv7', b'\x00\x00\x30\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r0),LLIL_CONST.d(0x0))'),
+    # teq r1, #1
+    ('linux-armv7', b'\x01\x00\x31\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r1),LLIL_CONST.d(0x1))'),
+    # teq r2, #2
+    ('linux-armv7', b'\x02\x00\x32\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r2),LLIL_CONST.d(0x2))'),
+    # teq r3, #3
+    ('linux-armv7', b'\x03\x00\x33\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r3),LLIL_CONST.d(0x3))'),
+
     # sxth    r0, r1, ror  #0
     ('linux-armv7', b'\x71\x00\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_REG.d(r1))))'),
     # sxth    r0, r1, ror  #0x8
