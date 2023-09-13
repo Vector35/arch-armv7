@@ -2,6 +2,10 @@
 
 test_cases = \
 [
+    # umull r0, r1, r2, r3
+    ('linux-armv7', b'\x92\x03\x81\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULU_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
+    # smull r0, r1, r2, r3
+    ('linux-armv7', b'\x92\x03\xc1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULS_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
     # teq r0, #0
     ('linux-armv7', b'\x00\x00\x30\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r0),LLIL_CONST.d(0x0))'),
     # teq r1, #1

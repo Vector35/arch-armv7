@@ -3695,27 +3695,27 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				});
 			break;
 		case ARMV7_UMULL:
-			ConditionExecute(addrSize, instr.cond, instr, il,
-				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
-				{
-					(void) addrSize;
-					(void) instr;
-
-					il.AddInstruction(il.SetRegister(8, LLIL_TEMP(0), il.Mult(8, ReadILOperand(il, op3, addr), ReadILOperand(il, op4, addr))));
-					il.AddInstruction(il.SetRegister(4, op1.reg, il.LowPart(4, il.Register(8, LLIL_TEMP(0)))));
-					il.AddInstruction(il.SetRegister(4, op2.reg, il.LogicalShiftRight(4, il.Register(8, LLIL_TEMP(0)), il.Const(1, 32))));
-				});
-			break;
 		case ARMV7_SMULL:
+			/* op2:op1 = op3 * op4 */
 			ConditionExecute(addrSize, instr.cond, instr, il,
 				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
 				{
 					(void) addrSize;
 					(void) instr;
 
-					il.AddInstruction(il.SetRegister(8, LLIL_TEMP(0), il.Mult(8, ReadILOperand(il, op3, addr), ReadILOperand(il, op4, addr))));
-					il.AddInstruction(il.SetRegister(4, op1.reg, il.LowPart(4, il.Register(8, LLIL_TEMP(0)))));
-					il.AddInstruction(il.SetRegister(4, op2.reg, il.ArithShiftRight(4, il.Register(8, LLIL_TEMP(0)), il.Const(1, 32))));
+					ExprId product;
+					if (instr.operation == ARMV7_UMULL)
+						product = il.MultDoublePrecUnsigned(get_register_size(op3.reg), ReadILOperand(il, op3, addr), ReadILOperand(il, op4, addr));
+					else
+						product = il.MultDoublePrecSigned(get_register_size(op3.reg), ReadILOperand(il, op3, addr), ReadILOperand(il, op4, addr));
+
+					il.AddInstruction(
+						il.SetRegisterSplit(get_register_size(op1.reg),
+							op2.reg,
+							op1.reg,
+							product
+						)
+					);
 				});
 			break;
 		case ARMV7_SMULBB:
