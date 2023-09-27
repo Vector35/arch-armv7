@@ -2,7 +2,13 @@
 
 test_cases = \
 [
-    # umull r0, r1, r2, r3
+    # umaal r0, r1, r2, r3
+    ('linux-armv7', b'\x92\x03\x41\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_ADD.q(LLIL_REG.d(r1),LLIL_REG.d(r0))))'),
+    # umlal r0, r1, r2, r3
+    ('linux-armv7', b'\x92\x03\xa1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
+    # umlals r0, r1, r2, r3
+    ('linux-armv7', b'\x92\x03\xb1\xe0', 'LLIL_SET_REG_SPLIT.d{nz}(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
+    # umulls r0, r1, r2, r3
     ('linux-armv7', b'\x92\x03\x81\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULU_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
     # smull r0, r1, r2, r3
     ('linux-armv7', b'\x92\x03\xc1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULS_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
@@ -151,6 +157,10 @@ def il_str_to_tree(ilstr):
         elif c == ',':
             result += '\n'
             result += '    '*depth
+        elif c == ';':
+            result += '\n'
+            depth = 0
+        elif c == ' ':
             pass
         else:
             result += c
@@ -159,6 +169,9 @@ def il_str_to_tree(ilstr):
 def test_all():
     for (test_i, (platform, data, expected)) in enumerate(test_cases):
         actual = instr_to_il(data, platform)
+
+        #print(f'{test_i:04d} {data.hex()} {actual}')
+
         if actual != expected:
             print('MISMATCH AT TEST %d!' % test_i)
             print('\t   input: %s' % data.hex())
@@ -179,6 +192,5 @@ if __name__ == '__main__':
         sys.exit(-1)
 
 if __name__ == 'test_lift':
-    #if test_all():
-    #    print('success!')
-    pass
+    if test_all():
+        print('success!')

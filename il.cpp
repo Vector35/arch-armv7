@@ -2399,68 +2399,57 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 				});
 			break;
 		case ARMV7_UMAAL:
+			/* op2:op1 = op4 * op3 + op2 + op1 */
 			ConditionExecute(addrSize, instr.cond, instr, il,
 				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
 				{
 					(void) addrSize;
 					(void) instr;
 
-					il.AddInstruction(il.SetRegister(8, LLIL_TEMP(0),
-						il.Add(8,
+					il.AddInstruction(
+						il.SetRegisterSplit(4,
+							op2.reg, /* hi result */
+							op1.reg, /* lo result */
 							il.Add(8,
-								il.Mult(8,
-									ReadILOperand(il, op3, addr),
-									ReadILOperand(il, op4, addr)
+								il.MultDoublePrecUnsigned(4,
+									il.Register(4, op4.reg),
+									il.Register(4, op3.reg)
 								),
-								ReadILOperand(il, op2, addr)
-							),
-							ReadILOperand(il, op1, addr)
+								il.Add(8,
+									il.Register(4, op2.reg),
+									il.Register(4, op1.reg)
+								)
+							)
 						)
-					));
-
-					il.AddInstruction(il.SetRegister(4, op2.reg,
-						il.LogicalShiftRight(4,
-							il.Register(8, LLIL_TEMP(0)),
-							il.Const(1,32)
-						)
-					));
-					il.AddInstruction(il.SetRegister(4, op1.reg,
-						il.Register(4, LLIL_TEMP(0)),
-					flagOperation[instr.setsFlags]));
+					);
 				});
 			break;
 		case ARMV7_UMLAL:
+			/* op2:op1 = op4 * op3 + op2:op1 */
 			ConditionExecute(addrSize, instr.cond, instr, il,
 				[&](size_t addrSize, Instruction& instr, LowLevelILFunction& il)
 				{
 					(void) addrSize;
 					(void) instr;
 
-					il.AddInstruction(il.SetRegister(8, LLIL_TEMP(0),
-						il.Add(8,
-							il.Mult(8,
-								ReadILOperand(il, op3, addr),
-								ReadILOperand(il, op4, addr)
-							),
-							il.Or(8,
-								il.ShiftLeft(8,
-									ReadILOperand(il, op2, addr),
-									il.Const(1, 32)
+					il.AddInstruction(
+						il.SetRegisterSplit(4,
+							op2.reg, /* hi result */
+							op1.reg, /* lo result */
+							il.Add(8,
+								il.MultDoublePrecUnsigned(4,
+									il.Register(4, op4.reg),
+									il.Register(4, op3.reg)
 								),
-								ReadILOperand(il, op1, addr)
-							)
+								il.RegisterSplit(
+									4,
+									op2.reg,
+									op1.reg
+								)
+							),
+							instr.setsFlags ? IL_FLAGWRITE_NZ : IL_FLAGWRITE_NONE
 						)
-					));
-
-					il.AddInstruction(il.SetRegister(4, op2.reg,
-						il.LogicalShiftRight(4,
-							il.Register(8, LLIL_TEMP(0)),
-							il.Const(1,32)
-						)
-					));
-					il.AddInstruction(il.SetRegister(4, op1.reg,
-						il.Register(4, LLIL_TEMP(0)),
-					flagOperation[instr.setsFlags]));
+					);
 				});
 			break;
 		case ARMV7_SSUB16: //TODO: APSR
