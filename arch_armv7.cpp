@@ -2245,9 +2245,10 @@ public:
 	virtual bool ApplyRelocation(Ref<BinaryView> view, Ref<Architecture> arch, Ref<Relocation> reloc, uint8_t* dest, size_t len) override
 	{
 		(void)view;
-		auto info = reloc->GetInfo();
+		BNRelocationInfo info = reloc->GetInfo();
 		if (len < info.size)
 			return false;
+		Ref<Symbol> sym = reloc->GetSymbol();
 		uint32_t target = (uint32_t)reloc->GetTarget();
 		uint32_t* dest32 = (uint32_t*)dest;
 
@@ -2335,7 +2336,6 @@ public:
 			}
 			case R_ARM_PREL31:
 			{
-				auto sym = reloc->GetSymbol();
 				// if (sym)
 				// {
 				// 	LogError("%lx sym: %s dest32[0] %lx target: %lx", reloc->GetAddress(), sym->GetFullName().c_str(), dest32[0], target);
@@ -2399,6 +2399,16 @@ public:
 				mov->imm4 = (newTarget >> 28) & 0xf;
 				break;
 			}
+			case R_ARM_TLS_DTPMOD32:
+				/* Default to module index 0. */
+				dest32[0] = 0;
+				break;
+			case R_ARM_TLS_DTPOFF32:
+			{
+				if (sym)
+					dest32[0] = sym->GetAddress();
+				break;
+			}
 			default:
 				return RelocationHandler::ApplyRelocation(view, arch, reloc, dest, len);
 		}
@@ -2455,6 +2465,13 @@ public:
 				reloc.baseRelative = true;
 				reloc.type = ELFJumpSlotRelocationType;
 				break;
+			case R_ARM_TLS_DTPMOD32:
+				 /* Prevent higher level behavior based on associated symbol
+				    (we'll do that for the corresponding R_ARM_TLS_DTPOFF32). */
+				reloc.symbolIndex = 0;
+				break;
+			case R_ARM_TLS_DTPOFF32:
+				break;
 			case R_ARM_SBREL31:
 			case R_ARM_PC24:
 			case R_ARM_LDR_PC_G0:
@@ -2465,8 +2482,6 @@ public:
 			case R_ARM_BREL_ADJ:
 			case R_ARM_TLS_DESC:
 			case R_ARM_XPC25:
-			case R_ARM_TLS_DTPMOD32:
-			case R_ARM_TLS_DTPOFF32:
 			case R_ARM_TLS_TPOFF32:
 			case R_ARM_GOTOFF32:
 			case R_ARM_PLT32:
