@@ -1112,6 +1112,9 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 					ReadILOperand(il, op2, addr), flagOperation[instr.setsFlags])));
 			break;
 		case ARMV7_NOP:
+		case ARMV7_DSB:
+		case ARMV7_DMB:
+		case ARMV7_ISB:
 			ConditionExecute(il, instr.cond, il.Nop());
 			break;
 		case ARMV7_ORR:
