@@ -2587,13 +2587,13 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 										il.Register(1, LLIL_TEMP(3)),
 										il.Const(1, 24)
 									),
-									il.ShiftLeft(3,
+									il.ShiftLeft(4,
 										il.Register(1, LLIL_TEMP(2)),
 										il.Const(1, 16)
 									)
 								),
 								il.Or(4,
-									il.ShiftLeft(2,
+									il.ShiftLeft(4,
 										il.Register(1, LLIL_TEMP(1)),
 										il.Const(1, 8)
 									),
@@ -2653,13 +2653,13 @@ bool GetLowLevelILForArmInstruction(Architecture* arch, uint64_t addr, LowLevelI
 										il.Register(1, LLIL_TEMP(3)),
 										il.Const(1, 24)
 									),
-									il.ShiftLeft(3,
+									il.ShiftLeft(4,
 										il.Register(1, LLIL_TEMP(2)),
 										il.Const(1, 16)
 									)
 								),
 								il.Or(4,
-									il.ShiftLeft(2,
+									il.ShiftLeft(4,
 										il.Register(1, LLIL_TEMP(1)),
 										il.Const(1, 8)
 									),

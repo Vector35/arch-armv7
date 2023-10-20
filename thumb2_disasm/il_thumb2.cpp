@@ -1054,6 +1054,76 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		il.AddInstruction(WriteArithOperand(il, instr, il.Sub(4, ReadArithOperand(il, instr, 1),
 			ReadArithOperand(il, instr, 0), ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case armv7::ARMV7_UADD8:
+	{
+		uint32_t c = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
+		ExprId a = ReadILOperand(il, instr, 1, 4);
+		ExprId b = ReadILOperand(il, instr, 2, 4);
+		ExprId a0 = il.LowPart(1, a);
+		ExprId b0 = il.LowPart(1, b);
+		ExprId a1 = il.LowPart(1, il.LogicalShiftRight(4, a, il.Const(1, 8)));
+		ExprId b1 = il.LowPart(1, il.LogicalShiftRight(4, b, il.Const(1, 8)));
+		ExprId a2 = il.LowPart(1, il.LogicalShiftRight(4, a, il.Const(1, 16)));
+		ExprId b2 = il.LowPart(1, il.LogicalShiftRight(4, b, il.Const(1, 16)));
+		ExprId a3 = il.LowPart(1, il.LogicalShiftRight(4, a, il.Const(1, 24)));
+		ExprId b3 = il.LowPart(1, il.LogicalShiftRight(4, b, il.Const(1, 24)));
+
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(1, a0, b0)));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), il.Add(1, a1, b1)));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(2), il.Add(1, a2, b2)));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(3), il.Add(1, a3, b3)));
+
+		il.AddInstruction(
+			il.SetRegister(4, c,
+				il.Or(4,
+					il.Or(4,
+						il.ShiftLeft(4,
+							il.Register(1, LLIL_TEMP(3)),
+							il.Const(1, 24)
+						),
+						il.ShiftLeft(4,
+							il.Register(1, LLIL_TEMP(2)),
+							il.Const(1, 16)
+						)
+					),
+					il.Or(4,
+						il.ShiftLeft(4,
+							il.Register(1, LLIL_TEMP(1)),
+							il.Const(1, 8)
+						),
+						il.Register(1, LLIL_TEMP(0))
+					)
+				)
+			)
+		);
+		break;
+	}
+	case armv7::ARMV7_UADD16:
+	{
+		uint32_t c = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
+		ExprId a = ReadILOperand(il, instr, 1, 4);
+		ExprId b = ReadILOperand(il, instr, 2, 4);
+		ExprId a0 = il.LowPart(2, a);
+		ExprId b0 = il.LowPart(2, b);
+		ExprId a1 = il.LowPart(2, il.LogicalShiftRight(4, a, il.Const(1, 16)));
+		ExprId b1 = il.LowPart(2, il.LogicalShiftRight(4, b, il.Const(1, 16)));
+
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), il.Add(2, a0, b0)));
+		il.AddInstruction(il.SetRegister(4, LLIL_TEMP(1), il.Add(2, a1, b1)));
+
+		il.AddInstruction(
+			il.SetRegister(4, c,
+				il.Or(4,
+					il.ShiftLeft(4,
+						il.Register(1, LLIL_TEMP(0)),
+						il.Const(1, 16)
+					),
+					il.Register(1, LLIL_TEMP(1))
+				)
+			)
+		);
+		break;
+	}
 	case armv7::ARMV7_UDIV:
 		il.AddInstruction(WriteArithOperand(il, instr, il.DivUnsigned(4, ReadArithOperand(il, instr, 0), ReadArithOperand(il, instr, 1))));
 		break;
