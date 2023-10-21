@@ -846,6 +846,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	}
 	case armv7::ARMV7_LDA:
 	case armv7::ARMV7_LDR:
+	case armv7::ARMV7_LDREX:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -859,6 +860,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_LDAB:
 	case armv7::ARMV7_LDRB:
+	case armv7::ARMV7_LDREXB:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -874,6 +876,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_LDAH:
 	case armv7::ARMV7_LDRH:
+	case armv7::ARMV7_LDREXH:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -888,6 +891,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		}
 		break;
 	case armv7::ARMV7_LDRD:
+	case armv7::ARMV7_LDREXD:
 		{
 			ExprId mem;
 
@@ -1219,6 +1223,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	}
 	case armv7::ARMV7_STL:
 	case armv7::ARMV7_STR:
+	//case armv7::ARMV7_STREX:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -1232,6 +1237,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_STLB:
 	case armv7::ARMV7_STRB:
+	//case armv7::ARMV7_STREXB:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -1245,6 +1251,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		break;
 	case armv7::ARMV7_STLH:
 	case armv7::ARMV7_STRH:
+	//case armv7::ARMV7_STREXH:
 		if (instr->format->operandCount == 3)
 		{
 			uint32_t reg = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
@@ -1257,6 +1264,7 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 		}
 		break;
 	case armv7::ARMV7_STRD:
+	//case armv7::ARMV7_STREXD:
 		{
 			ExprId mem;
 
