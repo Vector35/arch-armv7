@@ -3,93 +3,90 @@
 test_cases = \
 [
     # umaal r0, r1, r2, r3
-    ('linux-armv7', b'\x92\x03\x41\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_ADD.q(LLIL_REG.d(r1),LLIL_REG.d(r0))))'),
+    ('A', b'\x92\x03\x41\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_ADD.q(LLIL_REG.d(r1),LLIL_REG.d(r0))))'),
     # umlal r0, r1, r2, r3
-    ('linux-armv7', b'\x92\x03\xa1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
+    ('A', b'\x92\x03\xa1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
     # umlals r0, r1, r2, r3
-    ('linux-armv7', b'\x92\x03\xb1\xe0', 'LLIL_SET_REG_SPLIT.d{nz}(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
+    ('A', b'\x92\x03\xb1\xe0', 'LLIL_SET_REG_SPLIT.d{nz}(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
     # umulls r0, r1, r2, r3
-    ('linux-armv7', b'\x92\x03\x81\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULU_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
+    ('A', b'\x92\x03\x81\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULU_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
     # smull r0, r1, r2, r3
-    ('linux-armv7', b'\x92\x03\xc1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULS_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
+    ('A', b'\x92\x03\xc1\xe0', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_MULS_DP.d(LLIL_REG.d(r2),LLIL_REG.d(r3)))'),
     # teq r0, #0
-    ('linux-armv7', b'\x00\x00\x30\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r0),LLIL_CONST.d(0x0))'),
+    ('A', b'\x00\x00\x30\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r0),LLIL_CONST.d(0x0))'),
     # teq r1, #1
-    ('linux-armv7', b'\x01\x00\x31\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r1),LLIL_CONST.d(0x1))'),
+    ('A', b'\x01\x00\x31\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r1),LLIL_CONST.d(0x1))'),
     # teq r2, #2
-    ('linux-armv7', b'\x02\x00\x32\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r2),LLIL_CONST.d(0x2))'),
+    ('A', b'\x02\x00\x32\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r2),LLIL_CONST.d(0x2))'),
     # teq r3, #3
-    ('linux-armv7', b'\x03\x00\x33\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r3),LLIL_CONST.d(0x3))'),
+    ('A', b'\x03\x00\x33\xe3', 'LLIL_XOR.d{cnz}(LLIL_REG.d(r3),LLIL_CONST.d(0x3))'),
 
     # sxth    r0, r1, ror  #0
-    ('linux-armv7', b'\x71\x00\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_REG.d(r1))))'),
+    ('A', b'\x71\x00\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_REG.d(r1))))'),
     # sxth    r0, r1, ror  #0x8
-    ('linux-armv7', b'\x71\x04\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x8)))))'),
+    ('A', b'\x71\x04\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x8)))))'),
     # sxth    r0, r1, ror  #0x10
-    ('linux-armv7', b'\x71\x08\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x10)))))'),
+    ('A', b'\x71\x08\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x10)))))'),
     # sxth    r0, r1, ror  #0x18
-    ('linux-armv7', b'\x71\x0c\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x18)))))'),
+    ('A', b'\x71\x0c\xbf\xe6', 'LLIL_SET_REG.d(r0,LLIL_SX.d(LLIL_LOW_PART.w(LLIL_ROR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x18)))))'),
 
     # ror r0, r1
-    ('linux-armv7', b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    ('A', b'\x70\x01\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
     # ror r0, 7
-    ('linux-armv7', b'\xe0\x03\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
+    ('A', b'\xe0\x03\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
     # rors r0, r1
-    ('linux-armv7', b'\x70\x01\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
+    ('A', b'\x70\x01\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_REG.d(r1),LLIL_CONST.b(0xFF))))'),
     # rors r0, 7
-    ('linux-armv7', b'\xe0\x03\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
+    ('A', b'\xe0\x03\xb0\xe1', 'LLIL_SET_REG.d(r0,LLIL_ROR.d{*}(LLIL_REG.d(r0),LLIL_AND.b(LLIL_CONST.d(0x7),LLIL_CONST.b(0xFF))))'),
     # vadd.f32 s0, s1, s2
-    ('linux-armv7', b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('A', b'\x81\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FADD.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vsub.f32 s0, s1, s2
-    ('linux-armv7', b'\xc1\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FSUB.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('A', b'\xc1\x0a\x30\xee', 'LLIL_SET_REG.d(s0,LLIL_FSUB.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vmul.f32 s0, s1, s2
-    ('linux-armv7', b'\x81\x0a\x20\xee', 'LLIL_SET_REG.d(s0,LLIL_FMUL.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    ('A', b'\x81\x0a\x20\xee', 'LLIL_SET_REG.d(s0,LLIL_FMUL.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
     # vdiv.f32 s0, s1, s2
-    ('linux-armv7', b'\x81\x0a\x80\xee', 'LLIL_SET_REG.d(s0,LLIL_FDIV.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
-    # svc #0
-    # svc #1
-    # svc #2
-    # svc #3
-    ('linux-armv7', b'\x00\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x0)); LLIL_SYSCALL()'),
-    ('linux-armv7', b'\x01\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x1)); LLIL_SYSCALL()'),
-    ('linux-armv7', b'\x02\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x2)); LLIL_SYSCALL()'),
-    ('linux-armv7', b'\x03\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x3)); LLIL_SYSCALL()'),
+    ('A', b'\x81\x0a\x80\xee', 'LLIL_SET_REG.d(s0,LLIL_FDIV.d(LLIL_REG.d(s1),LLIL_REG.d(s2)))'),
+    # svc #0; svc #1; svc #2; svc #3
+    ('A', b'\x00\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x0)); LLIL_SYSCALL()'),
+    ('A', b'\x01\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x1)); LLIL_SYSCALL()'),
+    ('A', b'\x02\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x2)); LLIL_SYSCALL()'),
+    ('A', b'\x03\x00\x00\xef', 'LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0x3)); LLIL_SYSCALL()'),
     # svcle #0xDEAD
-    ('linux-armv7', b'\xAD\xDE\x00\xdf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SLE,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
+    ('A', b'\xAD\xDE\x00\xdf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SLE,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
     # svcgt #0xdead
-    ('linux-armv7', b'\xad\xde\x00\xcf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SGT,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
+    ('A', b'\xad\xde\x00\xcf', 'LLIL_IF(LLIL_FLAG_COND(LowLevelILFlagCondition.LLFC_SGT,None),1,4); LLIL_SET_REG.d(syscall_info,LLIL_CONST.d(0xDEAD)); LLIL_SYSCALL(); LLIL_GOTO(4)'),
     # mov r0, r1
-    ('linux-armv7', b'\x01\x00\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_REG.d(r1))'),
+    ('A', b'\x01\x00\xa0\xe1', 'LLIL_SET_REG.d(r0,LLIL_REG.d(r1))'),
     # nop
-    ('linux-armv7', b'\x00\xf0\x20\xe3', 'LLIL_NOP()'),
+    ('A', b'\x00\xf0\x20\xe3', 'LLIL_NOP()'),
     # vmov.i32 d16, #0
-    ('linux-armv7', b'\x10\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
+    ('A', b'\x10\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
     # vmov.i32 q8, #0
-    ('linux-armv7', b'\x50\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x0),LLIL_LSL.o(LLIL_CONST.q(0x0),LLIL_CONST.q(0x40))))'),
+    ('A', b'\x50\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x0),LLIL_LSL.o(LLIL_CONST.q(0x0),LLIL_CONST.q(0x40))))'),
     # vmov.i32 d16, #1
-    ('linux-armv7', b'\x11\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x100000001))'),
+    ('A', b'\x11\x00\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x100000001))'),
     # vmov.i32 q8, #1
-    ('linux-armv7', b'\x51\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x100000001),LLIL_LSL.o(LLIL_CONST.q(0x100000001),LLIL_CONST.q(0x40))))'),
+    ('A', b'\x51\x00\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x100000001),LLIL_LSL.o(LLIL_CONST.q(0x100000001),LLIL_CONST.q(0x40))))'),
     # vmov.i16 d16, #0
-    ('linux-armv7', b'\x10\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
+    ('A', b'\x10\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x0))'),
     # vmov.i16 d16, #1
-    ('linux-armv7', b'\x11\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x1000100010001))'),
+    ('A', b'\x11\x08\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x1000100010001))'),
     # vmov.i8 d16, #1
-    ('linux-armv7', b'\x11\x0e\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x101010101010101))'),
+    ('A', b'\x11\x0e\xc0\xf2', 'LLIL_SET_REG.q(d16,LLIL_CONST.q(0x101010101010101))'),
     # vmov.i8 q8, #1
-    ('linux-armv7', b'\x51\x0e\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x101010101010101),LLIL_LSL.o(LLIL_CONST.q(0x101010101010101),LLIL_CONST.q(0x40))))'),
+    ('A', b'\x51\x0e\xc0\xf2', 'LLIL_SET_REG.o(q8,LLIL_OR.o(LLIL_CONST.q(0x101010101010101),LLIL_LSL.o(LLIL_CONST.q(0x101010101010101),LLIL_CONST.q(0x40))))'),
     # vstr s0, [r3, #0x8]
-    ('linux-armv7', b'\x02\x0a\x83\xed', 'LLIL_STORE.d(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.d(s0))'),
+    ('A', b'\x02\x0a\x83\xed', 'LLIL_STORE.d(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.d(s0))'),
     # vstr d16, [r3, #0x8]
-    ('linux-armv7', b'\x02\x0b\xc3\xed', 'LLIL_STORE.q(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.q(d16))'),
+    ('A', b'\x02\x0b\xc3\xed', 'LLIL_STORE.q(LLIL_ADD.d(LLIL_REG.d(r3),LLIL_CONST.d(0x8)),LLIL_REG.q(d16))'),
     # mov r2, r0
-    ('linux-thumb2', b'\x02\x46', 'LLIL_SET_REG.d(r2,LLIL_REG.d(r0))'),
+    ('T', b'\x02\x46', 'LLIL_SET_REG.d(r2,LLIL_REG.d(r0))'),
     # cmp r1, r2
-    ('linux-thumb2', b'\x91\x42', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_REG.d(r2))'),
+    ('T', b'\x91\x42', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_REG.d(r2))'),
     # cmp r1, r2, lsl #7
-    ('linux-thumb2', b'\xb1\xeb\xc2\x1f', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_LSL.d(LLIL_REG.d(r2),LLIL_CONST.d(0x7)))'),
+    ('T', b'\xb1\xeb\xc2\x1f', 'LLIL_SUB.d{*}(LLIL_REG.d(r1),LLIL_LSL.d(LLIL_REG.d(r2),LLIL_CONST.d(0x7)))'),
     # uadd8   r5, r2, r12
-    ('linux-thumb2', b'\x82\xfa\x4c\xf5', 'LLIL_SET_REG.d(temp0,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_REG.d(r2)),LLIL_LOW_PART.b(LLIL_REG.d(r12)))); LLIL_SET_REG.d(temp1,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x8))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x8))))); LLIL_SET_REG.d(temp2,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x10))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x10))))); LLIL_SET_REG.d(temp3,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x18))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x18))))); LLIL_SET_REG.d(r5,LLIL_OR.d(LLIL_OR.d(LLIL_LSL.d(LLIL_REG.b(temp3),LLIL_CONST.b(0x18)),LLIL_LSL.d(LLIL_REG.b(temp2),LLIL_CONST.b(0x10))),LLIL_OR.d(LLIL_LSL.d(LLIL_REG.b(temp1),LLIL_CONST.b(0x8)),LLIL_REG.b(temp0))))')
+    ('T', b'\x82\xfa\x4c\xf5', 'LLIL_SET_REG.d(temp0,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_REG.d(r2)),LLIL_LOW_PART.b(LLIL_REG.d(r12)))); LLIL_SET_REG.d(temp1,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x8))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x8))))); LLIL_SET_REG.d(temp2,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x10))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x10))))); LLIL_SET_REG.d(temp3,LLIL_ADD.b(LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r2),LLIL_CONST.b(0x18))),LLIL_LOW_PART.b(LLIL_LSR.d(LLIL_REG.d(r12),LLIL_CONST.b(0x18))))); LLIL_SET_REG.d(r5,LLIL_OR.d(LLIL_OR.d(LLIL_LSL.d(LLIL_REG.b(temp3),LLIL_CONST.b(0x18)),LLIL_LSL.d(LLIL_REG.b(temp2),LLIL_CONST.b(0x10))),LLIL_OR.d(LLIL_LSL.d(LLIL_REG.b(temp1),LLIL_CONST.b(0x8)),LLIL_REG.b(temp0))))'),
 ]
 
 import re
@@ -120,9 +117,10 @@ def il2str(il):
 
 # TODO: make this less hacky
 def instr_to_il(data, platform):
-    RETURN = b'\x0e\xf0\xa0\xe1' # mov pc, lr
-    if platform == 'linux-thumb2':
-        RETURN = b'\xf7\x46'
+    # mov pc, lr
+    RETURN = {  'linux-armv7': b'\x0e\xf0\xa0\xe1',
+                'linux-thumb2': b'\xf7\x46'
+            }[platform]
     RETURN_LIFTED = 'LLIL_JUMP(LLIL_REG.d(lr))'
 
     platform = binaryninja.Platform[platform]
@@ -169,7 +167,8 @@ def il_str_to_tree(ilstr):
     return result
 
 def test_all():
-    for (test_i, (platform, data, expected)) in enumerate(test_cases):
+    for (test_i, (arch_name, data, expected)) in enumerate(test_cases):
+        platform = {'A':'linux-armv7', 'T':'linux-thumb2'}[arch_name]
         actual = instr_to_il(data, platform)
 
         #print(f'{test_i:04d} {data.hex()} {actual}')
