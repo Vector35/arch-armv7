@@ -92,7 +92,9 @@ test_cases = \
     # ldrexb r0, [r1]
     ('T', b'\xd1\xe8\x4f\x0f', 'LLIL_SET_REG.d(r0,LLIL_ZX.d(LLIL_LOAD.b(LLIL_REG.d(r1))))'),
     # ldrexh r0, [r1]
-    ('T', b'\xd1\xe8\x5f\x0f', 'LLIL_SET_REG.d(r0,LLIL_ZX.d(LLIL_LOAD.w(LLIL_REG.d(r1))))')
+    ('T', b'\xd1\xe8\x5f\x0f', 'LLIL_SET_REG.d(r0,LLIL_ZX.d(LLIL_LOAD.w(LLIL_REG.d(r1))))'),
+    # umlal r0, r1, r2, r3
+    ('T', b'\xe2\xfb\x03\x01', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))')
 ]
 
 import re

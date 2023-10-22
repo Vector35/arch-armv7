@@ -1335,6 +1335,26 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 	case armv7::ARMV7_UDF:
 		il.AddInstruction(il.Trap(instr->fields[instr->format->operands[0].field0]));
 		break;
+	case armv7::ARMV7_UMLAL:
+	{
+		uint32_t RdLo = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
+		uint32_t RdHi = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
+		uint32_t Rm = GetRegisterByIndex(instr->fields[instr->format->operands[2].field0]);
+		uint32_t Rn = GetRegisterByIndex(instr->fields[instr->format->operands[3].field0]);
+
+		il.AddInstruction(
+			il.SetRegisterSplit(4,
+				RdHi, /* hi result */
+				RdLo, /* lo result */
+				il.Add(8,
+					il.MultDoublePrecUnsigned(4, il.Register(4, Rn), il.Register(4, Rm)),
+					il.RegisterSplit(4, RdHi, RdLo)
+				),
+				WritesToStatus(instr, ifThenBlock) ? IL_FLAGWRITE_NZ : 0
+			)
+		);
+		break;
+	}
 	case armv7::ARMV7_UMULL:
 		il.AddInstruction(WriteSplitOperands(il, instr, 1, 0, il.MultDoublePrecUnsigned(8, ReadILOperand(il, instr, 2), ReadILOperand(il, instr, 3))));
 		break;
