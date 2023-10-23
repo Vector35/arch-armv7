@@ -94,7 +94,13 @@ test_cases = \
     # ldrexh r0, [r1]
     ('T', b'\xd1\xe8\x5f\x0f', 'LLIL_SET_REG.d(r0,LLIL_ZX.d(LLIL_LOAD.w(LLIL_REG.d(r1))))'),
     # umlal r0, r1, r2, r3
-    ('T', b'\xe2\xfb\x03\x01', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))')
+    ('T', b'\xe2\xfb\x03\x01', 'LLIL_SET_REG_SPLIT.d(r1,r0,LLIL_ADD.q(LLIL_MULU_DP.d(LLIL_REG.d(r3),LLIL_REG.d(r2)),LLIL_REG_SPLIT.d(r1,r0)))'),
+    # sbfx r0, r1, 0, 1 (starting at b0, width 1, so extract b0)
+    ('T', b'\x41\xf3\x00\x00', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_LSL.d(LLIL_REG.d(r1),LLIL_CONST.b(0x1F)),LLIL_CONST.b(0x1F)))'),
+    # sbfx r0, r1, 1, 2 (starting at b1, width 2, so extract b2b1)
+    ('T', b'\x41\xf3\x41\x00', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_LSL.d(LLIL_REG.d(r1),LLIL_CONST.b(0x1D)),LLIL_CONST.b(0x1E)))'),
+    # sbfx r0, r1, 20, 30 (starting at b20, width 30... gets clamped, so b31b30...b20
+    ('T', b'\x41\xf3\x1d\x50', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_LSL.d(LLIL_REG.d(r1),LLIL_CONST.b(0x0)),LLIL_CONST.b(0x14)))')
 ]
 
 import re

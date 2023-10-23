@@ -1146,6 +1146,31 @@ bool GetLowLevelILForThumbInstruction(Architecture* arch, LowLevelILFunction& il
 									       il.Not(1, il.Flag(IL_FLAG_C)),
 									       ifThenBlock ? 0 : IL_FLAGWRITE_ALL)));
 		break;
+	case armv7::ARMV7_SBFX:
+	{
+		uint32_t Rd = GetRegisterByIndex(instr->fields[instr->format->operands[0].field0]);
+		uint32_t Rn = GetRegisterByIndex(instr->fields[instr->format->operands[1].field0]);
+		uint8_t lsb = instr->fields[instr->format->operands[2].field0];
+		uint8_t width = instr->fields[instr->format->operands[3].field0];
+		uint8_t msb = lsb + width - 1;
+		msb = msb > 31 ? 31 : msb; /* spec says UNPREDICTABLE, we'll be tolerant */
+
+		il.AddInstruction(
+			il.SetRegister(4, Rd,
+				il.ArithShiftRight(4,
+					(31 - msb) ?
+						il.ShiftLeft(4,
+							ReadRegister(il, instr, Rn, 4),
+							il.Const(1, 31 - msb)
+						)
+						:
+						ReadRegister(il, instr, Rn, 4),
+					il.Const(1, 31 - msb + lsb)
+				)
+			)
+		);
+		break;
+	}
 	case ARMV7_SEV:
 		il.AddInstruction(il.Intrinsic({}, ARMV7_INTRIN_SEV, {}));
 		break;
