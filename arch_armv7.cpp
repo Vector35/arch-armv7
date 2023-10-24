@@ -698,7 +698,7 @@ protected:
 				if (instr.operands[0].cls == LABEL)
 					result.AddBranch(CallDestination, instr.operands[0].imm, m_thumbArch);
 				else if (instr.operands[0].cls == REG && instr.operands[0].reg == REG_LR)
-					result.AddBranch(FunctionReturn);
+					result.AddBranch(FunctionReturn); // initially indicate "blx lr" as a return since this is common and conservative; subsequent analysis determines if it's a function call
 			}
 			break;
 		case ARMV7_BX:

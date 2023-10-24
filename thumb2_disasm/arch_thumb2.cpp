@@ -232,6 +232,10 @@ public:
 					else
 						target = (decomp.fields[decomp.format->operands[0].field0] + 4 + addr) & 0xffffffffLL;
 					result.AddBranch(CallDestination, target, m_armArch);
+				} else if ((decomp.format->operands[0].type == OPERAND_FORMAT_LR) ||
+					((decomp.format->operands[0].type == OPERAND_FORMAT_REG) &&
+						(decomp.fields[decomp.format->operands[0].field0] == 14))) {
+						result.AddBranch(FunctionReturn); // initially indicate "blx lr" as a return since this is common and conservative; subsequent analysis determines if it's a function call
 				}
 				result.archTransitionByTargetAddr = true;
 			}
