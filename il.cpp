@@ -125,7 +125,7 @@ static void ConditionExecute(LowLevelILFunction& il, Condition cond, ExprId true
 }
 
 
-static ExprId GetShifted(LowLevelILFunction& il, Register reg, ExprId ShiftAmount, Shift shift)
+static ExprId GetShifted(LowLevelILFunction& il, Register reg, uint32_t ShiftAmount, Shift shift)
 {
 	if (ShiftAmount == 0)
 		return il.Register(get_register_size(reg), reg);
@@ -137,19 +137,19 @@ static ExprId GetShifted(LowLevelILFunction& il, Register reg, ExprId ShiftAmoun
 		case SHIFT_LSR:
 			return il.LogicalShiftRight(get_register_size(reg),
 					il.Register(get_register_size(reg), reg),
-					ShiftAmount);
+					il.Const(1, ShiftAmount));
 		case SHIFT_LSL:
 			return il.ShiftLeft(get_register_size(reg),
 					il.Register(get_register_size(reg), reg),
-					ShiftAmount);
+					il.Const(1, ShiftAmount));
 		case SHIFT_ASR:
 			return il.ArithShiftRight(get_register_size(reg),
 					il.Register(get_register_size(reg), reg),
-					ShiftAmount);
+					il.Const(1, ShiftAmount));
 		case SHIFT_ROR:
 			return il.RotateRight(get_register_size(reg),
 					il.Register(get_register_size(reg), reg),
-					ShiftAmount);
+					il.Const(1, ShiftAmount));
 		case SHIFT_RRX:
 			//RRX can only shift 1 at a time
 			return il.RotateRightCarry(get_register_size(reg),
@@ -163,13 +163,13 @@ static ExprId GetShifted(LowLevelILFunction& il, Register reg, ExprId ShiftAmoun
 
 static ExprId GetShiftedOffset(LowLevelILFunction& il, InstructionOperand& op)
 {
-	return GetShifted(il, op.offset, il.Const(1, op.imm), op.shift);
+	return GetShifted(il, op.offset, op.imm, op.shift);
 }
 
 
 static ExprId GetShiftedRegister(LowLevelILFunction& il, InstructionOperand& op)
 {
-	return GetShifted(il, op.reg, il.Const(1, op.imm), op.shift);
+	return GetShifted(il, op.reg, op.imm, op.shift);
 }
 
 
