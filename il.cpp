@@ -312,8 +312,21 @@ static void Load(
 					memValue = il.ZeroExtend(dstSize, memValue);
 			}
 
-			il.AddInstruction(SetRegisterOrBranch(il, dst.reg, memValue));
+			if (dst.reg == REG_PC)
+				// delay the jump if the destination is pc
+				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), memValue));
+			else
+				// otherwise directly set the register
+				il.SetRegister(get_register_size(dst.reg), dst.reg, memValue);
+			
+			// the source cannot be pc in post-indexing ldr
+			// no need to delay or handle anything special then
 			il.AddInstruction(SetRegisterOrBranch(il, src.reg, value));
+			
+			// delayed jump when the destination is pc
+			if (dst.reg == REG_PC) 
+				il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
+
 			break;
 		case MEM_IMM:
 		case LABEL:
