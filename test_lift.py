@@ -121,7 +121,8 @@ test_cases = \
     # sbfx r0, r1, 1, 2 (starting at b1, width 2, so extract b2b1)
     ('T', b'\x41\xf3\x41\x00', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_LSL.d(LLIL_REG.d(r1),LLIL_CONST.b(0x1D)),LLIL_CONST.b(0x1E)))'),
     # sbfx r0, r1, 20, 30 (starting at b20, width 30... gets clamped, so b31b30...b20
-    ('T', b'\x41\xf3\x1d\x50', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_LSL.d(LLIL_REG.d(r1),LLIL_CONST.b(0x0)),LLIL_CONST.b(0x14)))')
+    # just r0 = r1 >> 20, no left shift required
+    ('T', b'\x41\xf3\x1d\x50', 'LLIL_SET_REG.d(r0,LLIL_ASR.d(LLIL_REG.d(r1),LLIL_CONST.b(0x14)))')
 ]
 
 import re
@@ -147,6 +148,8 @@ def il2str(il):
             return '%s%s%s(%s)' % (il.operation.name, size_code, flags_code, ','.join([il2str(o) for o in il.operands]))
     elif isinstance(il, list):
         return '[' + ','.join([il2str(x) for x in il]) + ']'
+    elif type(il) == lowlevelil.LowLevelILFlagCondition:
+        return f'LowLevelILFlagCondition.{il.name}'
     else:
         return str(il)
 
