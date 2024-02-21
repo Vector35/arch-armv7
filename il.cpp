@@ -313,19 +313,18 @@ static void Load(
 			}
 
 			if (dst.reg == REG_PC)
-				// delay the jump if the destination is pc
+			{
+				// don't update Rd, update Rs, jump to pre-updated Rs
 				il.AddInstruction(il.SetRegister(4, LLIL_TEMP(0), memValue));
-			else
-				// otherwise directly set the register
-				il.SetRegister(get_register_size(dst.reg), dst.reg, memValue);
-			
-			// the source cannot be pc in post-indexing ldr
-			// no need to delay or handle anything special then
-			il.AddInstruction(SetRegisterOrBranch(il, src.reg, value));
-			
-			// delayed jump when the destination is pc
-			if (dst.reg == REG_PC) 
+				il.AddInstruction(SetRegisterOrBranch(il, src.reg, value));
 				il.AddInstruction(il.Jump(il.Register(4, LLIL_TEMP(0))));
+			}
+			else
+			{
+				// set Rd, update Rs, don't jump
+				il.AddInstruction(il.SetRegister(get_register_size(dst.reg), dst.reg, memValue));
+				il.AddInstruction(SetRegisterOrBranch(il, src.reg, value));
+			}
 
 			break;
 		case MEM_IMM:
